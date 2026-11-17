@@ -156,7 +156,7 @@ mod imp {
                 file_dialog.set_default_filter(Some(&filter));
                 filter
             });
-            filter.add_suffix("skp");
+            filter.add_suffix("txt");
             filter.add_suffix("save");
             filter.add_mime_type("text/plain");
 

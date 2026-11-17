@@ -462,8 +462,8 @@ mod imp {
             let file_dialog = FileDialog::new();
             use gettextrs::pgettext;
             file_dialog.set_initial_name(Some(&pgettext(
-                ".skp is a file extension",
-                "Sudoku puzzle.skp",
+                ".txt is a file extension",
+                "Skyscrapers puzzle.txt",
             )));
             let window: gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
             file_dialog.save(

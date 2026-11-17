@@ -732,6 +732,35 @@ mod tests {
         undo_and_redo();
         autoclean_clears_aligned_earmarks();
         possibilities();
+        bad_files();
+    }
+
+    fn bad_files() {
+        let dir = std::env::temp_dir();
+        let path = dir.join(format!("rascacielos-game-{}.save", std::process::id()));
+        let path = path.to_str().unwrap();
+        for content in ["", "{\"version\": 1}", "+..+\n....\n"] {
+            std::fs::write(path, content).unwrap();
+            assert!(SudokuGame::new_from_json(path).is_err());
+        }
+        std::fs::remove_file(path).unwrap();
+        assert!(SudokuGame::new_from_string("not a puzzle").is_err());
+        assert!(SudokuGame::new_from_ascii("#R5e").is_err());
+
+        // A saved game resumes with its values and time.
+        let game = game();
+        game.insert(pos(1, 1), 2);
+        std::fs::write(path, game.board().to_json(42.0)).unwrap();
+        let resumed = SudokuGame::new_from_json(path).unwrap();
+        std::fs::remove_file(path).unwrap();
+        assert_eq!(resumed.board().cell(pos(1, 1)).value.get(), Some(2));
+        assert_eq!(resumed.board().loaded_time, 42.0);
+        assert_eq!(resumed.board().puzzle(), game.board().puzzle());
+
+        // Exported text imports as the same puzzle.
+        let text = game.board().fixed_to_string_pretty();
+        let imported = SudokuGame::new_from_string(&text).unwrap();
+        assert_eq!(imported.board().puzzle(), game.board().puzzle());
     }
 
     fn imported_puzzles_are_solved_and_graded() {
