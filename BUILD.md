@@ -1,4 +1,4 @@
-To build Rascacielos you need `meson`, `blueprint-compiler`, `cargo` and
+To build Rascacielos you need `meson`, `cargo` and
 `rust`, and the development libraries for GTK 4 and libadwaita 1.10 or newer.
 
 The simplest way is to use the GNOME Flatpak SDK through GNOME Builder or

@@ -1,5 +1,3 @@
-subdir ('blueprints')
-
 if profile == 'Devel'
   rust_target = 'dev'
 else
@@ -12,11 +10,11 @@ source_root = meson.project_source_root()
 resources = gnome.compile_resources(
   'rascacielos',
   resource_files,
-  dependencies: blueprints,
+  dependencies: metainfo_file,
   source_dir: [
     join_paths(build_root, 'data'), #metainfo
     join_paths(source_root, 'data'), #styles
-    join_paths(meson.current_build_dir(), 'blueprints') #blueprints
+    join_paths(source_root, 'resources', 'ui'), #templates
   ],
   gresource_bundle: true
 )

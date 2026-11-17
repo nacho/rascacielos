@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.0"/>
+  <template class="SudokuPrintGeneratorDialog" parent="AdwDialog">
+    <property name="title" translatable="yes">Print Multiple Puzzles</property>
+    <property name="content-width">460</property>
+    <property name="focus-widget">print_button</property>
+    <child>
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwClamp">
+            <property name="maximum-size">400</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="AdwPreferencesGroup" id="options_group">
+                    <child>
+                      <object class="AdwSpinRow" id="puzzles_row">
+                        <property name="title" translatable="yes">_Number of Puzzles</property>
+                        <property name="use-underline">true</property>
+                        <property name="numeric">true</property>
+                        <property name="snap-to-ticks">true</property>
+                        <property name="adjustment">
+                          <object class="GtkAdjustment">
+                            <property name="lower">1</property>
+                            <!-- Divisible by 2, 3 and 4 -->
+                            <property name="upper">120</property>
+                            <property name="step-increment">1</property>
+                            <property name="page-increment">5</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwSpinRow" id="puzzles_per_page_row">
+                        <property name="title" translatable="yes">_Number of Puzzles per Page</property>
+                        <property name="use-underline">true</property>
+                        <property name="numeric">true</property>
+                        <property name="adjustment">
+                          <object class="GtkAdjustment">
+                            <property name="lower">1</property>
+                            <property name="upper">4</property>
+                            <property name="step-increment">1</property>
+                            <property name="page-increment">1</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwComboRow" id="difficulty_row">
+                        <property name="title" translatable="yes">_Difficulty</property>
+                        <property name="use-underline">true</property>
+                        <property name="model">
+                          <object class="GtkStringList">
+                            <items>
+                              <item translatable="yes">Easy</item>
+                              <item translatable="yes">Medium</item>
+                              <item translatable="yes">Hard</item>
+                              <item translatable="yes">Very Hard</item>
+                            </items>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwSwitchRow" id="print_current_puzzle_row">
+                        <property name="title" translatable="yes">Print _Current Puzzle</property>
+                        <property name="use-underline">true</property>
+                        <property name="visible">false</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="print_button">
+                    <property name="margin-top">24</property>
+                    <property name="label" translatable="yes">_Print…</property>
+                    <property name="halign">center</property>
+                    <property name="use-underline">true</property>
+                    <signal name="clicked" handler="print_button_pressed" swapped="True"/>
+                    <style>
+                      <class name="suggested-action"/>
+                      <class name="pill"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </child>
+  </template>
+</interface>

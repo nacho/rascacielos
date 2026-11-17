@@ -4,13 +4,13 @@ data/io.github.nacho.rascacielos.desktop.in.in
 data/io.github.nacho.rascacielos.gschema.xml
 data/io.github.nacho.rascacielos.metainfo.xml.in.in
 
-src/blueprints/game-view.blp
-src/blueprints/menu-button.blp
-src/blueprints/preferences-dialog.blp
-src/blueprints/print-generator-dialog.blp
-src/blueprints/start-view.blp
-src/blueprints/shortcuts-dialog.blp
-src/blueprints/window.blp
+resources/ui/game-view.ui
+resources/ui/menu-button.ui
+resources/ui/preferences-dialog.ui
+resources/ui/print-generator-dialog.ui
+resources/ui/start-view.ui
+resources/ui/shortcuts-dialog.ui
+resources/ui/window.ui
 
 src/lib/enums.rs
 
