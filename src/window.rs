@@ -43,7 +43,6 @@ use gtk::{CssProvider, gio::SimpleAction, glib::Type};
 
 use gtk::glib::closure_local;
 use gtk::glib::subclass::InitializingObject;
-use gtk::glib::timeout_add_seconds_local_once;
 use gtk::glib::{self};
 
 use std::cell::{Cell, OnceCell};
@@ -297,15 +296,11 @@ mod imp {
         fn start_generated_game_cb(&self) {
             self.start_generated_game_action.set_enabled(false);
             let backend = self.backend.get().unwrap();
-            backend.game_generate();
-            timeout_add_seconds_local_once(
-                2,
-                glib::clone!(
-                    #[weak(rename_to = win)]
-                    self,
-                    move || win.start_generated_game_action.set_enabled(true)
-                ),
-            );
+            backend.game_generate(glib::clone!(
+                #[weak(rename_to = win)]
+                self,
+                move || win.start_generated_game_action.set_enabled(true)
+            ));
         }
 
         fn new_game_cb(&self) {

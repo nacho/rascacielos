@@ -19,8 +19,8 @@
  */
 
 use fastrand::Rng;
+use gtk::glib;
 use gtk::glib::SourceId;
-use gtk::glib::{self, ThreadPool};
 use gtk::glib::{Properties, subclass::Signal};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
@@ -30,15 +30,15 @@ use crate::lib::board::SudokuError;
 use crate::lib::enums::CompatValue;
 use crate::lib::enums::Coord;
 use crate::lib::enums::DifficultyCategory;
-use crate::lib::generator;
+use crate::lib::generator::{self, Generated};
 use crate::lib::puzzle::Tier;
 use crate::lib::solver;
 
 use std::cell::{Cell, OnceCell};
 use std::collections::HashSet;
-use std::sync::Arc;
+use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 use std::{cell::RefCell, sync::OnceLock};
 
 mod imp {
@@ -261,45 +261,44 @@ impl SudokuGame {
         Self::new_from_fn(SudokuBoard::from_ascii, s)
     }
 
-    /// Generates a puzzle of size `n` and `difficulty` on every processor
-    /// and keeps the first one found.
-    pub fn new_from_generator(n: usize, difficulty: DifficultyCategory) -> Self {
+    /// Generates `count` puzzles of size `n` and `difficulty` on every
+    /// processor. Blocks until they are found.
+    pub fn generate(n: usize, difficulty: DifficultyCategory, count: usize) -> Vec<Generated> {
         let tier = difficulty.to_tier().unwrap_or(Tier::Easy);
         let time = SystemTime::now();
-        let result: Arc<OnceLock<generator::Generated>> = Arc::new(OnceLock::new());
-        let cancel = Arc::new(AtomicBool::new(false));
-        let threads = gtk::glib::num_processors();
-        let pool = ThreadPool::shared(Some(threads)).unwrap();
+        let found: Mutex<Vec<Generated>> = Default::default();
+        let cancel = AtomicBool::new(false);
 
-        for _ in 0..threads {
-            let result = result.clone();
-            let cancel = cancel.clone();
-            pool.push(move || {
-                let mut rng = Rng::new();
-                if let Some(found) = generator::generate(n, tier, &mut rng, &cancel) {
-                    result.get_or_init(|| found);
-                    cancel.store(true, Ordering::Relaxed);
-                }
-            })
-            .unwrap();
-        }
+        std::thread::scope(|scope| {
+            for _ in 0..std::thread::available_parallelism().map_or(1, |n| n.get()) {
+                scope.spawn(|| {
+                    let mut rng = Rng::new();
+                    while let Some(result) = generator::generate(n, tier, &mut rng, &cancel) {
+                        let mut found = found.lock().unwrap();
+                        if found.len() < count {
+                            found.push(result);
+                        }
+                        if found.len() >= count {
+                            cancel.store(true, Ordering::Relaxed);
+                        }
+                    }
+                });
+            }
+        });
 
-        while result.get().is_none() {
-            std::thread::sleep(Duration::from_millis(1));
-        }
+        println!(
+            "Generated {count} {n}×{n} puzzles in {}ms",
+            time.elapsed().unwrap_or_default().as_millis()
+        );
+        found.into_inner().unwrap()
+    }
 
-        let (puzzle, solution) = result.get().unwrap().clone();
+    pub fn new_from_generated(generated: Generated, difficulty: DifficultyCategory) -> Self {
+        let (puzzle, solution) = generated;
         let board = SudokuBoard::from_generated(puzzle, &solution, difficulty);
         let game: Self = glib::Object::new();
         game.imp().board.set(board).unwrap();
         game.start_clock();
-
-        let new_time = SystemTime::now();
-        println!(
-            "Multithreaded generator initialized game in {}ms",
-            new_time.duration_since(time).unwrap().as_millis()
-        );
-
         game
     }
 

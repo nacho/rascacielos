@@ -35,6 +35,8 @@ use std::time::Duration;
 
 use crate::lib::backend::SudokuBackend;
 use crate::lib::enums::DifficultyCategory;
+use crate::lib::generator;
+use crate::lib::puzzle::Tier;
 use crate::lib::utils::new_shortcut;
 use crate::menu_button::SudokuMenuButton;
 
@@ -71,6 +73,10 @@ mod imp {
         #[template_child]
         pub back_button: TemplateChild<gtk::Button>,
         #[template_child]
+        pub size_group: TemplateChild<adw::ToggleGroup>,
+        #[template_child]
+        pub very_hard_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
         pub custom_check: TemplateChild<gtk::CheckButton>,
         #[template_child]
         pub easy_check: TemplateChild<gtk::CheckButton>,
@@ -94,6 +100,30 @@ mod imp {
 
     #[gtk::template_callbacks]
     impl SudokuStartView {
+        #[template_callback]
+        fn size_changed_cb(&self) {
+            let Some(backend) = self.backend.get() else {
+                return;
+            };
+            let Some(size) = self.size_group.active_name().and_then(|n| n.parse().ok()) else {
+                return;
+            };
+            backend.set_selected_size(size);
+            self.update_available_difficulties();
+        }
+
+        /// Disables the difficulties that the selected size cannot have,
+        /// moving the selection to the hardest one left.
+        fn update_available_difficulties(&self) {
+            let size = self.backend.get().unwrap().selected_size();
+            let very_hard = generator::available(size, Tier::VeryHard);
+            self.very_hard_row.set_sensitive(very_hard);
+            if !very_hard && self.very_hard_check.is_active() {
+                self.hard_check.set_active(true);
+                self.save_selected_difficulty();
+            }
+        }
+
         #[template_callback]
         fn custom_checkbutton_activated_cb(&self, _: &adw::ActionRow) {
             if let Some(child) = self.start_open_stack.visible_child()
@@ -171,7 +201,7 @@ mod imp {
         pub fn open_fail(&self) {
             let dialog = adw::AlertDialog::new(
                 Some(&gettext(
-                    "Failed to import the puzzle, please enter a valid Sudoku puzzle",
+                    "Failed to import the puzzle, please enter a valid skyscrapers puzzle",
                 )),
                 None,
             );
@@ -257,7 +287,10 @@ mod imp {
                 .set(backend.clone())
                 .expect("Start View is already initialized");
             self.clipboard.set(self.obj().clipboard()).unwrap();
+            self.size_group
+                .set_active_name(Some(&backend.selected_size().to_string()));
             self.toggle_difficulty_checkbutton();
+            self.update_available_difficulties();
             if self.custom_check.is_active() {
                 self.start_open_stack
                     .set_visible_child(&*self.open_button_pill);

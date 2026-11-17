@@ -1,6 +1,7 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
  * This file is part of GNOME Sudoku.
  *
@@ -20,26 +21,38 @@
 
 use std::{
     cell::{Cell, RefCell},
-    collections::HashMap,
-    fs::{File, remove_file},
+    fs::File,
     io::Write,
 };
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
-use crate::lib::{board::SudokuError, enums::DifficultyCategory};
+use crate::lib::{backend::DEFAULT_SIZE, board::SudokuError, enums::DifficultyCategory};
 
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct SudokuData {
     #[serde(default)]
-    pub highscores: RefCell<HashMap<DifficultyCategory, f64>>,
+    highscores: RefCell<Vec<Highscore>>,
     #[serde(default)]
     pub print_data: RefCell<PrintData>,
     #[serde(default)]
     pub start_button_selected: Cell<DifficultyCategory>,
+    #[serde(default = "default_size")]
+    pub size_selected: Cell<usize>,
     #[serde(skip)]
     data_file: String,
+}
+
+/// The best time for puzzles of a size and difficulty.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
+struct Highscore {
+    size: usize,
+    difficulty: DifficultyCategory,
+    time: f64,
+}
+
+fn default_size() -> Cell<usize> {
+    Cell::new(DEFAULT_SIZE)
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -47,6 +60,12 @@ pub struct PrintData {
     pub number_of_puzzles: f64,
     pub number_of_puzzles_per_page: f64,
     pub difficulty: DifficultyCategory,
+    #[serde(default = "default_size_value")]
+    pub size: usize,
+}
+
+fn default_size_value() -> usize {
+    DEFAULT_SIZE
 }
 
 impl Default for PrintData {
@@ -55,6 +74,7 @@ impl Default for PrintData {
             number_of_puzzles: 2.0,
             number_of_puzzles_per_page: 1.0,
             difficulty: DifficultyCategory::Easy,
+            size: DEFAULT_SIZE,
         }
     }
 }
@@ -72,28 +92,9 @@ impl SudokuData {
                 data_file: path,
                 print_data: Default::default(),
                 start_button_selected: Cell::new(DifficultyCategory::Easy),
+                size_selected: default_size(),
             }
         }
-    }
-
-    //implemeted in v52, remove it in v55
-    pub fn new_from_highscores(
-        data_path: String,
-        highscores_path: &String,
-        start_button_selected: DifficultyCategory,
-    ) -> Result<Self, SudokuError> {
-        let str = std::fs::read_to_string(highscores_path)?;
-        let highscores = Self::legacy_load(&str)?;
-        let data = Self {
-            highscores: RefCell::new(highscores),
-            data_file: data_path,
-            print_data: Default::default(),
-            start_button_selected: Cell::new(start_button_selected),
-        };
-        if !(data.save() && remove_file(highscores_path).is_ok()) {
-            eprintln!("Error deleting legacy highscore file");
-        }
-        Ok(data)
     }
 
     fn load(str: &str) -> Result<Self, SudokuError> {
@@ -112,21 +113,72 @@ impl SudokuData {
         }
     }
 
-    //implemeted in v52, remove it in v55
-    fn legacy_load(str: &str) -> Result<HashMap<DifficultyCategory, f64>, SudokuError> {
-        let h: Value = serde_json::from_str(str)?;
-        use DifficultyCategory::*;
-        let mut highscores: HashMap<DifficultyCategory, f64> = HashMap::new();
-        let difficulties = [Easy, Medium, Hard, VeryHard];
-        for difficulty in difficulties {
-            if let Some(parsed) = h[DifficultyCategory::to_string(&difficulty)].as_f64() {
-                highscores.insert(difficulty, parsed);
+    /// The best time for puzzles of `size` and `difficulty`, in seconds.
+    pub fn highscore(&self, size: usize, difficulty: DifficultyCategory) -> Option<f64> {
+        self.highscores
+            .borrow()
+            .iter()
+            .find(|h| h.size == size && h.difficulty == difficulty)
+            .map(|h| h.time)
+    }
+
+    /// Records `time` if it beats the best time for `size` and
+    /// `difficulty`. Returns whether it did.
+    pub fn record_time(&self, size: usize, difficulty: DifficultyCategory, time: f64) -> bool {
+        let mut highscores = self.highscores.borrow_mut();
+        match highscores
+            .iter_mut()
+            .find(|h| h.size == size && h.difficulty == difficulty)
+        {
+            Some(highscore) if highscore.time <= time => false,
+            Some(highscore) => {
+                highscore.time = time;
+                true
+            }
+            None => {
+                highscores.push(Highscore {
+                    size,
+                    difficulty,
+                    time,
+                });
+                true
             }
         }
-        if highscores.is_empty() {
-            return Err(SudokuError::InvalidSaveData);
-        }
+    }
+}
 
-        Ok(highscores)
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn highscores_per_size_and_difficulty() {
+        use DifficultyCategory::*;
+        let data = SudokuData::new("/nonexistent/rascacielos-data".to_string());
+        assert_eq!(data.highscore(5, Easy), None);
+        assert!(data.record_time(5, Easy, 60.0));
+        assert!(data.record_time(7, Easy, 300.0));
+        assert!(data.record_time(5, Hard, 200.0));
+        assert!(!data.record_time(5, Easy, 61.0));
+        assert!(data.record_time(5, Easy, 59.0));
+        assert_eq!(data.highscore(5, Easy), Some(59.0));
+        assert_eq!(data.highscore(7, Easy), Some(300.0));
+        assert_eq!(data.highscore(5, Hard), Some(200.0));
+        assert_eq!(data.highscore(6, Easy), None);
+    }
+
+    #[test]
+    fn json_round_trip() {
+        use DifficultyCategory::*;
+        let data = SudokuData::new("/nonexistent/rascacielos-data".to_string());
+        data.record_time(6, Medium, 120.0);
+        data.size_selected.set(6);
+        let loaded = SudokuData::load(&serde_json::to_string(&data).unwrap()).unwrap();
+        assert_eq!(loaded.highscore(6, Medium), Some(120.0));
+        assert_eq!(loaded.size_selected.get(), 6);
+        // Data saved before sizes existed falls back to the default size.
+        let old = SudokuData::load("{}").unwrap();
+        assert_eq!(old.size_selected.get(), DEFAULT_SIZE);
+        assert_eq!(old.print_data.borrow().size, DEFAULT_SIZE);
     }
 }

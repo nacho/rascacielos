@@ -25,7 +25,6 @@ use gtk::subclass::prelude::*;
 
 use glib::Properties;
 use glib::SourceId;
-use glib::ThreadPool;
 use glib::subclass::Signal;
 use glib::timeout_add_local;
 use glib::timeout_add_seconds_local_once;
@@ -35,17 +34,13 @@ use crate::lib::board::SudokuBoard;
 use crate::lib::enums::Coord;
 use crate::lib::enums::DifficultyCategory;
 use crate::lib::enums::ZoomLevel;
-use crate::lib::generator;
-use crate::lib::puzzle::{ClueConflict, Side, Tier};
+use crate::lib::puzzle::{ClueConflict, Side};
 use crate::lib::{board::SudokuError, data::SudokuData, game::SudokuGame};
 
 use std::cell::Cell;
 use std::cell::Ref;
 use std::io::ErrorKind::AlreadyExists;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use std::{
     cell::RefCell,
@@ -102,19 +97,7 @@ mod imp {
         fn default() -> Self {
             let paths = SudokuPaths::default();
             let settings = gio::Settings::new("io.github.nacho.rascacielos");
-            let sudoku_data = {
-                let start_button_selected =
-                    settings.get::<DifficultyCategory>("start-button-selected");
-                if let Ok(sudoku_data) = SudokuData::new_from_highscores(
-                    paths.data_file.clone(),
-                    &paths.highscores_file,
-                    start_button_selected,
-                ) {
-                    sudoku_data
-                } else {
-                    SudokuData::new(paths.data_file.clone())
-                }
-            };
+            let sudoku_data = SudokuData::new(paths.data_file.clone());
 
             Self {
                 sdata: sudoku_data,
@@ -583,10 +566,7 @@ impl SudokuBackend {
     pub fn game_highscore(&self) -> Option<f64> {
         self.imp()
             .sdata
-            .highscores
-            .borrow()
-            .get(&game!(self).difficulty())
-            .cloned()
+            .highscore(self.game_size(), game!(self).difficulty())
     }
 
     pub fn game_save_as(&self, path: &str) {
@@ -607,24 +587,11 @@ impl SudokuBackend {
     }
 
     pub fn game_save_highscore(&self) -> bool {
-        let old_highscore = self.game_highscore();
-        let new_highscore = game!(self).total_time_played();
-        match old_highscore {
-            Some(old_highscore) => {
-                if old_highscore > new_highscore {
-                    let difficulty = game!(self).difficulty();
-                    self.set_highscore(difficulty, new_highscore);
-                    true
-                } else {
-                    false
-                }
-            }
-            None => {
-                let difficulty = game!(self).difficulty();
-                self.set_highscore(difficulty, new_highscore);
-                true
-            }
-        }
+        let time = game!(self).total_time_played();
+        let difficulty = game!(self).difficulty();
+        self.imp()
+            .sdata
+            .record_time(self.game_size(), difficulty, time)
     }
 
     pub fn set_print_options(
@@ -659,11 +626,27 @@ impl SudokuBackend {
         )
     }
 
-    pub fn game_generate(&self) {
+    /// Generates a puzzle of the selected size and difficulty without
+    /// blocking the main loop, starts it and calls `done`.
+    pub fn game_generate(&self, done: impl FnOnce() + 'static) {
+        let size = self.selected_size();
         let difficulty = self.selected_difficulty();
-        let game = SudokuGame::new_from_generator(DEFAULT_SIZE, difficulty);
-        self.imp().game.replace(Some(game));
-        self.imp().game_changed();
+        glib::spawn_future_local(glib::clone!(
+            #[weak(rename_to = backend)]
+            self,
+            async move {
+                let generated = gio::spawn_blocking(move || {
+                    let mut found = SudokuGame::generate(size, difficulty, 1);
+                    found.pop().unwrap()
+                })
+                .await
+                .expect("The puzzle generator failed");
+                let game = SudokuGame::new_from_generated(generated, difficulty);
+                backend.imp().game.replace(Some(game));
+                backend.imp().game_changed();
+                done();
+            }
+        ));
     }
 
     pub fn check_clipboard(&self, s: &str) {
@@ -684,43 +667,13 @@ impl SudokuBackend {
         }
     }
 
-    /// Generates `number_of_puzzles` puzzles of size `n` and `difficulty`
-    /// on every processor.
+    /// Generates `number_of_puzzles` puzzles of size `n` and `difficulty`.
     pub fn generate_multiple_puzzles(
         n: usize,
         difficulty: DifficultyCategory,
         number_of_puzzles: u8,
     ) -> Vec<SudokuBoard> {
-        let number_of_puzzles = number_of_puzzles as usize;
-        let tier = difficulty.to_tier().unwrap_or(Tier::Easy);
-        let found: Arc<Mutex<Vec<generator::Generated>>> = Default::default();
-        let cancel = Arc::new(AtomicBool::new(false));
-        let threads = gtk::glib::num_processors();
-        let pool = ThreadPool::shared(Some(threads)).unwrap();
-
-        for _ in 0..threads {
-            let found = found.clone();
-            let cancel = cancel.clone();
-            pool.push(move || {
-                let mut rng = fastrand::Rng::new();
-                while let Some(result) = generator::generate(n, tier, &mut rng, &cancel) {
-                    let mut found = found.lock().unwrap();
-                    if found.len() < number_of_puzzles {
-                        found.push(result);
-                    }
-                    if found.len() >= number_of_puzzles {
-                        cancel.store(true, Ordering::Relaxed);
-                    }
-                }
-            })
-            .unwrap();
-        }
-
-        while !cancel.load(Ordering::Relaxed) {
-            std::thread::sleep(Duration::from_millis(5));
-        }
-        let found = std::mem::take(&mut *found.lock().unwrap());
-        found
+        SudokuGame::generate(n, difficulty, number_of_puzzles as usize)
             .into_iter()
             .map(|(puzzle, solution)| SudokuBoard::from_generated(puzzle, &solution, difficulty))
             .collect()
@@ -730,12 +683,12 @@ impl SudokuBackend {
         self.imp().sdata.start_button_selected.get()
     }
 
-    fn set_highscore(&self, difficulty: DifficultyCategory, highscore: f64) {
-        self.imp()
-            .sdata
-            .highscores
-            .borrow_mut()
-            .insert(difficulty, highscore);
+    pub fn selected_size(&self) -> usize {
+        self.imp().sdata.size_selected.get()
+    }
+
+    pub fn set_selected_size(&self, size: usize) {
+        self.imp().sdata.size_selected.set(size);
     }
 
     pub fn set_selected_difficulty(&self, difficulty: DifficultyCategory) {
@@ -754,7 +707,6 @@ glib::wrapper! {
 #[derive(Clone)]
 pub struct SudokuPaths {
     pub active_save_file: String,
-    pub highscores_file: String,
     pub data_file: String,
     pub printed_dir: PathBuf,
     pub finished_dir: PathBuf,
@@ -775,7 +727,6 @@ impl Default for SudokuPaths {
         SudokuPaths::create_dir(&saved_dir);
         Self {
             active_save_file: Self::convert_path(&sudoku_dir.join("savefile")),
-            highscores_file: Self::convert_path(&sudoku_dir.join("highscores")),
             data_file: Self::convert_path(&sudoku_dir.join("data")),
             printed_dir,
             finished_dir,

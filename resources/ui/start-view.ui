@@ -12,7 +12,7 @@
             <property name="title-widget">
               <object class="AdwWindowTitle" id="windowtitle">
                 <property name="title" translatable="yes">Rascacielos</property>
-                <property name="subtitle" translatable="yes">Select Difficulty</property>
+                <property name="subtitle" translatable="yes">New Puzzle</property>
               </object>
             </property>
             <child type="start">
@@ -33,7 +33,7 @@
         </child>
         <property name="content">
           <object class="AdwStatusPage">
-            <property name="title" translatable="yes">Select Puzzle Difficulty</property>
+            <property name="title" translatable="yes">Select Puzzle Size and Difficulty</property>
             <property name="valign">start</property>
             <property name="child">
               <object class="AdwClamp">
@@ -41,6 +41,40 @@
                 <child>
                   <object class="GtkBox">
                     <property name="orientation">vertical</property>
+                    <child>
+                      <object class="AdwToggleGroup" id="size_group">
+                        <property name="halign">center</property>
+                        <property name="margin-bottom">24</property>
+                        <signal name="notify::active-name" handler="size_changed_cb" swapped="True"/>
+                        <accessibility>
+                          <property name="label" translatable="yes">Puzzle Size</property>
+                        </accessibility>
+                        <child>
+                          <object class="AdwToggle">
+                            <property name="name">4</property>
+                            <property name="label">4×4</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwToggle">
+                            <property name="name">5</property>
+                            <property name="label">5×5</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwToggle">
+                            <property name="name">6</property>
+                            <property name="label">6×6</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwToggle">
+                            <property name="name">7</property>
+                            <property name="label">7×7</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
                     <child>
                       <object class="AdwPreferencesGroup">
                         <child>
@@ -63,7 +97,7 @@
                     <child>
                       <object class="AdwPreferencesGroup">
                         <child>
-                          <object class="AdwActionRow" id="custom_difficulty_action_row">
+                          <object class="AdwActionRow">
                             <child type="prefix">
                               <object class="GtkCheckButton" id="easy_check">
                                 <property name="can-focus">false</property>
@@ -107,7 +141,7 @@
                           </object>
                         </child>
                         <child>
-                          <object class="AdwActionRow">
+                          <object class="AdwActionRow" id="very_hard_row">
                             <child type="prefix">
                               <object class="GtkCheckButton" id="very_hard_check">
                                 <property name="group">easy_check</property>
