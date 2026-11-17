@@ -87,3 +87,35 @@ fn open_every_dialog() {
         "app.about-dialog",
     ]);
 }
+
+/// Prints puzzles of the smallest and largest sizes, one and four per page,
+/// to PDF files in the temporary directory so their layout can be checked.
+#[test]
+#[ignore = "needs a display"]
+fn print_to_pdf() {
+    use crate::lib::board::SudokuBoard;
+    use crate::lib::enums::DifficultyCategory;
+    use crate::lib::game::SudokuGame;
+    use crate::printer::SudokuPrinter;
+
+    gtk::init().unwrap();
+    for size in [4, 7] {
+        for per_page in [1, 4] {
+            let boards = SudokuGame::generate(size, DifficultyCategory::Hard, 4)
+                .into_iter()
+                .map(|(puzzle, solution)| {
+                    SudokuBoard::from_generated(puzzle, &solution, DifficultyCategory::Hard)
+                })
+                .collect();
+            let path =
+                std::env::temp_dir().join(format!("rascacielos-{size}x{size}-{per_page}.pdf"));
+            let printer = SudokuPrinter::new(boards, per_page);
+            assert_eq!(
+                printer.export_pdf(path.to_str().unwrap()),
+                gtk::PrintOperationResult::Apply
+            );
+            assert!(std::fs::metadata(&path).unwrap().len() > 0);
+            println!("{}", path.display());
+        }
+    }
+}

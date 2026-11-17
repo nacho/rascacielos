@@ -599,11 +599,13 @@ impl SudokuBackend {
         number_of_puzzles: f64,
         number_of_puzzles_per_page: f64,
         difficulty: DifficultyCategory,
+        size: usize,
     ) {
         let mut print_options = self.imp().sdata.print_data.borrow_mut();
         print_options.number_of_puzzles = number_of_puzzles;
         print_options.number_of_puzzles_per_page = number_of_puzzles_per_page;
         print_options.difficulty = difficulty;
+        print_options.size = size;
     }
 
     pub fn export_puzzle(&self, path: &str) {
@@ -617,12 +619,13 @@ impl SudokuBackend {
         }
     }
 
-    pub fn print_options(&self) -> (f64, f64, DifficultyCategory) {
+    pub fn print_options(&self) -> (f64, f64, DifficultyCategory, usize) {
         let print_options = &self.imp().sdata.print_data.borrow();
         (
             print_options.number_of_puzzles,
             print_options.number_of_puzzles_per_page,
             print_options.difficulty,
+            print_options.size,
         )
     }
 
@@ -665,18 +668,6 @@ impl SudokuBackend {
             self.notify_tgame();
             self.imp().game_changed();
         }
-    }
-
-    /// Generates `number_of_puzzles` puzzles of size `n` and `difficulty`.
-    pub fn generate_multiple_puzzles(
-        n: usize,
-        difficulty: DifficultyCategory,
-        number_of_puzzles: u8,
-    ) -> Vec<SudokuBoard> {
-        SudokuGame::generate(n, difficulty, number_of_puzzles as usize)
-            .into_iter()
-            .map(|(puzzle, solution)| SudokuBoard::from_generated(puzzle, &solution, difficulty))
-            .collect()
     }
 
     pub fn selected_difficulty(&self) -> DifficultyCategory {

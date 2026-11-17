@@ -1,6 +1,7 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
  * This file is part of GNOME Sudoku.
  *
@@ -18,18 +19,28 @@
  * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
  */
 
-use gtk::cairo;
+//! Prints puzzles. Each puzzle is drawn with a `gtk::Snapshot` and the
+//! resulting render node is drawn into the print context.
+
 use gtk::glib;
+use gtk::gsk::{self, PathBuilder, Stroke};
 use gtk::pango;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{PrintContext, PrintOperationResult, TextDirection};
+use gtk::{PrintContext, PrintOperationResult, TextDirection, gdk, graphene};
 
 use adw::prelude::{AdwDialogExt, AlertDialogExt};
 
 use crate::lib::board::SudokuBoard;
+use crate::lib::puzzle::Side;
 
 use std::cell::OnceCell;
+
+/// The width of the clue band, in cells.
+const CLUE_BAND: f32 = 0.6;
+
+const BLACK: gdk::RGBA = gdk::RGBA::BLACK;
+const GREY: gdk::RGBA = gdk::RGBA::new(0.3, 0.3, 0.3, 1.0);
 
 mod imp {
     use super::*;
@@ -61,53 +72,82 @@ mod imp {
             }
         }
 
+        fn layout(context: &pango::Context, text: &str, font: &str) -> pango::Layout {
+            let layout = pango::Layout::new(context);
+            layout.set_font_description(Some(&pango::FontDescription::from_string(font)));
+            layout.set_text(text);
+            layout
+        }
+
+        /// Draws `text` centred on (`x`, `y`).
+        fn centered_text(
+            snapshot: &gtk::Snapshot,
+            context: &pango::Context,
+            text: &str,
+            font: &str,
+            color: &gdk::RGBA,
+            x: f32,
+            y: f32,
+        ) {
+            let layout = Self::layout(context, text, font);
+            let (width, height) = layout.pixel_size();
+            snapshot.save();
+            snapshot.translate(&graphene::Point::new(
+                x - width as f32 / 2.0,
+                y - height as f32 / 2.0,
+            ));
+            snapshot.append_layout(&layout, color);
+            snapshot.restore();
+        }
+
         pub fn draw_page_cb(&self, context: &PrintContext, page_nr: i32) {
-            let cc = context.cairo_context();
             let width = context.width();
             let height = context.height();
+            let pango_context = context.create_pango_context();
+            let label_font = "Sans Bold 9";
+            let label_height = Self::layout(&pango_context, "Ww", label_font)
+                .pixel_size()
+                .1 as f64;
 
-            cc.set_font_size(12.0);
-            cc.select_font_face("Sans", cairo::FontSlant::Normal, cairo::FontWeight::Bold);
-
-            let label_extents = cc.text_extents("Ww").expect("Cairo Error");
-
-            let result =
-                self.fit_squares_in_rectangle(width, height, label_extents.height(), self.margin);
-            let best_square_size = result.0;
-            let n_across = result.1;
-            let n_down = result.2;
+            let (best_square_size, n_across, n_down) =
+                self.fit_squares_in_rectangle(width, height, label_height, self.margin);
             let margin_x = (width - best_square_size * n_across as f64) / (n_across as f64 + 1.0);
             let margin_y = (height - best_square_size * n_down as f64) / (n_down as f64 + 1.0);
-            let spp = self.sudokus_per_page.get().unwrap();
-            let start = page_nr * self.sudokus_per_page.get().unwrap();
+            let spp = *self.sudokus_per_page.get().unwrap();
+            let start = page_nr * spp;
             let end = i32::min(start + spp, self.boards.get().unwrap().len() as i32);
             let sudokus_on_page = &self.boards.get().unwrap()[start as usize..end as usize];
 
+            let snapshot = gtk::Snapshot::new();
             for (index, sudoku) in sudokus_on_page.iter().enumerate() {
                 let index = index as i32;
                 let left = margin_x + (index % n_across) as f64 * (best_square_size + margin_x);
                 let top = margin_y
-                    + label_extents.height()
-                    + (index / n_across) as f64
-                        * (best_square_size + margin_y + label_extents.height());
-                let label = sudoku.difficulty_category.to_string();
-                let layout = pangocairo::functions::create_layout(&cc);
-                layout.set_font_description(Some(&pango::FontDescription::from_string(
-                    "Sans Bold 9",
-                )));
-                layout.set_text(&label);
-
-                let layout_size = layout.size();
-                let layout_width = layout_size.0 / pango::SCALE;
-                let layout_height = layout_size.1 / pango::SCALE;
-                cc.move_to(
-                    left + (best_square_size - layout_width as f64) / 2.0,
-                    top - layout_height as f64,
+                    + label_height
+                    + (index / n_across) as f64 * (best_square_size + margin_y + label_height);
+                let n = sudoku.size();
+                let label = format!(
+                    "{n}×{n} · {}",
+                    sudoku.difficulty_category.to_translated_string()
                 );
-                cc.set_source_rgb(0.0, 0.0, 0.0);
-                pangocairo::functions::show_layout(&cc, &layout);
+                Self::centered_text(
+                    &snapshot,
+                    &pango_context,
+                    &label,
+                    label_font,
+                    &BLACK,
+                    (left + best_square_size / 2.0) as f32,
+                    (top - label_height / 2.0) as f32,
+                );
 
-                self.draw_sudoku(&cc, sudoku, best_square_size, left, top);
+                snapshot.save();
+                snapshot.translate(&graphene::Point::new(left as f32, top as f32));
+                Self::draw_sudoku(&snapshot, &pango_context, sudoku, best_square_size as f32);
+                snapshot.restore();
+            }
+
+            if let Some(node) = snapshot.to_node() {
+                node.draw(&context.cairo_context());
             }
         }
 
@@ -149,129 +189,105 @@ mod imp {
             (best_square_size, across, down)
         }
 
+        /// Draws `board` with its clues in a square of side `size` at the
+        /// origin.
         fn draw_sudoku(
-            &self,
-            cc: &cairo::Context,
+            snapshot: &gtk::Snapshot,
+            context: &pango::Context,
             board: &SudokuBoard,
-            size: f64,
-            offset_x: f64,
-            offset_y: f64,
+            size: f32,
         ) {
-            let pencil_grey = [0.3, 0.3, 0.3];
-            let background_color = [1.0, 1.0, 1.0];
-            let border_color = [1.0, 1.0, 1.0];
-            let line_color = [0.0, 0.0, 0.0];
-
-            // Temporary until the printer draws the clues: a single block.
-            let sudoku_size = board.size();
-            let per_block = sudoku_size;
+            let n = board.size();
+            let cell = size / (n as f32 + 2.0 * CLUE_BAND);
+            let band = cell * CLUE_BAND;
+            let grid = cell * n as f32;
             let thin = size / 500.0;
             let thick = thin * 5.0;
-            let border = thick;
-            let white_space = size
-                - (2.0 * border)
-                - (2.0 * thick)
-                - ((per_block - 1) as f64 * thick)
-                - ((per_block * 2) as f64 * thin);
 
-            let square_size = white_space / sudoku_size as f64;
-
-            let font_size = (square_size / 2.0) as i32;
-            let font_weight = cairo::FontWeight::Normal;
-
-            //left, right, top, bottom
-            let outer = [offset_x, offset_x + size, offset_y, offset_y + size];
-
-            //Entire background
-            cc.set_source_rgb(1.0, 1.0, 1.0);
-            cc.rectangle(outer[0], outer[2], size, size);
-            cc.fill().expect("Printer Error");
-
-            //Outer border
-            cc.set_line_join(cairo::LineJoin::Round);
-            cc.set_line_width(border);
-            cc.rectangle(
-                outer[0] + border / 2.0,
-                outer[2] + border / 2.0,
-                size - border,
-                size - border,
+            snapshot.append_color(
+                &gdk::RGBA::WHITE,
+                &graphene::Rect::new(band, band, grid, grid),
             );
 
-            //Inner background
-            cc.set_source_rgb(
-                background_color[0],
-                background_color[1],
-                background_color[2],
-            );
-            cc.fill_preserve().expect("Printer Error");
+            let lines = PathBuilder::new();
+            for i in 1..n {
+                let offset = band + i as f32 * cell;
+                lines.move_to(band, offset);
+                lines.line_to(band + grid, offset);
+                lines.move_to(offset, band);
+                lines.line_to(offset, band + grid);
+            }
+            snapshot.append_stroke(&lines.to_path(), &Stroke::new(thin), &BLACK);
 
-            //Border box
-            cc.set_source_rgb(border_color[0], border_color[1], border_color[2]);
-            cc.stroke().expect("Printer Error");
+            let border = PathBuilder::new();
+            border.add_rect(&graphene::Rect::new(band, band, grid, grid));
+            let stroke = Stroke::new(thick);
+            stroke.set_line_join(gsk::LineJoin::Miter);
+            snapshot.append_stroke(&border.to_path(), &stroke, &BLACK);
 
-            //Outer thick lines
-            cc.set_line_join(cairo::LineJoin::Miter);
-            cc.set_line_width(thick);
-            cc.rectangle(
-                outer[0] + border + thick / 2.0,
-                outer[2] + border + thick / 2.0,
-                size - border * 2.0 - thick,
-                size - border * 2.0 - thick,
-            );
-            cc.set_source_rgb(line_color[0], line_color[1], line_color[2]);
-            cc.stroke().expect("Printer Error");
-
-            let mut pos = vec![0f64; sudoku_size + 1];
-            let mut position = border + thick;
-            pos[0] = position + square_size / 2.0;
-            let mut last_line = 0.0;
-            for n in 1..=sudoku_size {
-                if n % per_block == 0 {
-                    cc.set_line_width(thick);
-                    position += square_size + last_line / 2.0 + thick / 2.0;
-                    last_line = thick;
-                } else {
-                    cc.set_line_width(thin);
-                    position += square_size + last_line / 2.0 + thin / 2.0;
-                    last_line = thin;
+            let center = |i: usize| band + (i as f32 + 0.5) * cell;
+            let value_font = format!("Sans {}px", (cell * 0.5) as i32);
+            let user_font = format!("Sans Italic {}px", (cell * 0.5) as i32);
+            let invert = gtk::Widget::default_direction() == TextDirection::Rtl;
+            for row in 0..n {
+                for col in 0..n {
+                    let real_col = if invert { n - col - 1 } else { col };
+                    let board_cell = &board.cells[row][real_col];
+                    let Some(value) = board_cell.value.get() else {
+                        continue;
+                    };
+                    let (font, color) = if board_cell.fixed {
+                        (&value_font, &BLACK)
+                    } else {
+                        (&user_font, &GREY)
+                    };
+                    Self::centered_text(
+                        snapshot,
+                        context,
+                        &(value + 1).to_string(),
+                        font,
+                        color,
+                        center(col),
+                        center(row),
+                    );
                 }
-
-                pos[n] = position + last_line / 2.0 + square_size / 2.0;
-                cc.move_to(border + thick / 2.0 + offset_x, position + offset_y);
-                cc.line_to(size - border - thick / 2.0 + offset_x, position + offset_y);
-                cc.move_to(position + offset_x, border + thick / 2.0 + offset_y);
-                cc.line_to(position + offset_x, size - border - thick / 2.0 + offset_y);
-                cc.stroke().expect("Printer Error");
             }
 
-            cc.set_font_size(font_size as f64);
-            let sudoku: Vec<Vec<usize>> = (0..sudoku_size)
-                .map(|row| {
-                    (0..sudoku_size)
-                        .map(|col| board.cells[row][col].value.get().map_or(0, |m| m + 1))
-                        .collect()
-                })
-                .collect();
-            let invert = gtk::Widget::default_direction() == TextDirection::Rtl;
-            for x in 0..sudoku_size {
-                let real_x = { if invert { sudoku_size - x - 1 } else { x } };
-                for y in 0..sudoku_size {
-                    cc.move_to(pos[x] + offset_x, pos[y] + offset_y);
-                    if sudoku[y][real_x] != 0 {
-                        let letter = sudoku[y][real_x].to_string();
-                        if board.cells[y][real_x].fixed {
-                            cc.select_font_face("Sans", cairo::FontSlant::Normal, font_weight);
-                            cc.set_source_rgb(0.0, 0.0, 0.0);
-                        } else {
-                            cc.select_font_face("Sans", cairo::FontSlant::Italic, font_weight);
-                            cc.set_source_rgb(pencil_grey[0], pencil_grey[1], pencil_grey[2]);
-                        }
-                        let extents = cc.text_extents(&letter).unwrap();
-                        cc.move_to(
-                            pos[x] + offset_x - (extents.x_advance() / 2.0),
-                            pos[y] + offset_y + (extents.height() / 2.0),
+            let clue_font = format!("Sans Bold {}px", (band * 0.7) as i32);
+            for i in 0..n {
+                let real_i = if invert { n - i - 1 } else { i };
+                let clues = [
+                    (board.clue(Side::Top, real_i), center(i), band / 2.0),
+                    (
+                        board.clue(Side::Bottom, real_i),
+                        center(i),
+                        size - band / 2.0,
+                    ),
+                    (board.clue(Side::Left, i), band / 2.0, center(i)),
+                    (board.clue(Side::Right, i), size - band / 2.0, center(i)),
+                ];
+                let clues = if invert {
+                    // Left and right swap places when the grid is mirrored.
+                    [
+                        clues[0],
+                        clues[1],
+                        (clues[3].0, clues[2].1, clues[2].2),
+                        (clues[2].0, clues[3].1, clues[3].2),
+                    ]
+                } else {
+                    clues
+                };
+                for (clue, x, y) in clues {
+                    if let Some(clue) = clue {
+                        Self::centered_text(
+                            snapshot,
+                            context,
+                            &clue.to_string(),
+                            &clue_font,
+                            &BLACK,
+                            x,
+                            y,
                         );
-                        cc.show_text(&letter).expect("Printer error");
                     }
                 }
             }
@@ -342,5 +358,15 @@ impl SudokuPrinter {
             .unwrap();
         printer.imp().boards.set(boards).unwrap();
         printer
+    }
+
+    /// Prints to a PDF file without showing the print dialog.
+    #[cfg(test)]
+    pub fn export_pdf(&self, path: &str) -> PrintOperationResult {
+        let operation = &self.imp().print_operation;
+        operation.set_export_filename(path);
+        operation
+            .run(gtk::PrintOperationAction::Export, None::<&gtk::Window>)
+            .unwrap_or(PrintOperationResult::Error)
     }
 }

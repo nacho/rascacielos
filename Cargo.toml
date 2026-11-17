@@ -16,8 +16,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 #for generating the puzzles
 fastrand = "2.4.1"
-#for printing - part of gtk-rs
-pangocairo = "0.22.9"
 
 [build-dependencies]
 glib-build-tools = "0.22"

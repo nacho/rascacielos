@@ -23,12 +23,16 @@ use adw::subclass::prelude::*;
 
 use gtk::CompositeTemplate;
 use gtk::PrintOperationResult;
+use gtk::gio;
 use gtk::glib;
 use gtk::glib::subclass::InitializingObject;
 
 use crate::lib::backend::SudokuBackend;
 use crate::lib::board::SudokuBoard;
 use crate::lib::enums::DifficultyCategory;
+use crate::lib::game::SudokuGame;
+use crate::lib::generator;
+use crate::lib::puzzle::{MIN_SIZE, Tier};
 use crate::menu_button::SudokuMenuButton;
 use crate::{game, printer::SudokuPrinter};
 
@@ -63,7 +67,11 @@ mod imp {
         #[template_child]
         pub puzzles_per_page_row: TemplateChild<adw::SpinRow>,
         #[template_child]
+        pub size_row: TemplateChild<adw::ComboRow>,
+        #[template_child]
         pub difficulty_row: TemplateChild<adw::ComboRow>,
+        #[template_child]
+        pub print_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub print_current_puzzle_row: TemplateChild<adw::SwitchRow>,
     }
@@ -74,8 +82,8 @@ mod imp {
         fn print_button_pressed(&self, _: &gtk::Button) {
             let mut puzzles_to_generate = self.puzzles_row.adjustment().value() as u8;
             let puzzles_per_page = self.puzzles_per_page_row.adjustment().value() as i32;
-            let difficulty_category: DifficultyCategory =
-                (self.difficulty_row.selected() + 1).into();
+            let size = self.selected_size();
+            let difficulty_category = self.selected_difficulty();
             let mut boards: Vec<SudokuBoard> = Default::default();
 
             if self.print_current_puzzle_row.is_active() {
@@ -87,12 +95,46 @@ mod imp {
                 }
             }
 
-            boards.extend(SudokuBackend::generate_multiple_puzzles(
-                crate::lib::backend::DEFAULT_SIZE,
-                difficulty_category,
-                puzzles_to_generate,
+            // Generating many large puzzles takes a while, keep the main
+            // loop running meanwhile.
+            self.print_button.set_sensitive(false);
+            glib::spawn_future_local(glib::clone!(
+                #[weak(rename_to = dialog)]
+                self,
+                async move {
+                    let generated = gio::spawn_blocking(move || {
+                        SudokuGame::generate(
+                            size,
+                            difficulty_category,
+                            puzzles_to_generate as usize,
+                        )
+                    })
+                    .await
+                    .expect("The puzzle generator failed");
+                    boards.extend(generated.into_iter().map(|(puzzle, solution)| {
+                        SudokuBoard::from_generated(puzzle, &solution, difficulty_category)
+                    }));
+                    dialog.print_button.set_sensitive(true);
+                    dialog.send_to_printer(boards, puzzles_per_page);
+                }
             ));
-            self.send_to_printer(boards, puzzles_per_page);
+        }
+
+        fn selected_size(&self) -> usize {
+            MIN_SIZE + self.size_row.selected() as usize
+        }
+
+        fn selected_difficulty(&self) -> DifficultyCategory {
+            (self.difficulty_row.selected() + 1).into()
+        }
+
+        /// Moves the difficulty to Hard when the size cannot be Very Hard.
+        fn check_difficulty(&self) {
+            let tier = self.selected_difficulty().to_tier().unwrap_or(Tier::Easy);
+            if !generator::available(self.selected_size(), tier) {
+                self.difficulty_row
+                    .set_selected(DifficultyCategory::Hard as u32 - 1);
+            }
         }
 
         pub fn init(&self, backend: &SudokuBackend) {
@@ -106,6 +148,17 @@ mod imp {
             self.puzzles_per_page_row.set_value(p_otions.1);
             self.difficulty_row
                 .set_selected((p_otions.2 as i32 - 1) as u32);
+            self.size_row
+                .set_selected(p_otions.3.saturating_sub(MIN_SIZE) as u32);
+
+            for row in [&*self.size_row, &*self.difficulty_row] {
+                row.connect_selected_notify(glib::clone!(
+                    #[weak(rename_to = dialog)]
+                    self,
+                    move |_| dialog.check_difficulty()
+                ));
+            }
+            self.check_difficulty();
         }
 
         fn send_to_printer(&self, boards: Vec<SudokuBoard>, puzzles_per_page: i32) {
@@ -152,7 +205,8 @@ mod imp {
             backend.set_print_options(
                 self.puzzles_row.value(),
                 self.puzzles_per_page_row.value(),
-                DifficultyCategory::from(self.difficulty_row.selected() + 1),
+                self.selected_difficulty(),
+                self.selected_size(),
             );
         }
     }
