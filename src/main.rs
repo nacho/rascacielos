@@ -30,6 +30,9 @@ mod lib {
     #[macro_use]
     pub mod utils;
     pub mod board_generator;
+    // Not used by the game yet, the sudoku board is replaced later.
+    #[allow(dead_code)]
+    pub mod puzzle;
 }
 
 mod config {
