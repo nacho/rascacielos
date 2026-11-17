@@ -29,13 +29,14 @@
 //!   next to it, a clue of N means the line climbs 1..N, a cell at distance
 //!   `d` from a clue `c` is at most `N - c + 1 + d` tall, and a clue of 2 or
 //!   more cannot have the tallest building next to it), applied once at the
-//!   start, and naked singles.
-//! - Medium: hidden singles in rows and columns.
-//! - Hard: listing every arrangement of a row or column that fits its
+//!   start, plus naked and hidden singles in rows and columns.
+//! - Medium: listing every arrangement of a row or column that fits its
 //!   candidates and both of its clues, and keeping only the heights that
 //!   appear in one of them.
-//! - Very hard: trying each candidate of a cell and ruling it out when the
-//!   hard techniques then find a contradiction.
+//! - Hard: trying each candidate of a cell and ruling it out when the easy
+//!   techniques then find a contradiction.
+//! - Very hard: the same, but looking for the contradiction with the medium
+//!   techniques.
 
 use crate::lib::puzzle::{Puzzle, Side, Tier, bit, full_mask, line_coords, visible};
 
@@ -209,8 +210,8 @@ impl<'a> Solver<'a> {
     }
 
     /// Rules out the first candidate found that leads to a contradiction
-    /// with the hard techniques.
-    fn trial(&mut self) -> Step {
+    /// with the techniques up to `inner`.
+    fn trial(&mut self, inner: Tier) -> Step {
         for i in 0..self.candidates.len() {
             let mask = self.candidates[i];
             if mask.count_ones() < 2 {
@@ -222,7 +223,7 @@ impl<'a> Solver<'a> {
                 }
                 let mut attempt = self.clone();
                 attempt.candidates[i] = bit(h);
-                if attempt.propagate(Tier::Hard).is_err() {
+                if attempt.propagate(inner).is_err() {
                     self.restrict(i, !bit(h))?;
                     return Ok(true);
                 }
@@ -241,10 +242,10 @@ impl<'a> Solver<'a> {
                     break;
                 }
                 progress = match tier {
-                    Tier::Easy => self.naked_singles()?,
-                    Tier::Medium => self.hidden_singles()?,
-                    Tier::Hard => self.line_arrangements()?,
-                    Tier::VeryHard => self.trial()?,
+                    Tier::Easy => self.naked_singles()? || self.hidden_singles()?,
+                    Tier::Medium => self.line_arrangements()?,
+                    Tier::Hard => self.trial(Tier::Easy)?,
+                    Tier::VeryHard => self.trial(Tier::Medium)?,
                 };
                 if progress {
                     self.tier_used = self.tier_used.max(tier);
@@ -470,7 +471,7 @@ mod tests {
     }
 
     #[test]
-    fn easy_puzzle_needs_only_naked_singles() {
+    fn easy_puzzle_needs_only_singles() {
         let puzzle = givens_puzzle(4, &SOLUTION, &[(0, 0), (1, 1), (2, 2), (3, 3)]);
         assert_eq!(
             solve(&puzzle, Tier::Easy),
