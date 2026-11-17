@@ -38,6 +38,7 @@ use crate::lib::utils::{new_shortcut, new_shortcut_with_args};
 use crate::cell::SudokuCell;
 use crate::connect_cb_action;
 use crate::connect_cb_pref;
+use crate::lib::puzzle::MAX_SIZE;
 use crate::picker_popover::SudokuPickerPopover;
 
 use std::cell::{Cell, OnceCell};
@@ -69,12 +70,13 @@ mod imp {
         }
     }
 
+    /// The cells are created for the largest grid and the ones outside the
+    /// current puzzle are hidden.
     pub struct SudokuGrid {
-        pub cells: [[SudokuCell; 9]; 9],
-        pub block_horizontal_separators: [Separator; 2],
-        pub block_vertical_separators: [Separator; 2],
-        pub cell_horizontal_separators: [Separator; 6],
-        pub cell_vertical_separators: [Separator; 6],
+        pub cells: [[SudokuCell; MAX_SIZE]; MAX_SIZE],
+        pub cell_horizontal_separators: [Separator; MAX_SIZE - 1],
+        pub cell_vertical_separators: [Separator; MAX_SIZE - 1],
+        pub size: Cell<usize>,
         pub focus_controller: WeakRef<EventControllerFocus>,
         pub selected_row: Cell<usize>,
         pub selected_col: Cell<usize>,
@@ -86,29 +88,16 @@ mod imp {
 
     impl Default for SudokuGrid {
         fn default() -> Self {
-            let cells: [[SudokuCell; 9]; 9] =
+            let cells: [[SudokuCell; MAX_SIZE]; MAX_SIZE] =
                 std::array::from_fn(|row| std::array::from_fn(|col| SudokuCell::new(row, col)));
 
-            let block_horizontal_separators: [Separator; 2] = from_fn(|_| {
-                glib::Object::builder()
-                    .property("css-name", "block-separator")
-                    .property("orientation", Orientation::Horizontal)
-                    .build()
-            });
-            let block_vertical_separators: [Separator; 2] = from_fn(|_| {
-                glib::Object::builder()
-                    .property("css-name", "block-separator")
-                    .property("orientation", Orientation::Vertical)
-                    .build()
-            });
-
-            let cell_horizontal_separators: [Separator; 6] = from_fn(|_| {
+            let cell_horizontal_separators: [Separator; MAX_SIZE - 1] = from_fn(|_| {
                 glib::Object::builder()
                     .property("css-name", "cell-separator")
                     .property("orientation", Orientation::Horizontal)
                     .build()
             });
-            let cell_vertical_separators: [Separator; 6] = from_fn(|_| {
+            let cell_vertical_separators: [Separator; MAX_SIZE - 1] = from_fn(|_| {
                 glib::Object::builder()
                     .property("css-name", "cell-separator")
                     .property("orientation", Orientation::Vertical)
@@ -117,14 +106,13 @@ mod imp {
 
             Self {
                 cells,
-                block_horizontal_separators,
-                block_vertical_separators,
                 cell_horizontal_separators,
                 cell_vertical_separators,
+                size: Cell::new(MAX_SIZE),
                 completed_source_id: Default::default(),
                 completed_css_provider: Default::default(),
-                selected_row: Cell::new(4),
-                selected_col: Cell::new(4),
+                selected_row: Cell::new(0),
+                selected_col: Cell::new(0),
                 focus_controller: Default::default(),
                 picker_popover: SudokuPickerPopover::new_unitialized(),
                 backend: Default::default(),
@@ -183,12 +171,53 @@ mod imp {
         }
 
         fn update_warnings(&self) {
-            for row in &self.cells {
-                for cell in row {
+            let n = self.size.get();
+            for row in &self.cells[..n] {
+                for cell in &row[..n] {
                     cell.update_value_warnings();
                     cell.update_all_earmark_warnings();
                 }
             }
+        }
+
+        /// Shows the cells and separators of the current puzzle, hides the
+        /// rest and loads the values of the new game.
+        fn update_size(&self) {
+            let n = self.backend().game_size();
+            self.size.set(n);
+            for (row, cells) in self.cells.iter().enumerate() {
+                for (col, cell) in cells.iter().enumerate() {
+                    let visible = row < n && col < n;
+                    cell.set_child_visible(visible);
+                    if !visible {
+                        continue;
+                    }
+                    cell.update_visibility();
+                    //for rounded corners
+                    let last = n - 1;
+                    for (class, corner) in [
+                        ("top-left", (0, 0)),
+                        ("top-right", (0, last)),
+                        ("bottom-left", (last, 0)),
+                        ("bottom-right", (last, last)),
+                    ] {
+                        if (row, col) == corner {
+                            cell.add_css_class(class);
+                        }
+                    }
+                }
+            }
+            for (i, separator) in self
+                .cell_horizontal_separators
+                .iter()
+                .chain(&self.cell_vertical_separators)
+                .enumerate()
+            {
+                separator.set_child_visible(i % (MAX_SIZE - 1) < n - 1);
+            }
+            self.selected_row.set(n / 2);
+            self.selected_col.set(n / 2);
+            self.obj().queue_resize();
         }
 
         fn create_move_action(&self, name: &str, group: &SimpleActionGroup) {
@@ -241,8 +270,9 @@ mod imp {
                         old_val.into(),
                         new_val.into()
                     );
-                    for row in 0..9 {
-                        for col in 0..9 {
+                    let n = grid.size.get();
+                    for row in 0..n {
+                        for col in 0..n {
                             grid.cells[row][col].update_value_warnings();
                         }
                     }
@@ -293,8 +323,9 @@ mod imp {
                 return;
             }
 
-            for row in 0..9 {
-                for col in 0..9 {
+            let n = self.size.get();
+            for row in 0..n {
+                for col in 0..n {
                     let cell = &self.cells[row][col];
                     if *cell == *self.selected_cell() {
                         continue;
@@ -326,8 +357,9 @@ mod imp {
             let target_cell = &self.cells[pos.row][pos.col];
 
             let backend = self.backend();
-            for row in 0..9 {
-                for col in 0..9 {
+            let n = self.size.get();
+            for row in 0..n {
+                for col in 0..n {
                     let cell = &self.cells[row][col];
                     if *cell == *target_cell {
                         continue;
@@ -347,11 +379,8 @@ mod imp {
                     }
 
                     if !backend.game_fixed(Coord { row, col })
-                        && ((backend.pref_highlight_row_column()
-                            && (pos.row == row || pos.col == col))
-                            || (backend.pref_highlight_block()
-                                && row / 3 == pos.row / 3
-                                && col / 3 == pos.col / 3))
+                        && backend.pref_highlight_row_column()
+                        && (pos.row == row || pos.col == col)
                     {
                         cell.highlight_coord(enabled);
                     }
@@ -363,11 +392,12 @@ mod imp {
             self.backend
                 .set(backend.clone())
                 .expect("Grid is already initialized");
-            for row in 0..9 {
-                for col in 0..9 {
-                    self.cells[row][col].init(backend);
+            for row in &self.cells {
+                for cell in row {
+                    cell.init(backend);
                 }
             }
+            self.update_size();
 
             self.picker_popover.init(backend);
 
@@ -378,14 +408,12 @@ mod imp {
                     #[weak(rename_to = grid)]
                     self,
                     move |_: SudokuBackend| {
-                        for row in 0..9 {
-                            for col in 0..9 {
-                                grid.cells[row][col].update_visibility();
-                                grid.cells[row][col].add_game_hooks();
+                        for row in &grid.cells {
+                            for cell in row {
+                                cell.add_game_hooks();
                             }
                         }
-                        grid.selected_row.set(4);
-                        grid.selected_col.set(4);
+                        grid.update_size();
                         grid.update_warnings();
                         grid.add_game_hooks();
 
@@ -416,10 +444,11 @@ mod imp {
         }
 
         pub fn set_font_size(&self, height: i32) {
-            for row in &self.cells {
-                for cell in row {
+            let n = self.size.get();
+            for row in &self.cells[..n] {
+                for cell in &row[..n] {
                     let grid_padding = 10; //for size consistency with <= v50, remove with gtk5
-                    let height = (height - grid_padding) / 9;
+                    let height = (height - grid_padding) / n as i32;
                     cell.set_font_sizes(height);
                 }
             }
@@ -452,10 +481,8 @@ mod imp {
                 .add_controller(self.focus_controller.upgrade().unwrap());
             self.setup_actions();
 
-            for row in 0..9 {
-                for col in 0..9 {
-                    let cell = &self.cells[row][col];
-
+            for row in &self.cells {
+                for cell in row {
                     cell.connect_closure(
                         "selected",
                         false,
@@ -479,38 +506,14 @@ mod imp {
                             }
                         ),
                     );
-                    //for rounded corners
-                    if row == 0 {
-                        if col == 0 {
-                            cell.add_css_class("top-left");
-                        } else if col == 8 {
-                            cell.add_css_class("top-right");
-                        }
-                    }
-
-                    if row == 8 {
-                        if col == 0 {
-                            cell.add_css_class("bottom-left");
-                        } else if col == 8 {
-                            cell.add_css_class("bottom-right");
-                        }
-                    }
-
                     cell.set_parent(&*self.obj());
                 }
             }
 
-            //make sure to initialize the block separators last
             for separator in &self.cell_horizontal_separators {
                 separator.set_parent(&*self.obj());
             }
             for separator in &self.cell_vertical_separators {
-                separator.set_parent(&*self.obj());
-            }
-            for separator in &self.block_horizontal_separators {
-                separator.set_parent(&*self.obj());
-            }
-            for separator in &self.block_vertical_separators {
                 separator.set_parent(&*self.obj());
             }
         }
@@ -522,12 +525,6 @@ mod imp {
                 }
             }
 
-            for separator in &self.block_horizontal_separators {
-                separator.unparent();
-            }
-            for separator in &self.block_vertical_separators {
-                separator.unparent();
-            }
             for separator in &self.cell_horizontal_separators {
                 separator.unparent();
             }
@@ -550,36 +547,18 @@ mod imp {
                         Propagation::Proceed.into() //propagate the event so that the focus moves to the headerbar
                     }
                 }
-                Up => {
-                    if self.selected_row.get() == 0 {
-                        self.cells[8][self.selected_col.get()].select()
-                    } else {
-                        self.cells[self.selected_row.get() - 1][self.selected_col.get()].select()
-                    }
-                }
-
-                Down => {
-                    if self.selected_row.get() == 8 {
-                        self.cells[0][self.selected_col.get()].select()
-                    } else {
-                        self.cells[self.selected_row.get() + 1][self.selected_col.get()].select()
-                    }
-                }
-
-                Right => {
-                    if self.selected_col.get() == 8 {
-                        self.cells[self.selected_row.get()][0].select()
-                    } else {
-                        self.cells[self.selected_row.get()][self.selected_col.get() + 1].select()
-                    }
-                }
-
-                Left => {
-                    if self.selected_col.get() == 0 {
-                        self.cells[self.selected_row.get()][8].select()
-                    } else {
-                        self.cells[self.selected_row.get()][self.selected_col.get() - 1].select()
-                    }
+                Up | Down | Left | Right => {
+                    let last = self.size.get() - 1;
+                    let (row, col) = (self.selected_row.get(), self.selected_col.get());
+                    let step_back = |i: usize| if i == 0 { last } else { i - 1 };
+                    let step_forward = |i: usize| if i == last { 0 } else { i + 1 };
+                    let (row, col) = match direction_type {
+                        Up => (step_back(row), col),
+                        Down => (step_forward(row), col),
+                        Left => (row, step_back(col)),
+                        _ => (row, step_forward(col)),
+                    };
+                    self.cells[row][col].select()
                 }
                 _ => panic!("Failed to parse direction"),
             }
@@ -589,104 +568,52 @@ mod imp {
             self.set_font_size(height);
 
             const CELL_SEPARATOR_SIZE: i32 = 1;
-            const BLOCK_SEPARATOR_SIZE: i32 = 2;
-            const SEPARATORS_LENGTH: i32 = BLOCK_SEPARATOR_SIZE * 2 + CELL_SEPARATOR_SIZE * 6;
-            let width_adjusted = width - SEPARATORS_LENGTH;
-            let height_adjusted = height - SEPARATORS_LENGTH;
+            let n = self.size.get();
 
-            let cell_width = width_adjusted / 9;
-            let mut remaining_width = width_adjusted % 9;
-            let mut x = 0;
-            struct CellXs {
-                xpos: i32,
-                width: i32,
+            /// The start and length of each cell along one axis.
+            fn spans(length: i32, n: usize) -> Vec<(i32, i32)> {
+                let adjusted = length - CELL_SEPARATOR_SIZE * (n as i32 - 1);
+                let cell = adjusted / n as i32;
+                let mut remaining = adjusted % n as i32;
+                let mut pos = 0;
+                (0..n)
+                    .map(|_| {
+                        let size = if remaining > 0 {
+                            remaining -= 1;
+                            cell + 1
+                        } else {
+                            cell
+                        };
+                        let start = pos;
+                        pos += size + CELL_SEPARATOR_SIZE;
+                        (start, size)
+                    })
+                    .collect()
             }
-            let cell_xs: [CellXs; 9] = from_fn(|col| {
-                let cell_width = {
-                    if remaining_width > 0 {
-                        remaining_width -= 1;
-                        cell_width + 1
-                    } else {
-                        cell_width
-                    }
-                };
 
-                let xpos = x;
-                match col {
-                    2 | 5 => x += BLOCK_SEPARATOR_SIZE,
-                    _ => x += CELL_SEPARATOR_SIZE,
-                }
-                x += cell_width;
-                CellXs {
-                    xpos,
-                    width: cell_width,
-                }
-            });
+            let cell_xs = spans(width, n);
+            let cell_ys = spans(height, n);
 
-            let cell_height = height_adjusted / 9;
-            let mut remaining_height = height_adjusted % 9;
-            let mut y = 0;
-            struct CellYs {
-                ypos: i32,
-                height: i32,
-            }
-            let cell_ys: [CellYs; 9] = from_fn(|row| {
-                let cell_height = {
-                    if remaining_height > 0 {
-                        remaining_height -= 1;
-                        cell_height + 1
-                    } else {
-                        cell_height
-                    }
-                };
-                let ypos = y;
-                match row {
-                    2 | 5 => y += BLOCK_SEPARATOR_SIZE,
-                    _ => y += CELL_SEPARATOR_SIZE,
-                }
-                y += cell_height;
-                CellYs {
-                    ypos,
-                    height: cell_height,
-                }
-            });
-
-            for row in 0..9 {
-                for col in 0..9 {
+            for row in 0..n {
+                for col in 0..n {
                     let allocation = Allocation::new(
-                        cell_xs[col].xpos,
-                        cell_ys[row].ypos,
-                        cell_xs[col].width,
-                        cell_ys[row].height,
+                        cell_xs[col].0,
+                        cell_ys[row].0,
+                        cell_xs[col].1,
+                        cell_ys[row].1,
                     );
                     self.cells[row][col].size_allocate(&allocation, baseline);
                 }
             }
 
-            let offsets = [0, 1, 3, 4, 6, 7];
-            for i in 0..offsets.len() {
-                let xs = &cell_xs[offsets[i]];
-                let vertical_allocation =
-                    Allocation::new(xs.xpos + xs.width, 0, CELL_SEPARATOR_SIZE, height);
+            for i in 0..n - 1 {
+                let (x, w) = cell_xs[i];
+                let vertical_allocation = Allocation::new(x + w, 0, CELL_SEPARATOR_SIZE, height);
                 self.cell_vertical_separators[i].size_allocate(&vertical_allocation, baseline);
 
-                let ys = &cell_ys[offsets[i]];
-                let horizontal_allocation =
-                    Allocation::new(0, ys.ypos + ys.height, width, CELL_SEPARATOR_SIZE);
+                let (y, h) = cell_ys[i];
+                let horizontal_allocation = Allocation::new(0, y + h, width, CELL_SEPARATOR_SIZE);
                 self.cell_horizontal_separators[i].size_allocate(&horizontal_allocation, baseline);
-            }
-
-            let offsets = [2, 5];
-            for i in 0..offsets.len() {
-                let xs = &cell_xs[offsets[i]];
-                let vertical_allocation =
-                    Allocation::new(xs.xpos + xs.width, 0, BLOCK_SEPARATOR_SIZE, height);
-                self.block_vertical_separators[i].size_allocate(&vertical_allocation, baseline);
-
-                let ys = &cell_ys[offsets[i]];
-                let horizontal_allocation =
-                    Allocation::new(0, ys.ypos + ys.height, width, BLOCK_SEPARATOR_SIZE);
-                self.block_horizontal_separators[i].size_allocate(&horizontal_allocation, baseline);
             }
         }
 

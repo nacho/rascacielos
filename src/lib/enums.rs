@@ -25,6 +25,8 @@ use gtk::glib::{self, Variant, VariantTy};
 use gtk::{self, DirectionType};
 use serde::{Deserialize, Serialize};
 
+use crate::lib::puzzle::Tier;
+
 //must remain aligned with gschema
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, glib::Enum, Hash)]
 #[enum_type(name = "DifficultyCategory")]
@@ -45,6 +47,26 @@ pub struct Coord {
 }
 
 impl DifficultyCategory {
+    pub fn to_tier(self) -> Option<Tier> {
+        use DifficultyCategory::*;
+        match self {
+            Easy => Some(Tier::Easy),
+            Medium => Some(Tier::Medium),
+            Hard => Some(Tier::Hard),
+            VeryHard => Some(Tier::VeryHard),
+            Unknown | Custom => None,
+        }
+    }
+
+    pub fn from_tier(tier: Tier) -> Self {
+        match tier {
+            Tier::Easy => DifficultyCategory::Easy,
+            Tier::Medium => DifficultyCategory::Medium,
+            Tier::Hard => DifficultyCategory::Hard,
+            Tier::VeryHard => DifficultyCategory::VeryHard,
+        }
+    }
+
     pub fn to_translated_string(self) -> String {
         use DifficultyCategory::*;
         use gettextrs::gettext;

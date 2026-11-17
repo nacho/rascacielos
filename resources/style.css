@@ -26,9 +26,6 @@
     border: 2px solid #333;
     border-radius: var(--sudoku-rounded-corner);
   }
-  block-separator {
-    background: #333;
-  }
   cell-separator {
     background: #999;
   }
@@ -64,9 +61,6 @@
     --sudoku-cell-fixed-color: oklch(0.32 0 0);
     --sudoku-cell-highlight-color: oklch(from var(--sudoku-accent-color) l calc(c * 0.25) h);
     --sudoku-cell-highlight-color-extra: oklch(from var(--sudoku-accent-color) 0.32 calc(c * 0.7) h);
-  }
-  block-separator {
-    background: oklch(0.56 0 0);
   }
   cell-separator {
     background: oklch(0.47 0 0);

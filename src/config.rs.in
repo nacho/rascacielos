@@ -22,13 +22,5 @@ pub const APP_ID: &str = "@APP_ID@";
 pub const VERSION: &str = "@VERSION@";
 pub const GETTEXT_PACKAGE: &str = "@GETTEXT_PACKAGE@";
 pub const LOCALEDIR: &str = "@LOCALEDIR@";
-#[cfg(test)]
-pub const QQWING_HARD: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/qqwing-intermediate");
-#[cfg(test)]
-pub const QQWING_VERY_HARD: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/qqwing-expert");
-#[cfg(test)]
-pub const QQWING_EASY: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/qqwing-simple");
-#[cfg(test)]
-pub const QQWING_MEDIUM: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/qqwing-easy");
 pub const SMALL_WINDOW_WIDTH: i32 = 360;
 pub const MEDIUM_WINDOW_WIDTH: i32 = 600;

@@ -1,159 +1,143 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
-use crate::lib::enums::Coord;
-use crate::lib::enums::DifficultyCategory;
 use core::fmt;
 use std::{
-    self,
-    array::{self, from_fn},
     cell::{Cell, RefCell},
     collections::HashSet,
 };
 
+use crate::lib::enums::Coord;
+use crate::lib::enums::DifficultyCategory;
+use crate::lib::puzzle::{Puzzle, PuzzleError, Side};
+
 //You should never be interacting with SudokuBoard directly
 //everything goes through SudokuGame and SudokuBackend
+//
+//Values and earmarks are 0-based: index h holds the building of height h + 1.
 #[derive(Clone, Debug)]
 pub struct SudokuBoard {
-    pub cells: [[SudokuBoardCell; 9]; 9],
+    puzzle: Puzzle,
+    pub cells: Vec<Vec<SudokuBoardCell>>,
     pub total_fixed: usize,
     total_earmarks: Cell<usize>,
     pub total_filled: Cell<usize>,
     pub broken_coords: RefCell<HashSet<Coord>>,
-    digits: [DigitOccurences; 9],
+    /// How many times each value is in each row and column, indexed by
+    /// value then by row or column.
+    in_row: Vec<Vec<Cell<usize>>>,
+    in_col: Vec<Vec<Cell<usize>>>,
 
     pub difficulty_category: DifficultyCategory,
     pub loaded_time: f64,
-    coords_for_row: [[Coord; 9]; 9],
-    coords_for_col: [[Coord; 9]; 9],
-    coords_for_block: [[[Coord; 9]; 3]; 3],
 }
 
 #[derive(Default, Clone, Debug)]
 pub struct SudokuBoardCell {
     pub value: Cell<Option<usize>>,
-    pub earmarks: [Cell<bool>; 9],
+    pub earmarks: Vec<Cell<bool>>,
 
     pub solution: usize,
     pub fixed: bool,
-    pub aligned_coords: [Coord; 21],
-}
-
-#[derive(Default, Clone, Debug)]
-struct DigitOccurences {
-    in_row: [Cell<usize>; 9],
-    in_col: [Cell<usize>; 9],
-    in_block: [[Cell<usize>; 3]; 3],
-}
-
-impl DigitOccurences {
-    fn increment(&self, row: usize, col: usize) {
-        self.in_row[row].update(|x| x + 1);
-        self.in_col[col].update(|x| x + 1);
-        self.in_block[row / 3][col / 3].update(|x| x + 1);
-    }
-
-    fn decrement(&self, row: usize, col: usize) {
-        self.in_row[row].update(|x| x - 1);
-        self.in_col[col].update(|x| x - 1);
-        self.in_block[row / 3][col / 3].update(|x| x - 1);
-    }
-}
-
-impl Default for SudokuBoard {
-    fn default() -> Self {
-        //self referencing would skip the coord middleman but we'd need a crate like ouroboros for that
-        let coords_for_row: [[Coord; 9]; 9] =
-            { array::from_fn(|row| array::from_fn(|col| Coord { row, col })) };
-
-        let coords_for_col: [[Coord; 9]; 9] =
-            { array::from_fn(|col| array::from_fn(|row| Coord { row, col })) };
-
-        let coords_for_block: [[[Coord; 9]; 3]; 3] = {
-            array::from_fn(|row_block| {
-                array::from_fn(|col_block| {
-                    array::from_fn(|i| {
-                        let row = row_block * 3 + i / 3;
-                        let col = col_block * 3 + i % 3;
-                        Coord { row, col }
-                    })
-                })
-            })
-        };
-
-        let mut cells: [[SudokuBoardCell; 9]; 9] = Default::default();
-        //9 in the block + 6 vertically + 6 horizontally so 21 aligned coordinates for each cell
-        for row in 0..9 {
-            for col in 0..9 {
-                let mut set: HashSet<&Coord> = HashSet::new();
-                for coord in &coords_for_col[col] {
-                    set.insert(coord);
-                }
-                for coord in &coords_for_row[row] {
-                    set.insert(coord);
-                }
-                for coord in &coords_for_block[row / 3][col / 3] {
-                    set.insert(coord);
-                }
-                for cell in set.iter().enumerate() {
-                    cells[row][col].aligned_coords[cell.0] = **cell.1;
-                }
-            }
-        }
-
-        Self {
-            cells,
-            digits: Default::default(),
-            total_fixed: Default::default(),
-            total_earmarks: Default::default(),
-            total_filled: Default::default(),
-            coords_for_row,
-            coords_for_col,
-            coords_for_block,
-            broken_coords: Default::default(),
-            difficulty_category: Default::default(),
-            loaded_time: Default::default(),
-        }
-    }
+    /// The cells in the same row or column, this one included.
+    pub aligned_coords: Vec<Coord>,
 }
 
 impl SudokuBoard {
+    /// An empty board for `puzzle`, with its given cells filled and fixed.
+    pub fn new(puzzle: Puzzle) -> Self {
+        let n = puzzle.size();
+        let cells = (0..n)
+            .map(|row| {
+                (0..n)
+                    .map(|col| SudokuBoardCell {
+                        earmarks: vec![Cell::new(false); n],
+                        aligned_coords: (0..n)
+                            .map(|c| Coord { row, col: c })
+                            .chain((0..n).filter(|r| *r != row).map(|r| Coord { row: r, col }))
+                            .collect(),
+                        ..Default::default()
+                    })
+                    .collect()
+            })
+            .collect();
+        let counts = || (0..n).map(|_| vec![Cell::new(0); n]).collect();
+
+        let mut board = Self {
+            puzzle,
+            cells,
+            total_fixed: 0,
+            total_earmarks: Default::default(),
+            total_filled: Default::default(),
+            broken_coords: Default::default(),
+            in_row: counts(),
+            in_col: counts(),
+            difficulty_category: Default::default(),
+            loaded_time: Default::default(),
+        };
+        for row in 0..n {
+            for col in 0..n {
+                let given = board.puzzle.given(row, col);
+                board.init_cell(row, col, given.map(|h| h as usize - 1));
+            }
+        }
+        board
+    }
+
+    pub fn from_generated(puzzle: Puzzle, solution: &[u8], difficulty: DifficultyCategory) -> Self {
+        let mut board = Self::new(puzzle);
+        board.set_solution(solution);
+        board.difficulty_category = difficulty;
+        board
+    }
+
+    pub fn size(&self) -> usize {
+        self.puzzle.size()
+    }
+
+    pub fn puzzle(&self) -> &Puzzle {
+        &self.puzzle
+    }
+
+    pub fn clue(&self, side: Side, index: usize) -> Option<u8> {
+        self.puzzle.clue(side, index)
+    }
+
+    /// Stores `solution`, row-major with heights 1..=n.
+    pub fn set_solution(&mut self, solution: &[u8]) {
+        let n = self.size();
+        for row in 0..n {
+            for col in 0..n {
+                self.cells[row][col].solution = solution[row * n + col] as usize - 1;
+            }
+        }
+    }
+
     pub fn is_complete(&self) -> bool {
         let broken: bool = !self.broken_coords.borrow().is_empty();
-        !broken && self.total_filled.get() == 81
+        !broken && self.total_filled.get() == self.size() * self.size()
     }
 
     pub fn is_empty(&self) -> bool {
         self.total_filled.get() == self.total_fixed && self.total_earmarks.get() == 0
-    }
-
-    pub fn fixed_cells(&self) -> [[Option<usize>; 9]; 9] {
-        array::from_fn(|row| {
-            array::from_fn(|col| {
-                if self.cells[row][col].fixed {
-                    self.cells[row][col].value.get()
-                } else {
-                    None
-                }
-            })
-        })
     }
 
     pub fn cell(&self, pos: Coord) -> &SudokuBoardCell {
@@ -171,9 +155,8 @@ impl SudokuBoard {
     }
 
     pub fn disable_all_earmarks(&self, pos: Coord) {
-        let cell = &self.cell(pos);
-        for num in 0..9 {
-            if cell.earmarks[num].get() {
+        for num in 0..self.size() {
+            if self.cell(pos).earmarks[num].get() {
                 self.disable_earmark(pos, num);
             }
         }
@@ -209,7 +192,7 @@ impl SudokuBoard {
         self.mark_breakages(pos.row, pos.col, new_val);
     }
 
-    pub fn init_cell(&mut self, row: usize, col: usize, val: Option<usize>) {
+    fn init_cell(&mut self, row: usize, col: usize, val: Option<usize>) {
         if let Some(value) = val {
             self.insert(Coord { row, col }, value);
             self.cells[row][col].fixed = true;
@@ -218,20 +201,17 @@ impl SudokuBoard {
     }
 
     fn mark_breakages(&self, row: usize, col: usize, val: usize) {
-        if self.digits[val].in_row[row].get() > 1 {
-            self.mark_breakages_for(self.coords_for_row[row], val);
+        let n = self.size();
+        if self.in_row[val][row].get() > 1 {
+            self.mark_breakages_for((0..n).map(|c| Coord { row, col: c }), val);
         }
 
-        if self.digits[val].in_col[col].get() > 1 {
-            self.mark_breakages_for(self.coords_for_col[col], val);
-        }
-
-        if self.digits[val].in_block[row / 3][col / 3].get() > 1 {
-            self.mark_breakages_for(self.coords_for_block[row / 3][col / 3], val);
+        if self.in_col[val][col].get() > 1 {
+            self.mark_breakages_for((0..n).map(|r| Coord { row: r, col }), val);
         }
     }
 
-    fn mark_breakages_for(&self, coords: [Coord; 9], val: usize) {
+    fn mark_breakages_for(&self, coords: impl Iterator<Item = Coord>, val: usize) {
         for coord in coords {
             if let Some(target) = self.cells[coord.row][coord.col].value.get()
                 && target == val
@@ -242,53 +222,48 @@ impl SudokuBoard {
     }
 
     pub fn has_earmarks(&self, pos: Coord) -> bool {
-        for earmark in &self.cells[pos.row][pos.col].earmarks {
-            if earmark.get() {
-                return true;
-            }
-        }
-        false
+        self.cell(pos).earmarks.iter().any(Cell::get)
     }
 
     pub fn is_fixed(&self, pos: Coord) -> bool {
         self.cells[pos.row][pos.col].fixed
     }
 
-    pub fn cell_possibilies(&self, pos: Coord) -> [bool; 9] {
-        from_fn(|num| self.is_earmark_possible(pos, num))
+    pub fn cell_possibilies(&self, pos: Coord) -> Vec<bool> {
+        (0..self.size())
+            .map(|num| self.is_earmark_possible(pos, num))
+            .collect()
     }
 
     pub fn is_earmark_possible(&self, pos: Coord, num: usize) -> bool {
-        let digit = &self.digits[num];
-        digit.in_row[pos.row].get() == 0
-            && digit.in_col[pos.col].get() == 0
-            && digit.in_block[pos.row / 3][pos.col / 3].get() == 0
+        self.in_row[num][pos.row].get() == 0 && self.in_col[num][pos.col].get() == 0
     }
 
     fn remove_breakages_for(&self, row: usize, col: usize, val: usize) {
         let target = &Coord { row, col };
         let mut broken_coords = self.broken_coords.borrow_mut();
         if broken_coords.contains(target) {
-            for aligned in self.cells[row][col].aligned_coords {
+            for aligned in &self.cells[row][col].aligned_coords {
                 if let Some(target) = self.cells[aligned.row][aligned.col].value.get()
                     && target == val
-                    && broken_coords.contains(&aligned)
-                    && self.digits[val].in_row[aligned.row].get() <= 1
-                    && self.digits[val].in_col[aligned.col].get() <= 1
-                    && self.digits[val].in_block[aligned.row / 3][aligned.col / 3].get() <= 1
+                    && broken_coords.contains(aligned)
+                    && self.in_row[val][aligned.row].get() <= 1
+                    && self.in_col[val][aligned.col].get() <= 1
                 {
-                    broken_coords.remove(&aligned);
+                    broken_coords.remove(aligned);
                 }
             }
         }
     }
 
     fn add_to_occurrences(&self, row: usize, col: usize, val: usize) {
-        self.digits[val].increment(row, col);
+        self.in_row[val][row].update(|x| x + 1);
+        self.in_col[val][col].update(|x| x + 1);
     }
 
     fn remove_from_occurrences(&self, row: usize, col: usize, val: usize) {
-        self.digits[val].decrement(row, col);
+        self.in_row[val][row].update(|x| x - 1);
+        self.in_col[val][col].update(|x| x - 1);
     }
 
     pub fn is_earmark_enabled(&self, pos: Coord, num: usize) -> bool {
@@ -302,239 +277,88 @@ impl SudokuBoard {
 
     pub fn from_json(path: &str) -> Result<Self, SudokuError> {
         use SudokuError::{self as e};
-        let mut board: Self = Default::default();
         let file = std::fs::read_to_string(path)?;
         let b: JsonBoard = serde_json::from_str(file.as_str())?;
+        e::true_or_error(b.version == JSON_VERSION)?;
         //-1 is for timer disabled
         e::true_or_error(b.time_elapsed > 0.0 || b.time_elapsed == -1.0)?;
+        let n = b.size;
+        let mut puzzle = Puzzle::empty(n).map_err(|_| e::InvalidSaveData)?;
+        e::true_or_error(b.clues.len() == 4)?;
+        for (side, clues) in Side::ALL.into_iter().zip(&b.clues) {
+            e::true_or_error(clues.len() == n)?;
+            for (i, clue) in clues.iter().enumerate() {
+                puzzle.set_clue(side, i, (*clue != 0).then_some(*clue));
+            }
+        }
+        e::true_or_error(b.cells.len() <= n * n)?;
+        for cell in b.cells.iter() {
+            let [row, col] = cell.position;
+            e::true_or_error(row < n && col < n && cell.value <= n)?;
+            if cell.fixed {
+                e::true_or_error(cell.value != 0)?;
+                puzzle.set_given(row, col, Some(cell.value as u8));
+            }
+        }
+        puzzle.validate().map_err(|_| e::InvalidSaveData)?;
+
+        let mut board = Self::new(puzzle);
         board.loaded_time = b.time_elapsed;
         //this is unused as the solver automatically calculates the difficulty
         board.difficulty_category = b.difficulty_category;
-        e::true_or_error(b.cells.len() <= 81)?;
         for cell in b.cells.iter() {
-            let row = cell.position[0];
-            e::true_or_error(row < 9)?;
-            let col = cell.position[1];
-            e::true_or_error(col < 9)?;
-            let val = cell.value;
-            e::true_or_error(val <= 9)?;
-
-            if val != 0 {
-                board.insert(Coord { row, col }, val - 1);
-                if cell.fixed {
-                    board.total_fixed += 1;
-                    board.cells[row][col].fixed = true;
-                }
+            let [row, col] = cell.position;
+            let pos = Coord { row, col };
+            if cell.value != 0 && !cell.fixed {
+                e::true_or_error(!board.is_fixed(pos))?;
+                board.insert(pos, cell.value - 1);
             }
-            e::true_or_error(cell.earmarks.len() <= 9)?;
+            e::true_or_error(cell.earmarks.len() <= n)?;
             for num in &cell.earmarks {
-                e::true_or_error(!board.is_earmark_enabled(Coord { row, col }, num - 1))?;
-                board.enable_earmark(Coord { row, col }, num - 1);
-                e::true_or_error(*num <= 9)?;
+                e::true_or_error(*num >= 1 && *num <= n)?;
+                e::true_or_error(!board.is_earmark_enabled(pos, num - 1))?;
+                board.enable_earmark(pos, num - 1);
             }
         }
         Ok(board)
     }
 
-    pub fn from_generated(
-        puzzle: &[[Option<usize>; 9]; 9],
-        solution: &[[usize; 9]; 9],
-        difficulty: DifficultyCategory,
-    ) -> Self {
-        let mut board = Self::default();
-        for row in 0..9 {
-            for col in 0..9 {
-                board.init_cell(row, col, puzzle[row][col]);
-                board.cells[row][col].solution = solution[row][col];
-            }
-        }
-        board.difficulty_category = difficulty;
-        board
-    }
-
+    /// Parses the text format of `Puzzle::to_text`.
     pub fn from_string(s: &str) -> Result<Self, SudokuError> {
-        if s.len() > 100 || s.len() < 81 {
-            return Err(SudokuError::InvalidSaveData);
-        }
-
-        let mut row = 0;
-        let mut col = 0;
-        let mut board = Self::default();
-        for c in s.chars() {
-            if c == '\n' {
-                continue;
-            }
-
-            if let Some(c) = c.to_digit(10) {
-                board.init_cell(row, col, Some((c - 1) as usize));
-            } else if c != '.' && c != ' ' && c != '-' {
-                continue;
-            }
-
-            if col == 8 {
-                if row == 8 {
-                    return Ok(board);
-                }
-                row += 1;
-                col = 0;
-            } else {
-                col += 1;
-            }
-        }
-
-        Err(SudokuError::InvalidSaveData)
+        Ok(Self::new(Puzzle::from_text(s)?))
     }
 
-    pub fn fixed_to_string(&self) -> String {
-        let mut ret = String::from("");
-        for row in &self.cells {
-            for cell in row {
-                if cell.fixed {
-                    let value = cell.value.get().unwrap() + 1;
-                    ret += &value.to_string();
-                } else {
-                    ret += "0";
-                }
-            }
-        }
-        ret
-    }
-
+    /// The puzzle in the text format of `Puzzle::to_text`.
     pub fn fixed_to_string_pretty(&self) -> String {
-        let mut ret = String::from("");
-        for row in &self.cells {
-            for cell in row {
-                ret += &cell
-                    .value
-                    .get()
-                    .map_or_else(|| ".".to_string(), |m| (m + 1).to_string());
-            }
-            ret += "\n";
-        }
-        ret
+        self.puzzle.to_text()
     }
 
+    /// An identifier of the puzzle that can be used as a file name.
+    pub fn fixed_to_string(&self) -> String {
+        self.puzzle.to_share_code(None).replace('#', "")
+    }
+
+    /// A short name for the puzzle, used as the default file name.
     pub fn fixed_to_string_short(&self) -> String {
-        let mut ret = String::from("");
-        for row in &self.cells {
-            for cell in row {
-                if cell.fixed {
-                    ret += &(cell.value.get().unwrap() + 1).to_string();
-                    if ret.len() == 9 {
-                        return ret;
-                    }
-                }
-            }
-        }
-        ret
-    }
-
-    fn to_printable_ascii(val0: u8, val1: u8) -> char {
-        (val0 + 33 + val1 * 9) as char
-    }
-
-    fn from_printable_ascii(val: u8) -> (u8, u8) {
-        ((val - 33) % 9, (val - 33) / 9)
+        let n = self.size();
+        format!("{n}x{n}")
     }
 
     pub fn fixed_to_ascii(&self) -> String {
-        let mut ret = String::from("#");
-
-        //each vectors contain all the positions for that number
-        let mut number_positions: [Vec<char>; 9] = from_fn(|_v| Default::default());
-        for row in 0..9 {
-            for col in 0..9 {
-                let cell = &self.cells[row][col];
-                if cell.fixed {
-                    let value = cell.value.get().unwrap();
-                    let ascii = Self::to_printable_ascii(row as u8, col as u8);
-                    number_positions[value].push(ascii);
-                }
-            }
-        }
-
-        for i in 0..5 {
-            let len0 = number_positions[i * 2].len();
-            let len1 = {
-                if i != 4 {
-                    Some(number_positions[i * 2 + 1].len())
-                } else {
-                    None
-                }
-            };
-            ret += &Self::to_printable_ascii(len0 as u8, len1.unwrap_or(0) as u8).to_string();
-        }
-
-        for numbers in number_positions {
-            for position in numbers {
-                ret += &position.to_string();
-            }
-        }
-        ret
+        self.puzzle
+            .to_share_code(self.difficulty_category.to_tier())
     }
 
     pub fn from_ascii(s: &str) -> Result<SudokuBoard, SudokuError> {
-        if !s.starts_with("#") || s.len() < 6 {
-            return Err(SudokuError::InvalidSharedPuzzle);
-        }
-        let ascii = s.split_at(1).1;
-
-        let mut board = Self::default();
-        let mut sizes: Vec<_> = Default::default();
-
-        let slices = ascii.split_at(5);
-        let value_lengths = slices.0;
-        let positions = slices.1;
-
-        for c in value_lengths.chars().enumerate() {
-            let new_sizes = Self::from_printable_ascii(c.1 as u8);
-            sizes.push(new_sizes.0);
-            //there's only 9 values so the last one is half empty
-            if c.0 != 4 {
-                sizes.push(new_sizes.1);
-            }
-        }
-
-        let mut len_sum: usize = 6;
-        for size in sizes.iter() {
-            len_sum += *size as usize;
-        }
-        if len_sum != s.len() {
-            return Err(SudokuError::InvalidSharedPuzzle);
-        }
-
-        let mut count = 0;
-        let mut current_number = 0;
-
-        for c in positions.chars() {
-            while count >= sizes[current_number] {
-                count = 0;
-                current_number += 1;
-                if current_number >= 9 {
-                    return Err(SudokuError::InvalidSharedPuzzle);
-                }
-            }
-
-            let coords = Self::from_printable_ascii(c as u8);
-            let row = coords.0 as usize;
-            let col = coords.1 as usize;
-            if row >= 9 || col >= 9 {
-                return Err(SudokuError::InvalidSharedPuzzle);
-            }
-            board.init_cell(row, col, Some(current_number));
-
-            if count < sizes[current_number] {
-                count += 1;
-            }
-        }
-
-        Ok(board)
+        let (puzzle, _) = Puzzle::from_share_code(s)?;
+        Ok(Self::new(puzzle))
     }
 
     pub fn cells_not_fixed(&self) -> HashSet<Coord> {
+        let n = self.size();
         let mut ret: HashSet<Coord> = Default::default();
-        for row in 0..9 {
-            for col in 0..9 {
+        for row in 0..n {
+            for col in 0..n {
                 if !self.cells[row][col].fixed {
                     ret.insert(Coord { row, col });
                 }
@@ -545,10 +369,17 @@ impl SudokuBoard {
 }
 
 use serde::{Deserialize, Serialize};
+
+const JSON_VERSION: u32 = 1;
+
 #[derive(Serialize, Deserialize)]
 struct JsonBoard {
+    version: u32,
+    size: usize,
     difficulty_category: DifficultyCategory,
     time_elapsed: f64,
+    /// Top, bottom, left and right clues, 0 when missing.
+    clues: Vec<Vec<u8>>,
     cells: Vec<JsonCell>,
 }
 
@@ -562,35 +393,33 @@ struct JsonCell {
 
 impl JsonBoard {
     fn from_sudoku_board(board: &SudokuBoard, elapsed_time: f64) -> JsonBoard {
-        let mut cells: Vec<_> = Vec::with_capacity(81);
-        for row in 0..9usize {
-            for col in 0..9usize {
+        let n = board.size();
+        let mut cells: Vec<_> = Vec::with_capacity(n * n);
+        for row in 0..n {
+            for col in 0..n {
                 let bcell = &board.cells[row][col];
-                let mut v: Vec<usize> = Default::default();
-                for earmark in bcell.earmarks.iter().enumerate() {
-                    if earmark.1.get() {
-                        v.push(earmark.0 + 1);
-                    }
-                }
-                let value = {
-                    if let Some(val) = bcell.value.get() {
-                        val + 1
-                    } else {
-                        0
-                    }
-                };
-                let cell = JsonCell {
+                let earmarks = (0..n)
+                    .filter(|num| bcell.earmarks[*num].get())
+                    .map(|num| num + 1)
+                    .collect();
+                cells.push(JsonCell {
                     position: [row, col],
-                    value,
+                    value: bcell.value.get().map_or(0, |val| val + 1),
                     fixed: bcell.fixed,
-                    earmarks: v,
-                };
-                cells.push(cell);
+                    earmarks,
+                });
             }
         }
+        let clues = Side::ALL
+            .iter()
+            .map(|side| (0..n).map(|i| board.clue(*side, i).unwrap_or(0)).collect())
+            .collect();
         JsonBoard {
+            version: JSON_VERSION,
+            size: n,
             difficulty_category: board.difficulty_category,
             time_elapsed: elapsed_time,
+            clues,
             cells,
         }
     }
@@ -598,7 +427,6 @@ impl JsonBoard {
 
 #[derive(Debug, PartialEq)]
 pub enum SudokuError {
-    GenericError,
     FileNotFound,
     InvalidPuzzle,
     MultipleSolutions,
@@ -609,7 +437,6 @@ pub enum SudokuError {
 impl fmt::Display for SudokuError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SudokuError::GenericError => write!(f, "SudokuBoard Error"),
             SudokuError::FileNotFound => write!(f, "Save Not Found"),
             SudokuError::InvalidPuzzle => write!(f, "Invalid Puzzle"),
             SudokuError::InvalidSharedPuzzle => write!(f, "Invalid Shared Puzzle Format"),
@@ -635,14 +462,143 @@ impl From<std::io::Error> for SudokuError {
     }
 }
 
-impl From<SudokuBoard> for SudokuError {
-    fn from(_: SudokuBoard) -> Self {
+impl From<serde_json::Error> for SudokuError {
+    fn from(_: serde_json::Error) -> Self {
         SudokuError::InvalidSaveData
     }
 }
 
-impl From<serde_json::Error> for SudokuError {
-    fn from(_: serde_json::Error) -> Self {
-        SudokuError::InvalidSaveData
+impl From<PuzzleError> for SudokuError {
+    fn from(e: PuzzleError) -> Self {
+        match e {
+            PuzzleError::ShareCode => SudokuError::InvalidSharedPuzzle,
+            _ => SudokuError::InvalidPuzzle,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SOLUTION: [u8; 16] = [
+        1, 2, 3, 4, //
+        2, 3, 4, 1, //
+        4, 1, 2, 3, //
+        3, 4, 1, 2, //
+    ];
+
+    fn board() -> SudokuBoard {
+        let mut puzzle = Puzzle::from_solution(4, &SOLUTION).unwrap();
+        puzzle.set_clue(Side::Top, 2, None);
+        puzzle.set_given(0, 0, Some(1));
+        SudokuBoard::from_generated(puzzle, &SOLUTION, DifficultyCategory::Medium)
+    }
+
+    fn pos(row: usize, col: usize) -> Coord {
+        Coord { row, col }
+    }
+
+    #[test]
+    fn givens_are_fixed() {
+        let board = board();
+        assert!(board.is_fixed(pos(0, 0)));
+        assert_eq!(board.cell(pos(0, 0)).value.get(), Some(0));
+        assert_eq!(board.total_fixed, 1);
+        assert!(board.is_empty());
+        assert_eq!(board.cell(pos(2, 1)).solution, 0);
+        assert_eq!(board.cell(pos(0, 0)).aligned_coords.len(), 7);
+    }
+
+    #[test]
+    fn duplicates_break_rows_and_columns() {
+        let board = board();
+        board.insert(pos(0, 2), 0);
+        let broken = |b: &SudokuBoard| b.broken_coords.borrow().clone();
+        assert_eq!(broken(&board), HashSet::from([pos(0, 0), pos(0, 2)]));
+        board.insert(pos(3, 2), 0);
+        assert_eq!(
+            broken(&board),
+            HashSet::from([pos(0, 0), pos(0, 2), pos(3, 2)])
+        );
+        board.remove(pos(0, 2));
+        assert!(broken(&board).is_empty());
+        assert!(!board.is_earmark_possible(pos(1, 2), 0));
+        assert!(board.is_earmark_possible(pos(1, 1), 0));
+    }
+
+    #[test]
+    fn complete() {
+        let board = board();
+        for row in 0..4 {
+            for col in 0..4 {
+                if !board.is_fixed(pos(row, col)) {
+                    board.insert(pos(row, col), SOLUTION[row * 4 + col] as usize - 1);
+                }
+            }
+        }
+        assert!(board.is_complete());
+        board.insert(pos(1, 1), 0);
+        assert!(!board.is_complete());
+    }
+
+    #[test]
+    fn json_round_trip() {
+        let board = board();
+        board.insert(pos(1, 1), 2);
+        board.enable_earmark(pos(2, 2), 1);
+        board.enable_earmark(pos(2, 2), 3);
+        let path =
+            std::env::temp_dir().join(format!("rascacielos-test-{}.json", std::process::id()));
+        std::fs::write(&path, board.to_json(12.0)).unwrap();
+        let loaded = SudokuBoard::from_json(path.to_str().unwrap());
+        std::fs::remove_file(&path).unwrap();
+        let loaded = loaded.unwrap();
+        assert_eq!(loaded.puzzle(), board.puzzle());
+        assert_eq!(loaded.loaded_time, 12.0);
+        assert_eq!(loaded.cell(pos(1, 1)).value.get(), Some(2));
+        assert!(!loaded.is_fixed(pos(1, 1)));
+        assert!(loaded.is_fixed(pos(0, 0)));
+        assert!(loaded.is_earmark_enabled(pos(2, 2), 1));
+        assert!(loaded.is_earmark_enabled(pos(2, 2), 3));
+        assert!(!loaded.is_earmark_enabled(pos(2, 2), 0));
+    }
+
+    #[test]
+    fn bad_json() {
+        let path =
+            std::env::temp_dir().join(format!("rascacielos-bad-{}.json", std::process::id()));
+        let good = board().to_json(-1.0);
+        for bad in [
+            "{".to_string(),
+            good.replace("\"version\": 1", "\"version\": 2"),
+            good.replace("\"size\": 4", "\"size\": 9"),
+            good.replace("\"value\": 1,", "\"value\": 5,"),
+        ] {
+            std::fs::write(&path, bad).unwrap();
+            assert!(SudokuBoard::from_json(path.to_str().unwrap()).is_err());
+        }
+        std::fs::remove_file(&path).unwrap();
+        assert_eq!(
+            SudokuBoard::from_json("/nonexistent/rascacielos").err(),
+            Some(SudokuError::FileNotFound)
+        );
+    }
+
+    #[test]
+    fn share_code_and_text() {
+        let board = board();
+        let code = board.fixed_to_ascii();
+        assert!(code.starts_with("#R4m"));
+        assert_eq!(
+            SudokuBoard::from_ascii(&code).unwrap().puzzle(),
+            board.puzzle()
+        );
+        let text = board.fixed_to_string_pretty();
+        assert_eq!(
+            SudokuBoard::from_string(&text).unwrap().puzzle(),
+            board.puzzle()
+        );
+        assert!(!board.fixed_to_string().contains('#'));
     }
 }

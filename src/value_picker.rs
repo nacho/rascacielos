@@ -209,6 +209,11 @@ impl PickerBase for SudokuValuePicker {
         );
         imp.earmark_cb_handler.set(Some(handle));
 
+        let n = backend.game_size();
+        for (i, button) in imp.value_buttons.iter().enumerate() {
+            button.set_visible(i < n);
+        }
+
         let has_value = backend.game_value(pos).is_some();
         let has_earmarks = backend.game_has_earmarks(pos);
         imp.clear_button.set_visible(has_value || has_earmarks);

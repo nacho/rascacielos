@@ -29,7 +29,7 @@ use adw::prelude::{AdwDialogExt, AlertDialogExt};
 
 use crate::lib::board::SudokuBoard;
 
-use std::{array::from_fn, cell::OnceCell};
+use std::cell::OnceCell;
 
 mod imp {
     use super::*;
@@ -162,8 +162,9 @@ mod imp {
             let border_color = [1.0, 1.0, 1.0];
             let line_color = [0.0, 0.0, 0.0];
 
-            let sudoku_size = 9;
-            let per_block = 3;
+            // Temporary until the printer draws the clues: a single block.
+            let sudoku_size = board.size();
+            let per_block = sudoku_size;
             let thin = size / 500.0;
             let thick = thin * 5.0;
             let border = thick;
@@ -244,14 +245,13 @@ mod imp {
             }
 
             cc.set_font_size(font_size as f64);
-            let sudoku: [[usize; 9]; 9] = from_fn(|row| {
-                from_fn(|col| {
-                    board.cells[row][col]
-                        .value
-                        .get()
-                        .map_or_else(|| 0, |m| m + 1)
+            let sudoku: Vec<Vec<usize>> = (0..sudoku_size)
+                .map(|row| {
+                    (0..sudoku_size)
+                        .map(|col| board.cells[row][col].value.get().map_or(0, |m| m + 1))
+                        .collect()
                 })
-            });
+                .collect();
             let invert = gtk::Widget::default_direction() == TextDirection::Rtl;
             for x in 0..sudoku_size {
                 let real_x = { if invert { sudoku_size - x - 1 } else { x } };

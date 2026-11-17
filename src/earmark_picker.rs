@@ -166,10 +166,13 @@ mod imp {
             }
         }
 
+        /// Shows a button for each height of the puzzle and checks the ones
+        /// marked in the cell at `pos`.
         pub fn update_buttons_active(&self, pos: Coord) {
-            for i in 0..9 {
-                let has_earmark = self.backend().game_earmark(pos, i);
-                self.earmark_buttons[i].set_active(has_earmark);
+            let n = self.backend().game_size();
+            for (i, button) in self.earmark_buttons.iter().enumerate() {
+                button.set_visible(i < n);
+                button.set_active(i < n && self.backend().game_earmark(pos, i));
             }
         }
     }

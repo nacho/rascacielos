@@ -32,19 +32,20 @@ use glib::timeout_add_seconds_local_once;
 use glib::user_data_dir;
 
 use crate::lib::board::SudokuBoard;
-use crate::lib::board_generator::SudokuBoardGenerator;
 use crate::lib::enums::Coord;
 use crate::lib::enums::DifficultyCategory;
 use crate::lib::enums::ZoomLevel;
+use crate::lib::generator;
+use crate::lib::puzzle::Tier;
 use crate::lib::{board::SudokuError, data::SudokuData, game::SudokuGame};
 
-use std::array::from_fn;
 use std::cell::Cell;
 use std::cell::Ref;
 use std::io::ErrorKind::AlreadyExists;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use std::{
     cell::RefCell,
@@ -364,6 +365,9 @@ mod imp {
     }
 }
 
+/// The size of the generated puzzles.
+pub const DEFAULT_SIZE: usize = 5;
+
 #[macro_export]
 macro_rules! game {
     ($backend: expr) => {
@@ -411,7 +415,8 @@ impl SudokuBackend {
     pub fn game_set_value(&self, pos: Coord, new_val: usize) {
         let binding = self.game();
         let game = binding.as_ref().unwrap();
-        if game.board().is_fixed(pos) {
+        // The keyboard shortcuts go up to 9.
+        if game.board().is_fixed(pos) || new_val >= game.board().size() {
             return;
         }
 
@@ -429,7 +434,7 @@ impl SudokuBackend {
         let binding = self.game();
         let game = binding.as_ref().unwrap();
         let cell = game.board().cell(pos);
-        if cell.value.get().is_none() {
+        if cell.value.get().is_none() && num < game.board().size() {
             let enabled = cell.earmarks[num].get();
             match enabled {
                 true => game.disable_earmark(pos, num),
@@ -458,6 +463,10 @@ impl SudokuBackend {
         game!(self).board().is_empty()
     }
 
+    pub fn game_size(&self) -> usize {
+        game!(self).board().size()
+    }
+
     pub fn game_value(&self, pos: Coord) -> Option<usize> {
         game!(self).board().cell(pos).value.get()
     }
@@ -470,7 +479,7 @@ impl SudokuBackend {
         game!(self).board().cell(pos).fixed
     }
 
-    pub fn game_earmarks(&self, pos: Coord) -> [Cell<bool>; 9] {
+    pub fn game_earmarks(&self, pos: Coord) -> Vec<Cell<bool>> {
         game!(self).board().cell(pos).earmarks.clone()
     }
 
@@ -540,24 +549,15 @@ impl SudokuBackend {
             }
             Err(e) => errors.push(e),
         }
-        match std::fs::File::open(path) {
-            Ok(mut file) => {
-                let mut buffer: [u8; 100] = from_fn(|_| 0);
-                use std::io::Read;
-                let _ = file.read_exact(buffer.as_mut_slice());
-                match str::from_utf8(&buffer) {
-                    Ok(s) => match SudokuGame::new_from_string(s) {
-                        Ok(game) => {
-                            self.imp().game.replace(Some(game));
-                            self.imp().game_changed();
-                            return true;
-                        }
-                        Err(e) => errors.push(e),
-                    },
-                    Err(_) => errors.push(SudokuError::InvalidPuzzle),
+        match std::fs::read_to_string(path) {
+            Ok(s) => match SudokuGame::new_from_string(&s) {
+                Ok(game) => {
+                    self.imp().game.replace(Some(game));
+                    self.imp().game_changed();
+                    return true;
                 }
-            }
-
+                Err(e) => errors.push(e),
+            },
             Err(_) => errors.push(SudokuError::InvalidPuzzle),
         }
 
@@ -653,7 +653,7 @@ impl SudokuBackend {
 
     pub fn game_generate(&self) {
         let difficulty = self.selected_difficulty();
-        let game = SudokuGame::new_from_generator(difficulty);
+        let game = SudokuGame::new_from_generator(DEFAULT_SIZE, difficulty);
         self.imp().game.replace(Some(game));
         self.imp().game_changed();
     }
@@ -676,68 +676,46 @@ impl SudokuBackend {
         }
     }
 
+    /// Generates `number_of_puzzles` puzzles of size `n` and `difficulty`
+    /// on every processor.
     pub fn generate_multiple_puzzles(
+        n: usize,
         difficulty: DifficultyCategory,
         number_of_puzzles: u8,
     ) -> Vec<SudokuBoard> {
-        let pool = ThreadPool::shared(Some(gtk::glib::num_processors())).unwrap();
-        let boards: Arc<Mutex<Vec<SudokuBoard>>> = Arc::new(Mutex::new(Default::default()));
+        let number_of_puzzles = number_of_puzzles as usize;
+        let tier = difficulty.to_tier().unwrap_or(Tier::Easy);
+        let found: Arc<Mutex<Vec<generator::Generated>>> = Default::default();
+        let cancel = Arc::new(AtomicBool::new(false));
+        let threads = gtk::glib::num_processors();
+        let pool = ThreadPool::shared(Some(threads)).unwrap();
 
-        for _i in 0..gtk::glib::num_processors() {
-            let weak_boards = Arc::downgrade(&boards);
+        for _ in 0..threads {
+            let found = found.clone();
+            let cancel = cancel.clone();
             pool.push(move || {
-                Self::generate_multiple_puzzles_helper(weak_boards, number_of_puzzles, difficulty)
+                let mut rng = fastrand::Rng::new();
+                while let Some(result) = generator::generate(n, tier, &mut rng, &cancel) {
+                    let mut found = found.lock().unwrap();
+                    if found.len() < number_of_puzzles {
+                        found.push(result);
+                    }
+                    if found.len() >= number_of_puzzles {
+                        cancel.store(true, Ordering::Relaxed);
+                    }
+                }
             })
             .unwrap();
         }
 
-        loop {
+        while !cancel.load(Ordering::Relaxed) {
             std::thread::sleep(Duration::from_millis(5));
-            if let Ok(boards) = boards.lock()
-                && boards.len() >= number_of_puzzles as usize
-            {
-                break;
-            }
         }
-        Arc::into_inner(boards).unwrap().into_inner().unwrap()
-    }
-
-    fn generate_multiple_puzzles_helper(
-        boards: std::sync::Weak<Mutex<Vec<SudokuBoard>>>,
-        number_of_puzzles: u8,
-        difficulty: DifficultyCategory,
-    ) {
-        let mut boardg: SudokuBoardGenerator = Default::default();
-        loop {
-            boardg.new_puzzle();
-            boardg.solve().unwrap();
-            if boardg.difficulty() != difficulty {
-                continue;
-            }
-
-            let board = SudokuBoard::from_generated(
-                &boardg.get_puzzle(),
-                &boardg.get_solution(),
-                difficulty,
-            );
-
-            if let Some(boards) = boards.upgrade() {
-                if let Ok(mut boards) = boards.lock() {
-                    if boards.len() > number_of_puzzles as usize {
-                        break;
-                    } else {
-                        boards.push(board);
-                        if boards.len() > number_of_puzzles as usize {
-                            break;
-                        } else {
-                            continue;
-                        }
-                    }
-                }
-            } else {
-                break;
-            }
-        }
+        let found = std::mem::take(&mut *found.lock().unwrap());
+        found
+            .into_iter()
+            .map(|(puzzle, solution)| SudokuBoard::from_generated(puzzle, &solution, difficulty))
+            .collect()
     }
 
     pub fn selected_difficulty(&self) -> DifficultyCategory {

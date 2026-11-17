@@ -154,26 +154,13 @@ mod imp {
                 self,
                 move |_| cell.flip_shortcuts()
             ));
-            let backend = self.backend();
-
-            if backend.game_fixed(self.pos()) {
-                self.obj().add_css_class("fixed");
-                self.show_picker_action.set_enabled(false);
-                self.insert_value_action.set_enabled(false);
-                self.insert_earmark_action.set_enabled(false);
-            }
-            let value = backend.game_value(self.pos());
-            if let Some(value) = value {
-                self.value_label.set_text(&(value + 1).to_string());
-            }
-            self.value_label.set_visible(value.is_some());
+            // The grid loads the game values into the cells of the puzzle.
+            self.value_label.set_visible(false);
             self.value_label.set_parent(&*self.obj());
 
-            for earmark in self.earmark_labels.iter().enumerate() {
-                earmark
-                    .1
-                    .set_visible(backend.game_earmark(self.pos(), earmark.0));
-                earmark.1.set_parent(&*self.obj());
+            for earmark in &self.earmark_labels {
+                earmark.set_visible(false);
+                earmark.set_parent(&*self.obj());
             }
         }
 
@@ -561,7 +548,7 @@ impl SudokuCell {
     pub fn update_all_earmark_warnings(&self) {
         if self.imp().value().is_none() {
             let earmarks = self.imp().backend().game_earmarks(self.pos());
-            for num in 0..9 {
+            for num in 0..earmarks.len() {
                 if earmarks[num].get() {
                     self.update_earmark_warnings(num);
                 }
@@ -616,8 +603,9 @@ impl SudokuCell {
         }
         self.imp().value_label.set_visible(value.is_some());
 
-        for num in 0..9 {
-            let earmark_visible = backend.game_earmark(self.pos(), num);
+        let n = backend.game_size();
+        for num in 0..self.imp().earmark_labels.len() {
+            let earmark_visible = num < n && backend.game_earmark(self.pos(), num);
             self.set_earmark_visibility(num, earmark_visible);
         }
 

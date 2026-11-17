@@ -33,6 +33,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use crate::lib::puzzle::{MAX_SIZE, MIN_SIZE, Puzzle, Side, Tier, bit, full_mask};
 use crate::lib::solver::solve;
 
+/// A generated puzzle and its solution, row-major with heights 1..=n.
+pub type Generated = (Puzzle, Vec<u8>);
+
 /// A random N×N Latin square with heights 1..=n, row-major.
 pub fn random_latin_square(n: usize, rng: &mut Rng) -> Vec<u8> {
     fn fill(n: usize, grid: &mut [u8], i: usize, rng: &mut Rng) -> bool {
@@ -74,7 +77,7 @@ enum Item {
 }
 
 /// One attempt at a puzzle of exactly `tier`, from a new random solution.
-fn attempt(n: usize, tier: Tier, rng: &mut Rng) -> Option<(Puzzle, Vec<u8>)> {
+fn attempt(n: usize, tier: Tier, rng: &mut Rng) -> Option<Generated> {
     let solution = random_latin_square(n, rng);
     let mut puzzle = Puzzle::from_solution(n, &solution).ok()?;
     let mut cells = Vec::with_capacity(n * n);
@@ -122,12 +125,7 @@ pub fn available(n: usize, tier: Tier) -> bool {
 
 /// Generates a puzzle of size `n` that needs exactly `tier`, with its only
 /// solution. Returns `None` if `cancel` is set before one is found.
-pub fn generate(
-    n: usize,
-    tier: Tier,
-    rng: &mut Rng,
-    cancel: &AtomicBool,
-) -> Option<(Puzzle, Vec<u8>)> {
+pub fn generate(n: usize, tier: Tier, rng: &mut Rng, cancel: &AtomicBool) -> Option<Generated> {
     while !cancel.load(Ordering::Relaxed) {
         if let Some(result) = attempt(n, tier, rng) {
             return Some(result);

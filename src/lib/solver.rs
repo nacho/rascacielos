@@ -342,16 +342,17 @@ pub fn solve(puzzle: &Puzzle, max_tier: Tier) -> Option<(Vec<u8>, Tier)> {
         .then_some((grid, solver.tier_used))
 }
 
-/// Counts the solutions of `puzzle`, stopping at `limit`.
-pub fn count_solutions(puzzle: &Puzzle, limit: usize) -> usize {
-    fn search(solver: Solver, limit: usize, count: &mut usize) {
+/// Finds up to `limit` solutions of `puzzle` with a backtracking search.
+pub fn find_solutions(puzzle: &Puzzle, limit: usize) -> Vec<Vec<u8>> {
+    fn search(solver: Solver, limit: usize, found: &mut Vec<Vec<u8>>) {
         let mut solver = solver;
-        if solver.propagate(Tier::Hard).is_err() {
+        if solver.propagate(Tier::Medium).is_err() {
             return;
         }
         if solver.is_solved() {
-            if solver.puzzle.is_solved_by(&solver.grid()) {
-                *count += 1;
+            let grid = solver.grid();
+            if solver.puzzle.is_solved_by(&grid) {
+                found.push(grid);
             }
             return;
         }
@@ -370,18 +371,23 @@ pub fn count_solutions(puzzle: &Puzzle, limit: usize) -> usize {
             }
             let mut branch = solver.clone();
             branch.candidates[i] = bit(h);
-            search(branch, limit, count);
-            if *count >= limit {
+            search(branch, limit, found);
+            if found.len() >= limit {
                 return;
             }
         }
     }
 
-    let mut count = 0;
+    let mut found = Vec::new();
     if let Ok(solver) = Solver::new(puzzle) {
-        search(solver, limit, &mut count);
+        search(solver, limit, &mut found);
     }
-    count
+    found
+}
+
+/// Counts the solutions of `puzzle`, stopping at `limit`.
+pub fn count_solutions(puzzle: &Puzzle, limit: usize) -> usize {
+    find_solutions(puzzle, limit).len()
 }
 
 #[cfg(test)]

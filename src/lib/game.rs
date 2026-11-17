@@ -27,14 +27,17 @@ use gtk::subclass::prelude::*;
 
 use crate::lib::board::SudokuBoard;
 use crate::lib::board::SudokuError;
-use crate::lib::board_generator::SudokuBoardGenerator;
 use crate::lib::enums::CompatValue;
 use crate::lib::enums::Coord;
 use crate::lib::enums::DifficultyCategory;
+use crate::lib::generator;
+use crate::lib::puzzle::Tier;
+use crate::lib::solver;
 
 use std::cell::{Cell, OnceCell};
 use std::collections::HashSet;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, SystemTime};
 use std::{cell::RefCell, sync::OnceLock};
 
@@ -91,7 +94,7 @@ mod imp {
         }
 
         pub fn disable_all_earmarks_helper(&self, pos: Coord, item: &mut StackItem) {
-            for num in 0..9 {
+            for num in 0..self.obj().board().size() {
                 if self.obj().board().is_earmark_enabled(pos, num) {
                     self.add_earmark_step(&mut *item, pos, num, false);
                 }
@@ -258,46 +261,35 @@ impl SudokuGame {
         Self::new_from_fn(SudokuBoard::from_ascii, s)
     }
 
-    pub fn new_from_generator(difficulty: DifficultyCategory) -> Self {
-        let pool = ThreadPool::shared(Some(gtk::glib::num_processors())).unwrap();
-        let generator: Arc<OnceLock<SudokuBoardGenerator>> = Arc::new(OnceLock::new());
+    /// Generates a puzzle of size `n` and `difficulty` on every processor
+    /// and keeps the first one found.
+    pub fn new_from_generator(n: usize, difficulty: DifficultyCategory) -> Self {
+        let tier = difficulty.to_tier().unwrap_or(Tier::Easy);
         let time = SystemTime::now();
+        let result: Arc<OnceLock<generator::Generated>> = Arc::new(OnceLock::new());
+        let cancel = Arc::new(AtomicBool::new(false));
+        let threads = gtk::glib::num_processors();
+        let pool = ThreadPool::shared(Some(threads)).unwrap();
 
-        for _i in 0..gtk::glib::num_processors() {
-            let weak_generator = Arc::downgrade(&generator);
+        for _ in 0..threads {
+            let result = result.clone();
+            let cancel = cancel.clone();
             pool.push(move || {
-                let mut boardg: SudokuBoardGenerator = Default::default();
-                loop {
-                    boardg.new_puzzle();
-                    boardg.solve().unwrap();
-                    if let Some(generator) = weak_generator.upgrade() {
-                        if boardg.difficulty() == difficulty {
-                            generator.get_or_init(|| boardg);
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
+                let mut rng = Rng::new();
+                if let Some(found) = generator::generate(n, tier, &mut rng, &cancel) {
+                    result.get_or_init(|| found);
+                    cancel.store(true, Ordering::Relaxed);
                 }
             })
             .unwrap();
         }
 
-        let mut count = 0;
-        while generator.get().is_none() {
+        while result.get().is_none() {
             std::thread::sleep(Duration::from_millis(1));
-            count += 1;
-            if count > 10000 {
-                panic!("Failed to generate a board in less than 10 seconds");
-            }
         }
 
-        let generator = Arc::into_inner(generator).unwrap().into_inner().unwrap();
-        let board = SudokuBoard::from_generated(
-            &generator.get_puzzle(),
-            &generator.get_solution(),
-            difficulty,
-        );
+        let (puzzle, solution) = result.get().unwrap().clone();
+        let board = SudokuBoard::from_generated(puzzle, &solution, difficulty);
         let game: Self = glib::Object::new();
         game.imp().board.set(board).unwrap();
         game.start_clock();
@@ -311,24 +303,25 @@ impl SudokuGame {
         game
     }
 
+    /// Finds the solution of `board` and grades it. Fails when the puzzle
+    /// has no solution or more than one.
     pub fn solve(board: &mut SudokuBoard) -> Option<SudokuError> {
-        let fixed_cells = board.fixed_cells();
-
-        let mut board_generator = SudokuBoardGenerator::default();
-        if !board_generator.set_puzzle(fixed_cells) {
-            return Some(SudokuError::InvalidPuzzle);
+        if let Some((solution, tier)) = solver::solve(board.puzzle(), Tier::VeryHard) {
+            board.set_solution(&solution);
+            board.difficulty_category = DifficultyCategory::from_tier(tier);
+            return None;
         }
-        match board_generator.solve_unique() {
-            Ok(solution) => {
-                for row in 0..9 {
-                    for col in 0..9 {
-                        board.cells[row][col].solution = solution[row][col];
-                    }
-                }
-                board.difficulty_category = board_generator.difficulty();
+
+        // Too hard for the solver's techniques, check it with a search.
+        let solutions = solver::find_solutions(board.puzzle(), 2);
+        match solutions.as_slice() {
+            [] => Some(SudokuError::InvalidPuzzle),
+            [solution] => {
+                board.set_solution(solution);
+                board.difficulty_category = DifficultyCategory::Custom;
                 None
             }
-            Err(_e) => Some(SudokuError::MultipleSolutions),
+            _ => Some(SudokuError::MultipleSolutions),
         }
     }
 
@@ -410,8 +403,9 @@ impl SudokuGame {
 
         let mut item = new_action!(self, StackAction::EnableAllEarmarkPossibilities);
 
-        for row in 0..9 {
-            for col in 0..9 {
+        let n = self.board().size();
+        for row in 0..n {
+            for col in 0..n {
                 let pos = Coord { row, col };
                 let cell = &self.board().cells[row][col];
                 if cell.value.get().is_some() {
@@ -419,7 +413,7 @@ impl SudokuGame {
                 }
 
                 let possibilities = self.board().cell_possibilies(pos);
-                for num in 0..9 {
+                for num in 0..n {
                     if !cell.earmarks[num].get() && possibilities[num] {
                         imp.add_earmark_step(&mut item, pos, num, true);
                     }
@@ -456,7 +450,7 @@ impl SudokuGame {
 
         let mut item = new_action!(self, StackAction::InsertAndDisableAlignedEarmarks);
 
-        for new_pos in self.board().cell(pos).aligned_coords {
+        for new_pos in self.board().cell(pos).aligned_coords.clone() {
             if pos == new_pos {
                 continue;
             }
@@ -512,8 +506,9 @@ impl SudokuGame {
         let imp = self.imp();
         let mut item = new_action!(self, StackAction::Reset);
 
-        for row in 0..9 {
-            for col in 0..9 {
+        let n = self.board().size();
+        for row in 0..n {
+            for col in 0..n {
                 let cell = &self.board().cells[row][col];
                 if cell.fixed {
                     continue;
@@ -557,7 +552,8 @@ impl SudokuGame {
         let mut play_order: Vec<Coord> = Self::unique(play_order);
         play_order.reverse();
 
-        if play_order.len() == 81 - self.board().total_fixed {
+        let n = self.board().size();
+        if play_order.len() == n * n - self.board().total_fixed {
             return play_order;
         }
 
@@ -649,8 +645,9 @@ impl SudokuGame {
 
     //for testing purposes
     pub fn _auto_complete(&self) {
-        for row in 0..9 {
-            for col in 0..9 {
+        let n = self.board().size();
+        for row in 0..n {
+            for col in 0..n {
                 let cell = &self.board().cells[row][col];
                 if cell.value.get().is_none_or(|value| value != cell.solution) {
                     self.insert(Coord { row, col }, cell.solution);
@@ -703,5 +700,92 @@ impl StackItem {
             earmark_changes: Default::default(),
             action_type,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::lib::puzzle::{Puzzle, Side};
+
+    const SOLUTION: [u8; 16] = [
+        1, 2, 3, 4, //
+        2, 3, 4, 1, //
+        4, 1, 2, 3, //
+        3, 4, 1, 2, //
+    ];
+
+    fn game() -> SudokuGame {
+        let mut puzzle = Puzzle::from_solution(4, &SOLUTION).unwrap();
+        puzzle.set_clue(Side::Top, 0, None);
+        SudokuGame::new_from_ascii(&puzzle.to_share_code(None)).unwrap()
+    }
+
+    fn pos(row: usize, col: usize) -> Coord {
+        Coord { row, col }
+    }
+
+    // Games start a clock on the default main context, which only one
+    // thread can own, so all the game tests run from a single test.
+    #[test]
+    fn games() {
+        imported_puzzles_are_solved_and_graded();
+        undo_and_redo();
+        autoclean_clears_aligned_earmarks();
+        possibilities();
+    }
+
+    fn imported_puzzles_are_solved_and_graded() {
+        let game = game();
+        assert_eq!(game.board().cell(pos(2, 1)).solution, 0);
+        assert_ne!(game.difficulty(), DifficultyCategory::Unknown);
+        let several = Puzzle::empty(4).unwrap().to_share_code(None);
+        assert_eq!(
+            SudokuGame::new_from_ascii(&several).err(),
+            Some(SudokuError::MultipleSolutions)
+        );
+    }
+
+    fn undo_and_redo() {
+        let game = game();
+        let value = |game: &SudokuGame| game.board().cell(pos(1, 1)).value.get();
+        game.insert(pos(1, 1), 2);
+        game.enable_earmark(pos(0, 0), 3);
+        game.insert(pos(1, 1), 1);
+        assert_eq!(value(&game), Some(1));
+        game.undo();
+        assert_eq!(value(&game), Some(2));
+        assert!(game.board().is_earmark_enabled(pos(0, 0), 3));
+        game.undo();
+        assert!(!game.board().is_earmark_enabled(pos(0, 0), 3));
+        game.undo();
+        assert_eq!(value(&game), None);
+        assert!(game.is_undostack_null());
+        game.redo();
+        assert_eq!(value(&game), Some(2));
+        game.redo();
+        game.redo();
+        assert_eq!(value(&game), Some(1));
+        assert!(game.is_redostack_null());
+    }
+
+    fn autoclean_clears_aligned_earmarks() {
+        let game = game();
+        game.enable_earmark(pos(1, 3), 2);
+        game.enable_earmark(pos(3, 1), 2);
+        game.enable_earmark(pos(3, 3), 2);
+        game.insert_and_disable_aligned_earmarks(pos(1, 1), 2);
+        assert!(!game.board().is_earmark_enabled(pos(1, 3), 2));
+        assert!(!game.board().is_earmark_enabled(pos(3, 1), 2));
+        assert!(game.board().is_earmark_enabled(pos(3, 3), 2));
+    }
+
+    fn possibilities() {
+        let game = game();
+        game.insert(pos(1, 1), 2);
+        game.enable_all_earmark_possibilities();
+        assert!(!game.board().is_earmark_enabled(pos(1, 2), 2));
+        assert!(game.board().is_earmark_enabled(pos(2, 2), 2));
+        assert!(!game.board().has_earmarks(pos(1, 1)));
     }
 }
