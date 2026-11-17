@@ -1,0 +1,640 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the rascacielos package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: rascacielos\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-17 20:32+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: data/io.github.nacho.rascacielos.desktop.in.in:2
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:8
+#: resources/ui/game-view.ui:20 resources/ui/start-view.ui:14
+#: resources/ui/window.ui:9
+msgid "Rascacielos"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.desktop.in.in:3
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:9
+msgid "Place the skyscrapers in the city"
+msgstr ""
+
+#. Translators: Search terms to find this application. Do NOT translate or localize the semicolons! The list MUST also end with a semicolon!
+#: data/io.github.nacho.rascacielos.desktop.in.in:5
+msgid "skyscrapers;towers;logic;puzzle;latin;square;"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:10
+msgid "Initialize the earmarks with the possible values for each cell"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:17
+msgid ""
+"Check for duplicates in rows and columns and for clues that do not match "
+"full lines"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:21
+msgid "Check earmarks against duplicates in row and column"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:25
+msgid "Warn as soon as the buildings placed next to a clue contradict it"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:29
+msgid "Toggle timer and pause buttons"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:33
+msgid "Additionally check against the solution for warnings"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:37
+msgid "Automatically clear related earmarks on new number insertion"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:41
+msgid "Display number picker on second click"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:45
+msgid "Highlight the selected cell's row and column"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:49
+msgid "Highlight the selected cell's matching numbers"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:53
+msgid "Zoom level"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:57
+msgid "Width of the window in pixels"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:61
+msgid "Height of the window in pixels"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:65
+msgid "true if the window is maximized"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.gschema.xml:69
+msgid "true if the window is fullscreen"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:11
+msgid ""
+"Rascacielos is a skyscrapers logic puzzle. Fill the grid with buildings so "
+"that each row and column holds every height once, and the numbers around the "
+"edge match how many buildings can be seen from that side."
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:16
+msgid "Features:"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:18
+msgid ""
+"Endless puzzles from 4×4 to 7×7 in four difficulties, each with a single "
+"solution."
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:19
+msgid ""
+"Pencil marks, undo and redo, and warnings for repeated heights and broken "
+"clues."
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:20
+msgid "Highscores and a timer for every size and difficulty."
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:21
+msgid "Your game is saved and restored automatically."
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:22
+msgid "Share puzzles with a short code, or export and open them as text."
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:23
+msgid "Print puzzles to solve on paper."
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:25
+msgid ""
+"Rascacielos is based on GNOME Sudoku by Thomas M. Hinkle, Robert Ancell, "
+"Parin Porecha, Jamie Murphy, Johan Gay and contributors."
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:36
+msgid "Ignacio Casal Quinteiro"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:54
+msgid "First release."
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:56
+msgid "Skyscrapers puzzles from 4×4 to 7×7 in four difficulties."
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:57
+msgid ""
+"Pencil marks, warnings, highscores, sharing and printing, inherited from "
+"GNOME Sudoku."
+msgstr ""
+
+#: resources/ui/game-view.ui:8
+msgid "Paused"
+msgstr ""
+
+#: resources/ui/game-view.ui:25
+msgid "Undo Action"
+msgstr ""
+
+#: resources/ui/game-view.ui:33
+msgid "Redo Action"
+msgstr ""
+
+#: resources/ui/game-view.ui:41
+msgid "Earmark Mode"
+msgstr ""
+
+#: resources/ui/game-view.ui:53
+msgid "Pause"
+msgstr ""
+
+#: resources/ui/game-view.ui:61
+msgid "Play"
+msgstr ""
+
+#: resources/ui/game-view.ui:86
+msgid "Clock"
+msgstr ""
+
+#: resources/ui/menu-button.ui:8 src/game_view.rs:533
+msgid "_New Game…"
+msgstr ""
+
+#: resources/ui/menu-button.ui:12
+msgid "_Puzzle"
+msgstr ""
+
+#: resources/ui/menu-button.ui:15
+msgid "_Reset"
+msgstr ""
+
+#: resources/ui/menu-button.ui:21
+msgid "_Share"
+msgstr ""
+
+#: resources/ui/menu-button.ui:25
+msgid "_Save As…"
+msgstr ""
+
+#: resources/ui/menu-button.ui:29
+msgid "_Export…"
+msgstr ""
+
+#: resources/ui/menu-button.ui:35
+msgid "Print _Generator"
+msgstr ""
+
+#: resources/ui/menu-button.ui:43
+msgid "Zoom"
+msgstr ""
+
+#: resources/ui/menu-button.ui:58
+msgid "_Preferences"
+msgstr ""
+
+#: resources/ui/menu-button.ui:62
+msgid "_Keyboard Shortcuts"
+msgstr ""
+
+#: resources/ui/menu-button.ui:66
+msgid "_About Rascacielos"
+msgstr ""
+
+#: resources/ui/menu-button.ui:76
+msgid "Main Menu"
+msgstr ""
+
+#: resources/ui/menu-button.ui:84
+msgid "Zoom Out"
+msgstr ""
+
+#: resources/ui/menu-button.ui:95
+msgid "Zoom In"
+msgstr ""
+
+#: resources/ui/menu-button.ui:109
+msgid "Fullscreen"
+msgstr ""
+
+#: resources/ui/menu-button.ui:120
+msgid "Leave Fullscreen"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:10
+msgctxt "preferences dialog"
+msgid "General"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:13
+msgctxt "General Preferences"
+msgid "_Timer and Highscores"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:19
+msgctxt "General Preferences"
+msgid "Automatically _Clean Earmarks"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:25
+msgctxt "General Preferences"
+msgid "Number Picker on _Second Click"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:31
+msgctxt "General Preferences"
+msgid "Show Earmark _Possibilities"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:39
+msgctxt "Preferences Dialog"
+msgid "Warnings"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:42
+msgctxt "Warning Preferences"
+msgid "_Duplicate Warnings"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:48
+msgctxt "Warning Preferences"
+msgid "S_olution Warnings"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:54
+msgctxt "Warning Preferences"
+msgid "_Clue Warnings"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:55
+msgctxt "Warning Preferences"
+msgid "Warn as soon as the buildings next to a clue contradict it"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:61
+msgctxt "Warning Preferences"
+msgid "_Earmark Warnings"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:69
+msgctxt "Preferences Dialog"
+msgid "Highlighter"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:72
+msgctxt "Highlighter Preferences"
+msgid "Highlight _Row and Column"
+msgstr ""
+
+#: resources/ui/preferences-dialog.ui:78
+msgctxt "Highlighter Preferences"
+msgid "Highlight Matching _Numbers"
+msgstr ""
+
+#: resources/ui/print-generator-dialog.ui:6
+msgid "Print Multiple Puzzles"
+msgstr ""
+
+#: resources/ui/print-generator-dialog.ui:26
+msgid "_Number of Puzzles"
+msgstr ""
+
+#: resources/ui/print-generator-dialog.ui:43
+msgid "_Number of Puzzles per Page"
+msgstr ""
+
+#: resources/ui/print-generator-dialog.ui:58
+msgid "_Size"
+msgstr ""
+
+#: resources/ui/print-generator-dialog.ui:74
+msgid "_Difficulty"
+msgstr ""
+
+#: resources/ui/print-generator-dialog.ui:79
+msgid "Easy"
+msgstr ""
+
+#: resources/ui/print-generator-dialog.ui:80
+msgid "Medium"
+msgstr ""
+
+#: resources/ui/print-generator-dialog.ui:81
+msgid "Hard"
+msgstr ""
+
+#: resources/ui/print-generator-dialog.ui:82
+msgid "Very Hard"
+msgstr ""
+
+#: resources/ui/print-generator-dialog.ui:90
+msgid "Print _Current Puzzle"
+msgstr ""
+
+#: resources/ui/print-generator-dialog.ui:100
+msgid "_Print…"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:8
+msgctxt "Shortcuts Window"
+msgid "Game"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:12 resources/ui/shortcuts-dialog.ui:18
+msgctxt "Shortcuts Window"
+msgid "Move"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:24
+msgctxt "Shortcuts Window"
+msgid "Earmarks"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:30
+msgctxt "Shortcuts Window"
+msgid "Clear Cell"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:36
+msgctxt "Shortcuts Window"
+msgid "Number Picker"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:42
+msgctxt "Shortcuts Window"
+msgid "Earmark Picker"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:52
+msgctxt "Shortcuts Window"
+msgid "Earmark Mode"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:58
+msgctxt "Shortcuts Window"
+msgid "Pause"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:64
+msgctxt "Shortcuts Window"
+msgid "Undo"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:70
+msgctxt "Shortcuts Window"
+msgid "Redo"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:80
+msgctxt "Shortcuts Window"
+msgid "New Game…"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:86
+msgctxt "Shortcuts Window"
+msgid "Zoom In"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:92
+msgctxt "Shortcuts Window"
+msgid "Zoom Out"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:98
+msgctxt "Shortcuts Window"
+msgid "Zoom Reset"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:105
+msgctxt "Shortcuts Window"
+msgid "Puzzle"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:109
+msgctxt "Shortcuts Window"
+msgid "Reset"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:115
+msgctxt "Shortcuts Window"
+msgid "Share"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:121
+msgctxt "Shortcuts Window"
+msgid "Save As…"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:127
+msgctxt "Shortcuts Window"
+msgid "Export…"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:133
+msgctxt "Shortcuts Window"
+msgid "Print Generator"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:140
+msgctxt "Shortcuts Window"
+msgid "Window"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:144
+msgctxt "Shortcuts Window"
+msgid "Go Back"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:150
+msgctxt "Shortcuts Window"
+msgid "Preferences"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:156
+msgctxt "Shortcuts Window"
+msgid "Keyboard Shortcuts"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:162
+msgctxt "Shortcuts Window"
+msgid "Quit"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:168
+msgctxt "Shortcuts Window"
+msgid "Menu"
+msgstr ""
+
+#: resources/ui/shortcuts-dialog.ui:174
+msgctxt "Shortcuts Window"
+msgid "Fullscreen"
+msgstr ""
+
+#: resources/ui/start-view.ui:15
+msgid "New Puzzle"
+msgstr ""
+
+#: resources/ui/start-view.ui:23
+msgid "Back"
+msgstr ""
+
+#: resources/ui/start-view.ui:36
+msgid "Select Puzzle Size and Difficulty"
+msgstr ""
+
+#: resources/ui/start-view.ui:50
+msgid "Puzzle Size"
+msgstr ""
+
+#: resources/ui/start-view.ui:89
+msgctxt "Difficulty"
+msgid "_Custom"
+msgstr ""
+
+#: resources/ui/start-view.ui:107
+msgctxt "Difficulty"
+msgid "_Easy"
+msgstr ""
+
+#: resources/ui/start-view.ui:122
+msgctxt "Difficulty"
+msgid "_Medium"
+msgstr ""
+
+#: resources/ui/start-view.ui:137
+msgctxt "Difficulty"
+msgid "_Hard"
+msgstr ""
+
+#: resources/ui/start-view.ui:152
+msgctxt "Difficulty"
+msgid "_Very Hard"
+msgstr ""
+
+#: resources/ui/start-view.ui:167 src/start_view.rs:153
+msgid "_Start Game"
+msgstr ""
+
+#: resources/ui/start-view.ui:184
+msgid "_Open..."
+msgstr ""
+
+#: resources/ui/start-view.ui:195
+msgid "_Start Shared Game"
+msgstr ""
+
+#: resources/ui/start-view.ui:212
+msgid "_Open…"
+msgstr ""
+
+#: src/lib/enums.rs:74
+msgid "Easy Difficulty"
+msgstr ""
+
+#: src/lib/enums.rs:75
+msgid "Medium Difficulty"
+msgstr ""
+
+#: src/lib/enums.rs:76
+msgid "Hard Difficulty"
+msgstr ""
+
+#: src/lib/enums.rs:77
+msgid "Very Hard Difficulty"
+msgstr ""
+
+#: src/earmark_picker.rs:73
+msgid "Lock"
+msgstr ""
+
+#: src/earmark_picker.rs:81 src/value_picker.rs:75
+msgid "Clear"
+msgstr ""
+
+#: src/game_view.rs:425
+msgid "Puzzle copied to clipboard"
+msgstr ""
+
+#: src/game_view.rs:466
+msgctxt ".txt is a file extension"
+msgid "Skyscrapers puzzle.txt"
+msgstr ""
+
+#: src/game_view.rs:522
+msgid "Puzzle Completed!"
+msgstr ""
+
+#: src/game_view.rs:524
+msgid "_Quit"
+msgstr ""
+
+#: src/game_view.rs:527
+msgid "_Change Difficulty"
+msgstr ""
+
+#: src/game_view.rs:528 src/game_view.rs:532
+msgid "_Play Again"
+msgstr ""
+
+#. Help string for command line --version flag
+#: src/main.rs:177
+msgid "Show release version"
+msgstr ""
+
+#: src/printer.rs:65
+msgid "Error printing file:"
+msgstr ""
+
+#: src/printer.rs:68
+msgid "_Close"
+msgstr ""
+
+#: src/start_view.rs:204
+msgid "Failed to import the puzzle, please enter a valid skyscrapers puzzle"
+msgstr ""
+
+#: src/start_view.rs:208
+msgid "_Cancel"
+msgstr ""
+
+#: src/start_view.rs:209
+msgid "_Try Again"
+msgstr ""
+
+#: src/window.rs:367
+msgid "Based on GNOME Sudoku by"
+msgstr ""
+
+#: src/window.rs:368
+msgid "translator-credits"
+msgstr ""

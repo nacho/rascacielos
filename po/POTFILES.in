@@ -8,8 +8,8 @@ resources/ui/game-view.ui
 resources/ui/menu-button.ui
 resources/ui/preferences-dialog.ui
 resources/ui/print-generator-dialog.ui
-resources/ui/start-view.ui
 resources/ui/shortcuts-dialog.ui
+resources/ui/start-view.ui
 resources/ui/window.ui
 
 src/lib/enums.rs
