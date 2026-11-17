@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rascacielos\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 20:32+0100\n"
+"POT-Creation-Date: 2026-11-17 20:50+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -141,19 +141,27 @@ msgid ""
 "Parin Porecha, Jamie Murphy, Johan Gay and contributors."
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:36
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:33
+msgid "A 5×5 puzzle with its clues around the grid"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:37
+msgid "A 5×5 puzzle in dark mode with a repeated height marked in red"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:46
 msgid "Ignacio Casal Quinteiro"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:54
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:64
 msgid "First release."
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:56
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:66
 msgid "Skyscrapers puzzles from 4×4 to 7×7 in four difficulties."
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:57
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:67
 msgid ""
 "Pencil marks, warnings, highscores, sharing and printing, inherited from "
 "GNOME Sudoku."
@@ -607,7 +615,7 @@ msgid "_Play Again"
 msgstr ""
 
 #. Help string for command line --version flag
-#: src/main.rs:177
+#: src/main.rs:178
 msgid "Show release version"
 msgstr ""
 

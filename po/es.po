@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rascacielos\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 20:32+0100\n"
+"POT-Creation-Date: 2026-11-17 20:50+0100\n"
 "PO-Revision-Date: 2026-11-17 20:00+0100\n"
 "Last-Translator: Ignacio Casal Quinteiro <icq@gnome.org>\n"
 "Language-Team: Spanish\n"
@@ -32,7 +32,9 @@ msgstr "Coloca los rascacielos en la ciudad"
 #. Translators: Search terms to find this application. Do NOT translate or localize the semicolons! The list MUST also end with a semicolon!
 #: data/io.github.nacho.rascacielos.desktop.in.in:5
 msgid "skyscrapers;towers;logic;puzzle;latin;square;"
-msgstr "rascacielos;torres;lógica;rompecabezas;cuadrado;latino;skyscrapers;towers;puzzle;"
+msgstr ""
+"rascacielos;torres;lógica;rompecabezas;cuadrado;latino;skyscrapers;towers;"
+"puzzle;"
 
 #: data/io.github.nacho.rascacielos.gschema.xml:10
 msgid "Initialize the earmarks with the possible values for each cell"
@@ -42,7 +44,9 @@ msgstr "Inicializar las anotaciones con los valores posibles de cada celda"
 msgid ""
 "Check for duplicates in rows and columns and for clues that do not match "
 "full lines"
-msgstr "Comprobar si hay duplicados en filas y columnas y pistas que no coinciden con líneas completas"
+msgstr ""
+"Comprobar si hay duplicados en filas y columnas y pistas que no coinciden "
+"con líneas completas"
 
 #: data/io.github.nacho.rascacielos.gschema.xml:21
 msgid "Check earmarks against duplicates in row and column"
@@ -50,7 +54,8 @@ msgstr "Comprobar las anotaciones contra duplicados en fila y columna"
 
 #: data/io.github.nacho.rascacielos.gschema.xml:25
 msgid "Warn as soon as the buildings placed next to a clue contradict it"
-msgstr "Avisar en cuanto los edificios colocados junto a una pista la contradigan"
+msgstr ""
+"Avisar en cuanto los edificios colocados junto a una pista la contradigan"
 
 #: data/io.github.nacho.rascacielos.gschema.xml:29
 msgid "Toggle timer and pause buttons"
@@ -62,7 +67,8 @@ msgstr "Comprobar también contra la solución para los avisos"
 
 #: data/io.github.nacho.rascacielos.gschema.xml:37
 msgid "Automatically clear related earmarks on new number insertion"
-msgstr "Borrar automáticamente las anotaciones relacionadas al introducir un número"
+msgstr ""
+"Borrar automáticamente las anotaciones relacionadas al introducir un número"
 
 #: data/io.github.nacho.rascacielos.gschema.xml:41
 msgid "Display number picker on second click"
@@ -101,7 +107,10 @@ msgid ""
 "Rascacielos is a skyscrapers logic puzzle. Fill the grid with buildings so "
 "that each row and column holds every height once, and the numbers around the "
 "edge match how many buildings can be seen from that side."
-msgstr "Rascacielos es un juego de lógica. Llena la cuadrícula de edificios de forma que cada fila y cada columna tenga cada altura una sola vez, y que los números del borde coincidan con cuántos edificios se ven desde ese lado."
+msgstr ""
+"Rascacielos es un juego de lógica. Llena la cuadrícula de edificios de forma "
+"que cada fila y cada columna tenga cada altura una sola vez, y que los "
+"números del borde coincidan con cuántos edificios se ven desde ese lado."
 
 #: data/io.github.nacho.rascacielos.metainfo.xml.in.in:16
 msgid "Features:"
@@ -111,13 +120,17 @@ msgstr "Características:"
 msgid ""
 "Endless puzzles from 4×4 to 7×7 in four difficulties, each with a single "
 "solution."
-msgstr "Rompecabezas infinitos de 4×4 a 7×7 en cuatro dificultades, cada uno con una única solución."
+msgstr ""
+"Rompecabezas infinitos de 4×4 a 7×7 en cuatro dificultades, cada uno con una "
+"única solución."
 
 #: data/io.github.nacho.rascacielos.metainfo.xml.in.in:19
 msgid ""
 "Pencil marks, undo and redo, and warnings for repeated heights and broken "
 "clues."
-msgstr "Anotaciones, deshacer y rehacer, y avisos de alturas repetidas y pistas incumplidas."
+msgstr ""
+"Anotaciones, deshacer y rehacer, y avisos de alturas repetidas y pistas "
+"incumplidas."
 
 #: data/io.github.nacho.rascacielos.metainfo.xml.in.in:20
 msgid "Highscores and a timer for every size and difficulty."
@@ -129,7 +142,8 @@ msgstr "La partida se guarda y se restaura automáticamente."
 
 #: data/io.github.nacho.rascacielos.metainfo.xml.in.in:22
 msgid "Share puzzles with a short code, or export and open them as text."
-msgstr "Comparte rompecabezas con un código corto, o expórtalos y ábrelos como texto."
+msgstr ""
+"Comparte rompecabezas con un código corto, o expórtalos y ábrelos como texto."
 
 #: data/io.github.nacho.rascacielos.metainfo.xml.in.in:23
 msgid "Print puzzles to solve on paper."
@@ -139,25 +153,37 @@ msgstr "Imprime rompecabezas para resolverlos en papel."
 msgid ""
 "Rascacielos is based on GNOME Sudoku by Thomas M. Hinkle, Robert Ancell, "
 "Parin Porecha, Jamie Murphy, Johan Gay and contributors."
-msgstr "Rascacielos está basado en GNOME Sudoku, de Thomas M. Hinkle, Robert Ancell, Parin Porecha, Jamie Murphy, Johan Gay y colaboradores."
+msgstr ""
+"Rascacielos está basado en GNOME Sudoku, de Thomas M. Hinkle, Robert Ancell, "
+"Parin Porecha, Jamie Murphy, Johan Gay y colaboradores."
 
-#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:36
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:33
+msgid "A 5×5 puzzle with its clues around the grid"
+msgstr "Un rompecabezas de 5×5 con sus pistas alrededor de la cuadrícula"
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:37
+msgid "A 5×5 puzzle in dark mode with a repeated height marked in red"
+msgstr "Un rompecabezas de 5×5 en modo oscuro con una altura repetida marcada en rojo"
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:46
 msgid "Ignacio Casal Quinteiro"
 msgstr "Ignacio Casal Quinteiro"
 
-#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:54
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:64
 msgid "First release."
 msgstr "Primera versión."
 
-#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:56
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:66
 msgid "Skyscrapers puzzles from 4×4 to 7×7 in four difficulties."
 msgstr "Rompecabezas de rascacielos de 4×4 a 7×7 en cuatro dificultades."
 
-#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:57
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:67
 msgid ""
 "Pencil marks, warnings, highscores, sharing and printing, inherited from "
 "GNOME Sudoku."
-msgstr "Anotaciones, avisos, mejores tiempos, compartir e imprimir, heredados de GNOME Sudoku."
+msgstr ""
+"Anotaciones, avisos, mejores tiempos, compartir e imprimir, heredados de "
+"GNOME Sudoku."
 
 #: resources/ui/game-view.ui:8
 msgid "Paused"
@@ -607,7 +633,7 @@ msgid "_Play Again"
 msgstr "_Jugar otra vez"
 
 #. Help string for command line --version flag
-#: src/main.rs:177
+#: src/main.rs:178
 msgid "Show release version"
 msgstr "Mostrar la versión"
 
@@ -621,7 +647,9 @@ msgstr "_Cerrar"
 
 #: src/start_view.rs:204
 msgid "Failed to import the puzzle, please enter a valid skyscrapers puzzle"
-msgstr "No se ha podido importar el rompecabezas. Introduce un rompecabezas de rascacielos válido"
+msgstr ""
+"No se ha podido importar el rompecabezas. Introduce un rompecabezas de "
+"rascacielos válido"
 
 #: src/start_view.rs:208
 msgid "_Cancel"

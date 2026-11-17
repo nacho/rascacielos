@@ -27,6 +27,16 @@
       Parin Porecha, Jamie Murphy, Johan Gay and contributors.
     </p>
   </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/nacho/rascacielos/main/data/screenshots/screenshot.png</image>
+      <caption>A 5×5 puzzle with its clues around the grid</caption>
+    </screenshot>
+    <screenshot environment="gnome:dark">
+      <image>https://raw.githubusercontent.com/nacho/rascacielos/main/data/screenshots/screenshot-dark.png</image>
+      <caption>A 5×5 puzzle in dark mode with a repeated height marked in red</caption>
+    </screenshot>
+  </screenshots>
   <launchable type="desktop-id">@app-id@.desktop</launchable>
   <url type="homepage">https://github.com/nacho/rascacielos</url>
   <url type="bugtracker">https://github.com/nacho/rascacielos/issues</url>
