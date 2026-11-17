@@ -81,10 +81,10 @@ impl Default for SudokuBoard {
     fn default() -> Self {
         //self referencing would skip the coord middleman but we'd need a crate like ouroboros for that
         let coords_for_row: [[Coord; 9]; 9] =
-            { array::from_fn(|row| array::from_fn(|col| Coord { row: row, col: col })) };
+            { array::from_fn(|row| array::from_fn(|col| Coord { row, col })) };
 
         let coords_for_col: [[Coord; 9]; 9] =
-            { array::from_fn(|col| array::from_fn(|row| Coord { row: row, col: col })) };
+            { array::from_fn(|col| array::from_fn(|row| Coord { row, col })) };
 
         let coords_for_block: [[[Coord; 9]; 3]; 3] = {
             array::from_fn(|row_block| {
@@ -92,7 +92,7 @@ impl Default for SudokuBoard {
                     array::from_fn(|i| {
                         let row = row_block * 3 + i / 3;
                         let col = col_block * 3 + i % 3;
-                        Coord { row: row, col: col }
+                        Coord { row, col }
                     })
                 })
             })
@@ -119,14 +119,14 @@ impl Default for SudokuBoard {
         }
 
         Self {
-            cells: cells,
+            cells,
             digits: Default::default(),
             total_fixed: Default::default(),
             total_earmarks: Default::default(),
             total_filled: Default::default(),
-            coords_for_row: coords_for_row,
-            coords_for_col: coords_for_col,
-            coords_for_block: coords_for_block,
+            coords_for_row,
+            coords_for_col,
+            coords_for_block,
             broken_coords: Default::default(),
             difficulty_category: Default::default(),
             loaded_time: Default::default(),
@@ -136,12 +136,12 @@ impl Default for SudokuBoard {
 
 impl SudokuBoard {
     pub fn is_complete(&self) -> bool {
-        let broken: bool = self.broken_coords.borrow().len() != 0;
-        return !broken && self.total_filled.get() == 81;
+        let broken: bool = !self.broken_coords.borrow().is_empty();
+        !broken && self.total_filled.get() == 81
     }
 
     pub fn is_empty(&self) -> bool {
-        return self.total_filled.get() == self.total_fixed && self.total_earmarks.get() == 0;
+        self.total_filled.get() == self.total_fixed && self.total_earmarks.get() == 0
     }
 
     pub fn fixed_cells(&self) -> [[Option<usize>; 9]; 9] {
@@ -266,7 +266,7 @@ impl SudokuBoard {
     }
 
     fn remove_breakages_for(&self, row: usize, col: usize, val: usize) {
-        let target = &Coord { row: row, col: col };
+        let target = &Coord { row, col };
         let mut broken_coords = self.broken_coords.borrow_mut();
         if broken_coords.contains(target) {
             for aligned in self.cells[row][col].aligned_coords {
@@ -445,7 +445,7 @@ impl SudokuBoard {
         for row in 0..9 {
             for col in 0..9 {
                 let cell = &self.cells[row][col];
-                if cell.fixed == true {
+                if cell.fixed {
                     let value = cell.value.get().unwrap();
                     let ascii = Self::to_printable_ascii(row as u8, col as u8);
                     number_positions[value].push(ascii);
@@ -581,7 +581,7 @@ impl JsonBoard {
                 };
                 let cell = JsonCell {
                     position: [row, col],
-                    value: value,
+                    value,
                     fixed: bcell.fixed,
                     earmarks: v,
                 };
@@ -591,7 +591,7 @@ impl JsonBoard {
         JsonBoard {
             difficulty_category: board.difficulty_category,
             time_elapsed: elapsed_time,
-            cells: cells,
+            cells,
         }
     }
 }

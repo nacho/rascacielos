@@ -65,7 +65,7 @@ impl SudokuData {
             && let Ok(mut data) = Self::load(&str)
         {
             data.data_file = path;
-            return data;
+            data
         } else {
             Self {
                 highscores: Default::default(),
@@ -96,7 +96,7 @@ impl SudokuData {
         Ok(data)
     }
 
-    fn load(str: &String) -> Result<Self, SudokuError> {
+    fn load(str: &str) -> Result<Self, SudokuError> {
         let data: Self = serde_json::from_str(str)?;
         Ok(data)
     }
@@ -105,15 +105,15 @@ impl SudokuData {
         if let Ok(mut file) = File::create(&self.data_file) {
             let str = serde_json::to_string_pretty(&self).unwrap();
             file.write_all(&str.into_bytes()).expect("Error saving");
-            return true;
+            true
         } else {
             println!("ERROR OPENING FILE");
-            return false;
+            false
         }
     }
 
     //implemeted in v52, remove it in v55
-    fn legacy_load(str: &String) -> Result<HashMap<DifficultyCategory, f64>, SudokuError> {
+    fn legacy_load(str: &str) -> Result<HashMap<DifficultyCategory, f64>, SudokuError> {
         let h: Value = serde_json::from_str(str)?;
         use DifficultyCategory::*;
         let mut highscores: HashMap<DifficultyCategory, f64> = HashMap::new();
@@ -123,7 +123,7 @@ impl SudokuData {
                 highscores.insert(difficulty, parsed);
             }
         }
-        if highscores.len() == 0 {
+        if highscores.is_empty() {
             return Err(SudokuError::InvalidSaveData);
         }
 

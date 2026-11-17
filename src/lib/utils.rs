@@ -32,8 +32,8 @@ pub fn new_shortcut<T>(klass: &mut T, name: &str, accelerator: &str)
 where
     T: WidgetClassExt,
 {
-    let action = NamedAction::new(&name);
-    let trigger = ShortcutTrigger::parse_string(&accelerator);
+    let action = NamedAction::new(name);
+    let trigger = ShortcutTrigger::parse_string(accelerator);
     let shortcut = &gtk::Shortcut::new(trigger, Some(action.upcast::<ShortcutAction>()));
     klass.add_shortcut(shortcut);
 }
@@ -43,8 +43,8 @@ where
     A: WidgetClassExt,
     B: ToVariant,
 {
-    let action = NamedAction::new(&name);
-    let trigger = ShortcutTrigger::parse_string(&accelerator);
+    let action = NamedAction::new(name);
+    let trigger = ShortcutTrigger::parse_string(accelerator);
     let shortcut = &gtk::Shortcut::with_arguments(
         trigger,
         Some(action.upcast::<ShortcutAction>()),
@@ -102,6 +102,9 @@ macro_rules! connect_cb_action_with_arg {
 }
 
 //copy pasted from upstream to avoid using rust nightly
+/// # Safety
+///
+/// `clone()` must not access the `Cell` the value is stored in.
 pub unsafe trait CloneFromCell: Clone {}
 unsafe impl CloneFromCell for picker_popover::SudokuPickerPopover {}
 unsafe impl<T: CloneFromCell> CloneFromCell for Option<T> {}

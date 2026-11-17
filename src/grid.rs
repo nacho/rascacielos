@@ -48,10 +48,7 @@ mod imp {
 
     use std::array::from_fn;
 
-    use gtk::{
-        Allocation, CssProvider, Orientation, Separator, Widget,
-        glib::{SourceId, gobject_ffi::GObject},
-    };
+    use gtk::{Allocation, CssProvider, Orientation, Separator, glib::SourceId};
 
     use super::*;
 
@@ -89,12 +86,8 @@ mod imp {
 
     impl Default for SudokuGrid {
         fn default() -> Self {
-            let cells: [[SudokuCell; 9]; 9] = std::array::from_fn(|row| {
-                std::array::from_fn(|col| {
-                    let cell = SudokuCell::new(row, col);
-                    cell
-                })
-            });
+            let cells: [[SudokuCell; 9]; 9] =
+                std::array::from_fn(|row| std::array::from_fn(|col| SudokuCell::new(row, col)));
 
             let block_horizontal_separators: [Separator; 2] = from_fn(|_| {
                 glib::Object::builder()
@@ -148,8 +141,8 @@ mod imp {
             let old_pos = self.selected_pos();
             if self.selected_cell() != cell {
                 self.selected_cell().unselect();
-                self.selected_row.set(cell.pos().row as usize);
-                self.selected_col.set(cell.pos().col as usize);
+                self.selected_row.set(cell.pos().row);
+                self.selected_col.set(cell.pos().col);
                 self.picker_popover.popdown();
             }
 
@@ -203,7 +196,7 @@ mod imp {
             action.connect_activate(glib::clone!(
                 #[weak(rename_to = grid)]
                 self,
-                move |_, variant| grid.move_cb(&variant.unwrap())
+                move |_, variant| grid.move_cb(variant.unwrap())
             ));
             group.add_action(&action);
         }
@@ -666,7 +659,7 @@ mod imp {
                         cell_xs[col].width,
                         cell_ys[row].height,
                     );
-                    self.cells[row as usize][col as usize].size_allocate(&allocation, baseline);
+                    self.cells[row][col].size_allocate(&allocation, baseline);
                 }
             }
 

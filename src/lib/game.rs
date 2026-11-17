@@ -200,18 +200,12 @@ mod imp {
     impl StackAction {
         pub fn is_single_value_change(&self) -> bool {
             use StackAction::*;
-            match self {
-                Insert | Remove | InsertAndDisableAlignedEarmarks => return true,
-                _ => return false,
-            }
+            matches!(self, Insert | Remove | InsertAndDisableAlignedEarmarks)
         }
 
         pub fn is_single_earmarks_change(&self) -> bool {
             use StackAction::*;
-            match self {
-                EnableEarmark | DisableEarmark | DisableAllEarmarks => return true,
-                _ => return false,
-            }
+            matches!(self, EnableEarmark | DisableEarmark | DisableAllEarmarks)
         }
     }
 }
@@ -363,10 +357,10 @@ impl SudokuGame {
     pub fn total_time_played(&self) -> f64 {
         let imp = self.imp();
         let mut accumulated_time = imp.stored_time.get();
-        if let Some(timer) = imp.timer.get() {
-            if let Ok(elapsed_time) = timer.elapsed() {
-                accumulated_time += elapsed_time.as_secs() as f64;
-            }
+        if let Some(timer) = imp.timer.get()
+            && let Ok(elapsed_time) = timer.elapsed()
+        {
+            accumulated_time += elapsed_time.as_secs() as f64;
         }
         accumulated_time += imp.board.get().unwrap().loaded_time;
         accumulated_time
@@ -399,7 +393,7 @@ impl SudokuGame {
         if let Some(stack_head_index) = self.imp().stack_head_index.get() {
             stack_head_index == self.imp().stack.borrow().len() - 1
         } else {
-            self.imp().stack.borrow().len() == 0
+            self.imp().stack.borrow().is_empty()
         }
     }
 
@@ -433,7 +427,7 @@ impl SudokuGame {
             }
         }
 
-        if item.earmark_changes.len() > 0 {
+        if !item.earmark_changes.is_empty() {
             finish_action!(self, item);
         } else {
             self.imp().stack_head_index.set(stack_head_index_copy);
@@ -704,10 +698,10 @@ pub struct StackItem {
 
 impl StackItem {
     fn new(action_type: StackAction) -> Self {
-        return Self {
+        Self {
             value_changes: Default::default(),
             earmark_changes: Default::default(),
-            action_type: action_type,
-        };
+            action_type,
+        }
     }
 }

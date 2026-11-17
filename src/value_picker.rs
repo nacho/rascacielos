@@ -163,8 +163,7 @@ glib::wrapper! {
 
 impl SudokuValuePicker {
     pub fn new_unitialized() -> Self {
-        let value_picker = build_picker!(Self);
-        value_picker
+        build_picker!(Self)
     }
 
     pub fn init(&self, backend: &SudokuBackend) {

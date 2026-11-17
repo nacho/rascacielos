@@ -111,7 +111,7 @@ mod imp {
 
             if printer.imp().print_sudoku(&window) == PrintOperationResult::Apply {
                 for board in printer.imp().boards.get().unwrap() {
-                    self.backend.get().unwrap().save_printed_board(&board);
+                    self.backend.get().unwrap().save_printed_board(board);
                 }
             }
         }

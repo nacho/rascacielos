@@ -25,10 +25,6 @@ use gtk::glib::{self, Object};
 use gtk::{Orientation, Widget};
 
 use crate::config;
-use crate::grid::SudokuGrid;
-use crate::lib::backend::SudokuBackend;
-
-use std::cell::OnceCell;
 
 mod imp {
     use super::*;
@@ -144,6 +140,6 @@ impl SudokuGridLayout {
     pub fn new() -> Self {
         let grid_layout: Self = Object::builder().build();
 
-        return grid_layout;
+        grid_layout
     }
 }

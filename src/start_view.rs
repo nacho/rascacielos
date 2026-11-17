@@ -121,15 +121,11 @@ mod imp {
             let file_dialog = FileDialog::new();
             use gettextrs::gettext;
             file_dialog.set_accept_label(Some(&gettext("_Start Game")));
-            let filter = {
-                let default = file_dialog.default_filter();
-                if default.is_none() {
-                    file_dialog.set_default_filter(Some(&FileFilter::new()));
-                    file_dialog.default_filter().unwrap()
-                } else {
-                    default.unwrap()
-                }
-            };
+            let filter = file_dialog.default_filter().unwrap_or_else(|| {
+                let filter = FileFilter::new();
+                file_dialog.set_default_filter(Some(&filter));
+                filter
+            });
             filter.add_suffix("skp");
             filter.add_suffix("save");
             filter.add_mime_type("text/plain");
@@ -230,13 +226,13 @@ mod imp {
                     self,
                     move |result| {
                         SourceId::remove(clipboard_timeout);
-                        if let Ok(clipboard) = result {
-                            if let Some(s) = clipboard {
-                                let mut old_string = start_view.clipboard_string.borrow_mut();
-                                if s != *old_string {
-                                    start_view.backend.get().unwrap().check_clipboard(&s);
-                                    *old_string = s.to_string();
-                                }
+                        if let Ok(clipboard) = result
+                            && let Some(s) = clipboard
+                        {
+                            let mut old_string = start_view.clipboard_string.borrow_mut();
+                            if s != *old_string {
+                                start_view.backend.get().unwrap().check_clipboard(&s);
+                                *old_string = s.to_string();
                             }
                         }
                     }

@@ -164,6 +164,6 @@ impl SudokuPreferencesDialog {
         let dialog: Self = Object::builder().build();
 
         dialog.imp().init(backend);
-        return dialog;
+        dialog
     }
 }

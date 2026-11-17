@@ -42,7 +42,7 @@ use std::array::from_fn;
 use std::cell::Cell;
 use std::cell::Ref;
 use std::io::ErrorKind::AlreadyExists;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Duration;
@@ -119,7 +119,7 @@ mod imp {
                 sdata: sudoku_data,
                 game: Default::default(),
                 tgame: Default::default(),
-                paths: paths,
+                paths,
                 pref_zoom: Default::default(),
                 settings,
                 pref_timer: Default::default(),
@@ -205,7 +205,7 @@ mod imp {
 
             self.add_preference_cbs();
             let save_path = &self.paths.active_save_file;
-            match SudokuGame::new_from_json(&save_path) {
+            match SudokuGame::new_from_json(save_path) {
                 Ok(game) => {
                     self.game.replace(Some(game));
                     self.obj().game_enable_all_possibilities();
@@ -250,7 +250,7 @@ mod imp {
                     }
                 };
 
-                Self::create_file_for_board(&path, game.board(), elapsed_time);
+                Self::create_file_for_board(path, game.board(), elapsed_time);
             } else {
                 self.delete_save();
             }
@@ -294,10 +294,9 @@ mod imp {
                 .connect_pref_show_all_possibilities_notify(glib::clone!(
                     move |backend: &crate::lib::backend::SudokuBackend| if backend
                         .pref_show_all_possibilities()
+                        && let Some(game) = &*backend.imp().game.borrow()
                     {
-                        if let Some(game) = &*backend.imp().game.borrow() {
-                            game.enable_all_earmark_possibilities();
-                        }
+                        game.enable_all_earmark_possibilities();
                     }
                 ));
 
@@ -357,9 +356,9 @@ mod imp {
             match &mut File::create(file_name) {
                 Ok(file) => match file.write_all(&board.into_bytes()) {
                     Ok(_) => println!("SAVED GAME"),
-                    Err(e) => eprintln!("Failed to save, {}", e.to_string()),
+                    Err(e) => eprintln!("Failed to save, {}", e),
                 },
-                Err(e) => eprintln!("Failed to open save file, {}", e.to_string()),
+                Err(e) => eprintln!("Failed to open save file, {}", e),
             }
         }
     }
@@ -547,7 +546,7 @@ impl SudokuBackend {
                 use std::io::Read;
                 let _ = file.read_exact(buffer.as_mut_slice());
                 match str::from_utf8(&buffer) {
-                    Ok(s) => match SudokuGame::new_from_string(&s) {
+                    Ok(s) => match SudokuGame::new_from_string(s) {
                         Ok(game) => {
                             self.imp().game.replace(Some(game));
                             self.imp().game_changed();
@@ -633,7 +632,7 @@ impl SudokuBackend {
     }
 
     pub fn export_puzzle(&self, path: &str) {
-        match std::fs::File::create(&path) {
+        match std::fs::File::create(path) {
             Ok(mut file) => {
                 let content = game!(self).board().fixed_to_string_pretty();
                 use std::io::Write;
@@ -788,27 +787,27 @@ impl Default for SudokuPaths {
         SudokuPaths::create_dir(&printed_dir);
         SudokuPaths::create_dir(&finished_dir);
         SudokuPaths::create_dir(&saved_dir);
-        return Self {
+        Self {
             active_save_file: Self::convert_path(&sudoku_dir.join("savefile")),
             highscores_file: Self::convert_path(&sudoku_dir.join("highscores")),
             data_file: Self::convert_path(&sudoku_dir.join("data")),
             printed_dir,
             finished_dir,
             saved_dir,
-        };
+        }
     }
 }
 
 impl SudokuPaths {
     fn create_dir(dir: &PathBuf) {
-        if let Err(e) = std::fs::create_dir(&dir) {
-            if e.kind() != AlreadyExists {
-                eprintln!("Error creating save directory: {}", e);
-            }
+        if let Err(e) = std::fs::create_dir(dir)
+            && e.kind() != AlreadyExists
+        {
+            eprintln!("Error creating save directory: {}", e);
         }
     }
 
-    fn convert_path(old: &PathBuf) -> String {
+    fn convert_path(old: &Path) -> String {
         old.to_str()
             .expect("Error setting up save paths")
             .to_string()

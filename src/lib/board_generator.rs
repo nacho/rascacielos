@@ -98,12 +98,12 @@ pub struct Counts {
 
 impl Default for SudokuBoardGenerator {
     fn default() -> Self {
-        let random_possibility_array = from_fn(|i| i as usize);
+        let random_possibility_array = from_fn(|i| i);
         let positions = from_fn(|i| Coord {
             row: i % 9,
             col: i / 9,
         });
-        let positions_random = positions.clone();
+        let positions_random = positions;
 
         let mut cells: [[SudokuGeneratorCell; 9]; 9] = Default::default();
 
@@ -140,8 +140,8 @@ impl Default for SudokuBoardGenerator {
             positions,
             positions_random,
             counts: Default::default(),
-            cells: cells,
-            random_possibility_array: random_possibility_array,
+            cells,
+            random_possibility_array,
             //using our own rng is more "efficient" according to the docs
             rng: fastrand::Rng::new(),
         }
@@ -231,7 +231,7 @@ impl SudokuBoardGenerator {
                 self.cells[row][col].value = puzzle[row][col];
             }
         }
-        return self.local_reset();
+        self.local_reset()
     }
 
     #[cfg(test)]
@@ -260,7 +260,7 @@ impl SudokuBoardGenerator {
                 col += 1;
             }
         }
-        return self.local_reset();
+        self.local_reset()
     }
 
     fn local_reset(&mut self) -> bool {
@@ -286,7 +286,7 @@ impl SudokuBoardGenerator {
         }
 
         self.counts = Default::default();
-        return true;
+        true
     }
 
     fn reset(&mut self) {
@@ -341,9 +341,7 @@ impl SudokuBoardGenerator {
                 round,
             };
 
-            if self.is_impossible() {
-                self.rollback_stack(action);
-            } else if !self.solver(round + 1) {
+            if self.is_impossible() || !self.solver(round + 1) {
                 self.rollback_stack(action);
             } else {
                 self.counts.add_action(action.action);
@@ -366,7 +364,7 @@ impl SudokuBoardGenerator {
 
     pub fn solve_unique(&mut self) -> Result<[[usize; 9]; 9], ()> {
         if self.check_unique_solution() {
-            return self.solve();
+            self.solve()
         } else {
             Err(())
         }
@@ -1145,7 +1143,7 @@ impl SudokuBoardGenerator {
         pos0: Coord,
         pos1: Coord,
     ) -> Option<GeneratorStackAction> {
-        let possibilities = self.get_pair_possibility(&self.cell(pos0));
+        let possibilities = self.get_pair_possibility(self.cell(pos0));
         let row0 = pos0.row;
         let col0 = pos0.col;
         let row1 = pos1.row;
@@ -1552,14 +1550,14 @@ mod tests {
     pub fn test_generate_puzzle() {
         use DifficultyCategory::*;
         let difficulties = [Easy, Medium, Hard, VeryHard];
-        for i in 0..5 {
+        for _i in 0..5 {
             for difficulty in difficulties {
                 let time = SystemTime::now();
                 SudokuBoardGenerator::generate_board(difficulty);
                 let new_time = SystemTime::now();
                 println!(
                     "{} Puzzle generated in {}ms",
-                    difficulty.to_string(),
+                    difficulty,
                     new_time.duration_since(time).unwrap().as_millis()
                 );
             }

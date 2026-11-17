@@ -97,6 +97,6 @@ glib::wrapper! {
 
 impl SudokuMenuButton {
     pub fn new() -> Self {
-        return glib::Object::builder().build();
+        glib::Object::builder().build()
     }
 }

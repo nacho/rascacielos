@@ -81,10 +81,10 @@ mod imp {
             let spp = self.sudokus_per_page.get().unwrap();
             let start = page_nr * self.sudokus_per_page.get().unwrap();
             let end = i32::min(start + spp, self.boards.get().unwrap().len() as i32);
-            let mut index = 0;
             let sudokus_on_page = &self.boards.get().unwrap()[start as usize..end as usize];
 
-            for sudoku in sudokus_on_page {
+            for (index, sudoku) in sudokus_on_page.iter().enumerate() {
+                let index = index as i32;
                 let left = margin_x + (index % n_across) as f64 * (best_square_size + margin_x);
                 let top = margin_y
                     + label_extents.height()
@@ -108,7 +108,6 @@ mod imp {
                 pangocairo::functions::show_layout(&cc, &layout);
 
                 self.draw_sudoku(&cc, sudoku, best_square_size, left, top);
-                index += 1;
             }
         }
 
@@ -121,7 +120,7 @@ mod imp {
         ) -> (f64, i32, i32) {
             let n = self.sudokus_per_page.get().unwrap();
             let mut across = 1;
-            let mut down = n.clone();
+            let mut down = *n;
             let mut n_across = 1;
 
             let mut best_square_size = 0.0;
@@ -169,7 +168,7 @@ mod imp {
             let thick = thin * 5.0;
             let border = thick;
             let white_space = size
-                - (2.0 * border) as f64
+                - (2.0 * border)
                 - (2.0 * thick)
                 - ((per_block - 1) as f64 * thick)
                 - ((per_block * 2) as f64 * thin);

@@ -17,6 +17,10 @@
  * You should have received a copy of the GNU General Public License
  * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
  */
+// The boards are small fixed-size grids, indexing them by row and column
+// reads better than iterator chains.
+#![allow(clippy::needless_range_loop)]
+
 mod lib {
     pub mod backend;
     pub mod board;
@@ -142,6 +146,12 @@ glib::wrapper! {
     @implements gio::ActionGroup, gio::ActionMap;
 }
 
+impl Default for RascacielosApplication {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RascacielosApplication {
     pub fn new() -> Self {
         let obj: RascacielosApplication = glib::Object::builder()
@@ -161,7 +171,7 @@ impl RascacielosApplication {
             None,
         );
 
-        return obj;
+        obj
     }
 }
 
@@ -180,5 +190,5 @@ fn main() -> glib::ExitCode {
     register_resources();
 
     let app = RascacielosApplication::new();
-    return app.run();
+    app.run()
 }

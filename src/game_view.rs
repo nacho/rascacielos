@@ -29,7 +29,7 @@ use gtk::{
     DialogError, EventSequenceState, FileDialog, GestureClick,
     gio::{self, Cancellable, SimpleAction, SimpleActionGroup},
     glib::closure_local,
-    pango::{AttrList, AttrSize},
+    pango::AttrSize,
 };
 
 use crate::grid::SudokuGrid;
@@ -46,7 +46,7 @@ use std::cell::OnceCell;
 mod imp {
     use std::cell::Cell;
 
-    use gtk::{CssProvider, ReducedMotion};
+    use gtk::ReducedMotion;
 
     use super::*;
 
@@ -642,7 +642,7 @@ mod imp {
 
         pub fn update_paused_label_size(&self, width: i32, height: i32) {
             let smallest = i32::min(width, height);
-            let attr_list = self.paused_label.attributes().unwrap_or(AttrList::new());
+            let attr_list = self.paused_label.attributes().unwrap_or_default();
             let size = smallest as f64 * 0.125 * gtk::pango::SCALE as f64;
             attr_list.change(AttrSize::new_size_absolute(size as i32));
             self.paused_label.set_attributes(Some(&attr_list));

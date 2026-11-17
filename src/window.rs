@@ -154,7 +154,7 @@ mod imp {
             self.style_manager.connect_accent_color_notify(glib::clone!(
                 #[weak(rename_to = win)]
                 self,
-                move |manager: &StyleManager| win.set_accent_color(&manager)
+                move |manager: &StyleManager| win.set_accent_color(manager)
             ));
 
             self.obj().set_width_request(config::SMALL_WINDOW_WIDTH);
@@ -277,12 +277,12 @@ mod imp {
         }
 
         fn preferences_dialog_cb(&self) {
-            let preferences_dialog = SudokuPreferencesDialog::new(&self.backend());
+            let preferences_dialog = SudokuPreferencesDialog::new(self.backend());
             preferences_dialog.present(Some(self.obj().as_ref()));
         }
 
         fn print_generator_dialog_cb(&self) {
-            let print_generator_dialog = SudokuPrintGeneratorDialog::new(&self.backend());
+            let print_generator_dialog = SudokuPrintGeneratorDialog::new(self.backend());
             print_generator_dialog.present(Some(self.obj().as_ref()));
         }
 
@@ -426,7 +426,7 @@ mod imp {
 
             match self.obj().visible_dialog() {
                 Some(dialog) => {
-                    self.visible_dialogue_type.set(Some(*&dialog.type_()));
+                    self.visible_dialogue_type.set(Some(dialog.type_()));
                     self.backend().game_stop_clock();
                 }
                 None => {

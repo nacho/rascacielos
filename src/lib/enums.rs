@@ -45,7 +45,7 @@ pub struct Coord {
 }
 
 impl DifficultyCategory {
-    pub fn to_translated_string(&self) -> String {
+    pub fn to_translated_string(self) -> String {
         use DifficultyCategory::*;
         use gettextrs::gettext;
         match self {
@@ -53,21 +53,6 @@ impl DifficultyCategory {
             Medium => gettext("Medium Difficulty"),
             Hard => gettext("Hard Difficulty"),
             VeryHard => gettext("Very Hard Difficulty"),
-            _ => {
-                eprintln!("Unknown difficulty, this is a bug - please report it");
-                "BUG - UNKNOWN DIFFICULTY".to_string()
-            }
-        }
-    }
-
-    pub fn to_string(&self) -> String {
-        use DifficultyCategory::*;
-        match self {
-            Easy => "Easy Difficulty".to_string(),
-            Medium => "Medium Difficulty".to_string(),
-            Hard => "Hard Difficulty".to_string(),
-            VeryHard => "Very Hard Difficulty".to_string(),
-            Custom => "Custom Difficulty".to_string(),
             _ => {
                 eprintln!("Unknown difficulty, this is a bug - please report it");
                 "BUG - UNKNOWN DIFFICULTY".to_string()
@@ -125,10 +110,10 @@ impl From<i32> for DifficultyCategory {
     }
 }
 
-impl Into<i32> for DifficultyCategory {
-    fn into(self) -> i32 {
+impl From<DifficultyCategory> for i32 {
+    fn from(val: DifficultyCategory) -> Self {
         use DifficultyCategory::*;
-        match self {
+        match val {
             Unknown => 0,
             Easy => 1,
             Medium => 2,
@@ -154,10 +139,10 @@ impl From<u32> for DifficultyCategory {
     }
 }
 
-impl Into<u32> for DifficultyCategory {
-    fn into(self) -> u32 {
+impl From<DifficultyCategory> for u32 {
+    fn from(val: DifficultyCategory) -> Self {
         use DifficultyCategory::*;
-        match self {
+        match val {
             Unknown => 0,
             Easy => 1,
             Medium => 2,
@@ -253,11 +238,11 @@ impl From<DirectionType> for SudokuDirection {
     }
 }
 
-impl Into<DirectionType> for SudokuDirection {
-    fn into(self) -> gtk::DirectionType {
+impl From<SudokuDirection> for DirectionType {
+    fn from(val: SudokuDirection) -> Self {
         use SudokuDirection::*;
         use gtk::DirectionType as d;
-        match self {
+        match val {
             TabForward => d::TabForward,
             TabBackward => d::TabBackward,
             Up => d::Up,
@@ -283,18 +268,12 @@ pub enum ZoomLevel {
 impl ZoomLevel {
     pub fn is_fully_zoomed_out(&self) -> bool {
         use ZoomLevel::*;
-        match self {
-            Small => true,
-            _ => false,
-        }
+        matches!(self, Small)
     }
 
     pub fn is_fully_zoomed_in(&self) -> bool {
         use ZoomLevel::*;
-        match self {
-            Large => true,
-            _ => false,
-        }
+        matches!(self, Large)
     }
 
     pub fn zoom_in(&self) -> ZoomLevel {
@@ -321,7 +300,7 @@ impl ZoomLevel {
         }
     }
 
-    pub fn to_value_multiplier(&self) -> f64 {
+    pub fn to_value_multiplier(self) -> f64 {
         use ZoomLevel::*;
         match self {
             Small => 0.4,
@@ -334,7 +313,7 @@ impl ZoomLevel {
         }
     }
 
-    pub fn to_earmark_multiplier(&self) -> f64 {
+    pub fn to_earmark_multiplier(self) -> f64 {
         use ZoomLevel::*;
         match self {
             Small => 0.25,
@@ -372,11 +351,11 @@ impl From<Option<usize>> for CompatValue {
     }
 }
 
-impl Into<Option<usize>> for CompatValue {
-    fn into(self) -> Option<usize> {
-        match self.0 {
+impl From<CompatValue> for Option<usize> {
+    fn from(val: CompatValue) -> Self {
+        match val.0 {
             i32::MAX => None,
-            _ => Some(self.0 as usize),
+            _ => Some(val.0 as usize),
         }
     }
 }
@@ -392,5 +371,20 @@ unsafe impl<'a> FromValue<'a> for CompatValue {
     #[inline]
     unsafe fn from_value(value: &'a Value) -> Self {
         unsafe { Self(i32::from_value(value)) }
+    }
+}
+
+impl std::fmt::Display for DifficultyCategory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use DifficultyCategory::*;
+        let s = match self {
+            Easy => "Easy Difficulty",
+            Medium => "Medium Difficulty",
+            Hard => "Hard Difficulty",
+            VeryHard => "Very Hard Difficulty",
+            Custom => "Custom Difficulty",
+            _ => "BUG - UNKNOWN DIFFICULTY",
+        };
+        f.write_str(s)
     }
 }

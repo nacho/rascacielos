@@ -199,8 +199,7 @@ glib::wrapper! {
 
 impl SudokuEarmarkPicker {
     pub fn new_unitialized() -> Self {
-        let earmark_picker = build_picker!(Self);
-        earmark_picker
+        build_picker!(Self)
     }
 
     pub fn init(&self, backend: &SudokuBackend) {

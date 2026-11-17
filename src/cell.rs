@@ -27,7 +27,7 @@ use gtk::{
     gdk::{BUTTON_PRIMARY, BUTTON_SECONDARY, ModifierType},
     gio::{SimpleAction, SimpleActionGroup},
     glib::{SignalHandlerId, Variant, VariantTy, subclass::Signal},
-    pango::{AttrList, AttrSize},
+    pango::AttrSize,
 };
 
 use crate::lib::backend::SudokuBackend;
@@ -221,14 +221,7 @@ mod imp {
             }
 
             let state = gesture.current_event_state();
-            let control_pressed = {
-                //this makes sure we're getting only the control mask state in the bit field
-                let state = state & ModifierType::CONTROL_MASK;
-                match state {
-                    ModifierType::CONTROL_MASK => true,
-                    _ => false,
-                }
-            };
+            let control_pressed = state.contains(ModifierType::CONTROL_MASK);
 
             let wants_value = !control_pressed;
             if gesture_button == BUTTON_PRIMARY {
@@ -325,7 +318,7 @@ mod imp {
         }
 
         pub fn set_font_size(label: &gtk::Label, font_size: i32) {
-            let attr_list = label.attributes().unwrap_or(AttrList::new());
+            let attr_list = label.attributes().unwrap_or_default();
             attr_list.change(AttrSize::new_size_absolute(font_size * gtk::pango::SCALE));
             label.set_attributes(Some(&attr_list));
         }
@@ -474,7 +467,7 @@ impl SudokuCell {
         for earmark in &self.imp().earmark_labels {
             if earmark.is_visible() {
                 imp::SudokuCell::set_font_size(
-                    &earmark,
+                    earmark,
                     (height as f64 * self.imp().backend().pref_zoom().to_earmark_multiplier())
                         as i32,
                 );
