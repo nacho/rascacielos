@@ -30,6 +30,6 @@ pub const QQWING_VERY_HARD: &str = option_env!("QQWING_VERY_HARD").expect("Could
 pub const QQWING_EASY: &str = option_env!("QQWING_EASY").expect("Could not find QQWING");
 #[cfg(test)]
 pub const QQWING_MEDIUM: &str = option_env!("QQWING_MEDIUM").expect("Could not find QQWING");
-pub const GNOME_SUDOKU_RESOURCES: &[u8] = include_bytes!(env!("GNOME_SUDOKU_RESOURCES_FILE"));
+pub const RASCACIELOS_RESOURCES: &[u8] = include_bytes!(env!("RASCACIELOS_RESOURCES_FILE"));
 pub const SMALL_WINDOW_WIDTH: i32 = 360;
 pub const MEDIUM_WINDOW_WIDTH: i32 = 600;

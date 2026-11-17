@@ -55,7 +55,7 @@ mod imp {
     }
 
     #[derive(Default, CompositeTemplate)]
-    #[template(resource = "/org/gnome/Sudoku/ui/print-generator-dialog.ui")]
+    #[template(resource = "/io/github/nacho/rascacielos/ui/print-generator-dialog.ui")]
     pub struct SudokuPrintGeneratorDialog {
         pub backend: OnceCell<SudokuBackend>,
         #[template_child]

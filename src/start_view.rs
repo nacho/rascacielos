@@ -60,7 +60,7 @@ mod imp {
     }
 
     #[derive(Default, CompositeTemplate)]
-    #[template(resource = "/org/gnome/Sudoku/ui/start-view.ui")]
+    #[template(resource = "/io/github/nacho/rascacielos/ui/start-view.ui")]
     pub struct SudokuStartView {
         pub backend: OnceCell<SudokuBackend>,
         pub clipboard_handle: Cell<Option<SignalHandlerId>>,

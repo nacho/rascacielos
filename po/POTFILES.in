@@ -1,8 +1,8 @@
 # List of source files containing translatable strings.
 # Please keep this file in alphabetical order.
-data/org.gnome.Sudoku.desktop.in.in
-data/org.gnome.Sudoku.gschema.xml
-data/org.gnome.Sudoku.metainfo.xml.in.in
+data/io.github.nacho.rascacielos.desktop.in.in
+data/io.github.nacho.rascacielos.gschema.xml
+data/io.github.nacho.rascacielos.metainfo.xml.in.in
 
 src/blueprints/game-view.blp
 src/blueprints/menu-button.blp

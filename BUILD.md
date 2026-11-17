@@ -1,29 +1,18 @@
-To build GNOME Sudoku you'll need: `meson blueprint-compiler cargo rust`  
-And the development libraries for: `gtk4 adwaita`  
+To build Rascacielos you need `meson`, `blueprint-compiler`, `cargo` and
+`rust`, and the development libraries for GTK 4 and libadwaita 1.10 or newer.
 
-If you want a specific GNOME Sudoku version take a look at the [tags](https://gitlab.gnome.org/GNOME/gnome-sudoku/-/tags) and the [tarballs](https://download.gnome.org/sources/gnome-sudoku/).
+The simplest way is to use the GNOME Flatpak SDK through GNOME Builder or
+`flatpak-builder`:
 
-If there are any missing or outdated dependencies you'll get warnings from [meson](https://mesonbuild.com/Quick-guide.html#compiling-a-meson-project).  
-  
-The instructions to get the **latest development version** are as follow:
 ```
-git clone https://gitlab.gnome.org/GNOME/gnome-sudoku.git
-cd gnome-sudoku
-meson setup builddir -Dprofile=Devel 
-cd builddir && meson compile
-```
-Run locally:
-```
-GSETTINGS_SCHEMA_DIR=./data ./src/gnome-sudoku
+flatpak-builder --user --install --force-clean _build-flatpak build-aux/io.github.nacho.rascacielos.Devel.json
+flatpak run io.github.nacho.rascacielos.Devel
 ```
 
-Install:
-```
-sudo meson install
-```
+With the libraries installed on the host:
 
-Uninstall:
 ```
-sudo ninja uninstall
+meson setup builddir -Dprofile=Devel
+meson compile -C builddir
+GSETTINGS_SCHEMA_DIR=builddir/data ./builddir/src/rascacielos
 ```
-if you run into issues open a ticket on [gitlab](https://gitlab.gnome.org/GNOME/gnome-sudoku/-/work_items).

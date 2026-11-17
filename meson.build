@@ -1,9 +1,9 @@
 project(
-  'gnome-sudoku',
+  'rascacielos',
   'rust',
   license: 'GPL3+',
   meson_version: '>= 1.4',
-  version: '52.alpha'
+  version: '0.1.0'
 )
 
 gnome = import('gnome')
@@ -15,7 +15,7 @@ prefix      = get_option('prefix')
 bindir      = get_option('bindir')
 profile     = get_option('profile')
 
-base_id = 'org.gnome.Sudoku'
+base_id = 'io.github.nacho.rascacielos'
 app_id = base_id
 if profile == 'Devel'
   app_id += '.' + profile
@@ -31,7 +31,6 @@ blueprintc = find_program('blueprint-compiler', version: '>= 0.16')
 cargo = find_program('cargo')
 
 subdir('data')
-subdir('help')
 subdir('po')
 subdir('src')
 

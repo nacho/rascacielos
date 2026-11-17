@@ -1,27 +1,25 @@
-# GNOME Sudoku
+# Rascacielos
 
-GNOME Sudoku is a digitalized version of [Sudoku](https://en.wikipedia.org/wiki/Sudoku), the classic Japanese puzzle game. It is meant to have an interface as simple and unobtrusive as possible while still providing features that make playing Sudoku more fun.
+Rascacielos is a skyscrapers logic puzzle for GNOME. Fill an N×N grid with
+buildings of height 1 to N so that:
 
-You can find out more about the project at the [wiki's homepage](https://gitlab.gnome.org/GNOME/gnome-sudoku/-/wikis/home).
+- every row and every column contains each height exactly once, and
+- each number around the edge matches how many buildings can be seen from
+  that side, since taller buildings hide the shorter ones behind them.
 
-# Getting GNOME Sudoku
+## Building
 
-- GNOME Sudoku is available in most distributions' repositories as `gnome-sudoku`.
+See [BUILD.md](BUILD.md).
 
-- The latest stable version is available on [Flathub](https://flathub.org/apps/org.gnome.Sudoku):  
-`flatpak install flathub org.gnome.Sudoku`
+## Credits
 
-- The latest development version is available on [GNOME Nightly](https://nightly.gnome.org/):  
-`flatpak install gnome-nightly org.gnome.Sudoku.Devel`
+Rascacielos is based on [GNOME Sudoku](https://gitlab.gnome.org/GNOME/gnome-sudoku),
+imported from commit `b40cbd00017c19fb0d2b2286254082744f434510`. GNOME Sudoku
+is Copyright © 2005–2008 Thomas M. Hinkle, © 2010–2011 Robert Ancell,
+© 2014 Parin Porecha, © 2023 Jamie Murphy, © 2024–2026 Johan Gay and its
+contributors.
 
-- [Building GNOME Sudoku](BUILD.md).
+## License
 
-# Contributing to GNOME Sudoku
-
-- [Report issues](https://gitlab.gnome.org/GNOME/gnome-sudoku/-/work_items)
-
-- [Translate](https://l10n.gnome.org/module/gnome-sudoku/)
-
-- [Contribute Code](CONTRIBUTING.md)
-
-- [Donate](https://donate.gnome.org/en/)
+Rascacielos is licensed under the GNU General Public License, version 3 or
+later. See [COPYING](COPYING).

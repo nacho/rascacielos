@@ -14,7 +14,7 @@ template $SudokuGameView : Adw.BreakpointBin {
     Adw.HeaderBar top_headerbar {
       centering-policy: strict;
       title-widget: Adw.WindowTitle windowtitle {
-        title: _("Sudoku");
+        title: _("Rascacielos");
       };
 
       [start]
@@ -38,7 +38,7 @@ template $SudokuGameView : Adw.BreakpointBin {
         tooltip-text: _("Earmark Mode");
         focus-on-click: false;
         action-name: "game-view.earmark-mode";
-        icon-name: "sudoku-pencil-symbolic";
+        icon-name: "rascacielos-pencil-symbolic";
       }
 
       [start]
@@ -50,14 +50,14 @@ template $SudokuGameView : Adw.BreakpointBin {
           tooltip-text: _("Pause");
           focus-on-click: false;
           action-name: "game-view.toggle-pause";
-          icon-name: "sudoku-pause-symbolic";
+          icon-name: "rascacielos-pause-symbolic";
         }
 
         Button play_button {
           tooltip-text: _("Play");
           focus-on-click: false;
           action-name: "game-view.toggle-pause";
-          icon-name: "sudoku-play-symbolic";
+          icon-name: "rascacielos-play-symbolic";
         }
       }
 
@@ -74,7 +74,7 @@ template $SudokuGameView : Adw.BreakpointBin {
         Stack clock_stack {
           Image clock_image {
             can-focus: false;
-            icon-name: "sudoku-clock-symbolic";
+            icon-name: "rascacielos-clock-symbolic";
             icon-size: normal;
             accessibility {
               label : _("Clock");

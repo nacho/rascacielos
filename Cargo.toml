@@ -1,6 +1,6 @@
 [package]
-name = "gnome-sudoku"
-version = "52.0.0-alpha"
+name = "rascacielos"
+version = "0.1.0"
 edition = "2024"
 
 #the board generator is ~10x faster in o2

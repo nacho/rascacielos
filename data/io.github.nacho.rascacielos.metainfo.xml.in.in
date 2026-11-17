@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2013 Michael Catanzaro and contributors -->
+<!-- Copyright 2026 Ignacio Casal Quinteiro -->
+<component type="desktop-application">
+  <id>@app-id@</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Rascacielos</name>
+  <summary>Place the skyscrapers in the city</summary>
+  <description>
+    <p>
+      Rascacielos is a skyscrapers logic puzzle. Fill the grid with buildings
+      so that each row and column holds every height once, and the numbers
+      around the edge match how many buildings can be seen from that side.
+    </p>
+    <p>
+      Rascacielos is based on GNOME Sudoku by Thomas M. Hinkle, Robert Ancell,
+      Parin Porecha, Jamie Murphy, Johan Gay and contributors.
+    </p>
+  </description>
+  <launchable type="desktop-id">@app-id@.desktop</launchable>
+  <url type="homepage">https://github.com/nacho/rascacielos</url>
+  <url type="bugtracker">https://github.com/nacho/rascacielos/issues</url>
+  <url type="vcs-browser">https://github.com/nacho/rascacielos</url>
+  <translation type="gettext">rascacielos</translation>
+  <developer id="io.github.nacho">
+    <name>Ignacio Casal Quinteiro</name>
+  </developer>
+  <branding>
+    <color type="primary" scheme_preference="light">#99c1f1</color>
+    <color type="primary" scheme_preference="dark">#1a5fb4</color>
+  </branding>
+  <content_rating type="oars-1.1" />
+  <recommends>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <control>touch</control>
+  </recommends>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+  <releases>
+    <release version="0.1.0" date="2026-11-17" type="development">
+      <description>
+        <p>First development snapshot, forked from GNOME Sudoku.</p>
+      </description>
+    </release>
+  </releases>
+</component>

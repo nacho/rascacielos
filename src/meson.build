@@ -10,7 +10,7 @@ build_root = meson.project_build_root()
 source_root = meson.project_source_root()
 
 resources = gnome.compile_resources(
-  'gnome-sudoku',
+  'rascacielos',
   resource_files,
   dependencies: blueprints,
   source_dir: [
@@ -30,7 +30,7 @@ cargo_env = {
   'GETTEXT_PACKAGE': meson.project_name(),
   'LOCALEDIR': join_paths(prefix, localedir),
   'VERSION': meson.project_version(),
-  'GNOME_SUDOKU_RESOURCES_FILE': resources.full_path(),
+  'RASCACIELOS_RESOURCES_FILE': resources.full_path(),
   'QQWING_EASY': join_paths(meson.project_source_root(), 'test', 'qqwing-simple'),
   'QQWING_MEDIUM': join_paths(meson.project_source_root(), 'test', 'qqwing-easy'),
   'QQWING_HARD': join_paths(meson.project_source_root(), 'test', 'qqwing-intermediate'),

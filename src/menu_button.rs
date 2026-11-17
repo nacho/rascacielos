@@ -44,7 +44,7 @@ mod imp {
     }
 
     #[derive(Default, CompositeTemplate)]
-    #[template(resource = "/org/gnome/Sudoku/ui/menu-button.ui")]
+    #[template(resource = "/io/github/nacho/rascacielos/ui/menu-button.ui")]
     pub struct SudokuMenuButton {
         #[template_child]
         pub menu_fullscreen_stack: TemplateChild<gtk::Stack>,

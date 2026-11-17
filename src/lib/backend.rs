@@ -95,7 +95,7 @@ mod imp {
     impl Default for SudokuBackend {
         fn default () -> Self {
             let paths = SudokuPaths::default();
-            let settings = gio::Settings::new("org.gnome.Sudoku");
+            let settings = gio::Settings::new("io.github.nacho.rascacielos");
             let sudoku_data = {
                 let start_button_selected = settings.get::<DifficultyCategory>("start-button-selected");
                 if let Ok(sudoku_data) = SudokuData::new_from_highscores(
@@ -713,7 +713,7 @@ pub struct SudokuPaths {
 impl Default for SudokuPaths {
     fn default() -> Self {
         let data_dir = &user_data_dir();
-        let sudoku_dir = data_dir.join("gnome-sudoku");
+        let sudoku_dir = data_dir.join("rascacielos");
         let printed_dir = sudoku_dir.join("printed");
         let finished_dir = sudoku_dir.join("finished");
         let saved_dir = sudoku_dir.join("saved");

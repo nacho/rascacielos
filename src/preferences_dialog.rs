@@ -49,7 +49,7 @@ mod imp {
     }
 
     #[derive(Default, CompositeTemplate)]
-    #[template(resource = "/org/gnome/Sudoku/ui/preferences-dialog.ui")]
+    #[template(resource = "/io/github/nacho/rascacielos/ui/preferences-dialog.ui")]
     pub struct SudokuPreferencesDialog {
             pub backend: OnceCell<SudokuBackend>,
             #[template_child]

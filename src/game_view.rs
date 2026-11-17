@@ -70,7 +70,7 @@ use super::*;
     }
 
     #[derive(CompositeTemplate)]
-    #[template(resource = "/org/gnome/Sudoku/ui/game-view.ui")]
+    #[template(resource = "/io/github/nacho/rascacielos/ui/game-view.ui")]
     pub struct SudokuGameView {
         undo_action: SimpleAction,
         redo_action: SimpleAction,

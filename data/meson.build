@@ -51,7 +51,7 @@ resource_conf = configuration_data()
 resource_conf.set('app-id', app_id)
 resource_conf.set('base-id-slashed', '/' + base_id.replace('.', '/'))
 resource_files = configure_file(
-  input: 'gnome-sudoku.gresource.xml.in',
+  input: 'rascacielos.gresource.xml.in',
   output: '@BASENAME@',
   configuration: resource_conf
 )
@@ -65,7 +65,6 @@ install_data(
   install_dir: join_paths(datadir, 'glib-2.0', 'schemas')
 )
 
-install_man('@0@.6'.format(meson.project_name()))
 
 icondir = join_paths(datadir, 'icons', 'hicolor')
 install_data(

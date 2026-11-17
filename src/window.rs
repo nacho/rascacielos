@@ -60,7 +60,6 @@ mod imp {
             new_shortcut(klass, "app.shortcuts-dialog", "<Primary>question");
             new_shortcut(klass, "app.print-generator-dialog", "<Primary>P");
             new_shortcut(klass, "app.new-game", "<Primary>n");
-            new_shortcut(klass, "app.help", "F1");
             new_shortcut(klass, "app.toggle-fullscreen", "F11|f");
             new_shortcut(klass, "app.swap-view", "A");
             new_shortcut(klass, "app.zoom-in", "<Primary>plus|<Primary>equal|ZoomIn|<Primary>KP_Add");
@@ -76,7 +75,7 @@ mod imp {
     }
 
     #[derive(CompositeTemplate)]
-    #[template(resource = "/org/gnome/Sudoku/ui/window.ui")]
+    #[template(resource = "/io/github/nacho/rascacielos/ui/window.ui")]
     pub struct SudokuWindow {
         pub visible_dialogue_type: Cell<Option<Type>>,
         pub print_multiple_action: SimpleAction,
@@ -247,7 +246,7 @@ mod imp {
 
         fn shortcuts_dialog_cb (&self) {
             let shortcuts_dialog : adw::ShortcutsDialog = gtk::Builder
-                ::from_resource("/org/gnome/Sudoku/ui/shortcuts-dialog.ui")
+                ::from_resource("/io/github/nacho/rascacielos/ui/shortcuts-dialog.ui")
                 .object("SudokuShortcutsDialog").unwrap();
             shortcuts_dialog.present(Some(self.obj().as_ref()));
         }
@@ -304,8 +303,12 @@ mod imp {
         }
 
         fn about_dialog_cb (&self) {
-            let about_dialog = adw::AboutDialog::from_appdata("/org/gnome/Sudoku/metainfo.xml", Some(config::VERSION));
+            let about_dialog = adw::AboutDialog::from_appdata("/io/github/nacho/rascacielos/metainfo.xml", Some(config::VERSION));
             let authors =  [
+                "Ignacio Casal Quinteiro <icq@gnome.org>",
+            ];
+            let sudoku_authors =  [
+                "Johan Gay <johan.gay75@gmail.com>",
                 "Robert Ancell <robert.ancell@gmail.com>",
                 "Christopher Baines <cbaines8@gmail.com>",
                 "Thomas M. Hinkle <Thomas_Hinkle@alumni.brown.edu>",
@@ -314,9 +317,10 @@ mod imp {
                 "Jamie Murphy <jmurphy@gnome.org>",
             ];
             about_dialog.set_version (config::VERSION);
-            about_dialog.set_copyright ("Copyright © 2005–2008 Thomas M. Hinkle\nCopyright © 2010–2011 Robert Ancell\nCopyright © 2014 Parin Porecha\nCopyright © 2023 Jamie Murphy\nCopyright © 2024-2026 Johan Gay");
+            about_dialog.set_copyright ("Copyright © 2005–2008 Thomas M. Hinkle\nCopyright © 2010–2011 Robert Ancell\nCopyright © 2014 Parin Porecha\nCopyright © 2023 Jamie Murphy\nCopyright © 2024-2026 Johan Gay\nCopyright © 2026 Ignacio Casal Quinteiro");
             about_dialog.set_developers (&authors);
             use gettextrs::gettext;
+            about_dialog.add_credit_section (Some(&gettext("Based on GNOME Sudoku by")), &sudoku_authors);
             about_dialog.set_translator_credits (&gettext("translator-credits"));
             about_dialog.present (Some(self.obj().as_ref()));
         }

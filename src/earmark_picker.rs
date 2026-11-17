@@ -68,7 +68,7 @@ mod imp {
             };
 
             let lock_button = gtk::ToggleButton::new();
-            lock_button.set_icon_name("sudoku-lock-symbolic");
+            lock_button.set_icon_name("rascacielos-lock-symbolic");
             use gettextrs::gettext;
             lock_button.set_tooltip_text(Some(&gettext("Lock")));
 

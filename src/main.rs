@@ -57,23 +57,23 @@ mod imp {
 use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for GnomeSudoku {
-        const NAME: &'static str = "GnomeSudoku";
-        type Type = super::GnomeSudoku;
+    impl ObjectSubclass for RascacielosApplication {
+        const NAME: &'static str = "RascacielosApplication";
+        type Type = super::RascacielosApplication;
         type ParentType = adw::Application;
     }
 
-    pub struct GnomeSudoku {
+    pub struct RascacielosApplication {
         pub backend: SudokuBackend
     }
 
-    impl Default for GnomeSudoku {
+    impl Default for RascacielosApplication {
         fn default() -> Self {
             Self { backend: SudokuBackend::new() }
         }
     }
 
-    impl ApplicationImpl for GnomeSudoku {
+    impl ApplicationImpl for RascacielosApplication {
         fn startup(&self) {
             self.parent_startup();
             self.setup_actions ();
@@ -94,7 +94,7 @@ use super::*;
 
         fn handle_local_options(&self, options: &glib::VariantDict) -> std::ops::ControlFlow<glib::ExitCode> {
              if options.contains("version") {
-                glib::g_print!( "gnome-sudoku {}\n", config::VERSION);
+                glib::g_print!( "rascacielos {}\n", config::VERSION);
                 return std::ops::ControlFlow::Break(glib::ExitCode::SUCCESS);
             }
 
@@ -102,26 +102,9 @@ use super::*;
         }
     }
 
-    impl GnomeSudoku {
-        pub fn show_help(&self) {
-            let context = self
-                .obj()
-                .active_window()
-                .map(|w| gtk::prelude::WidgetExt::display(&w).app_launch_context());
-
-            glib::spawn_future_local(async move {
-                if let Err(e) =
-                    gio::AppInfo::launch_default_for_uri_future("help:gnome-sudoku", context.as_ref())
-                        .await
-                {
-                    eprint!("Failed to launch help: {}", e.message());
-                }
-            });
-        }
-
+    impl RascacielosApplication {
         fn setup_actions (&self) {
             let actions = [
-                create_cb_entry!(self, "help", show_help),
                 create_cb_entry!(self.obj(), "quit", quit),
             ];
 
@@ -131,7 +114,7 @@ use super::*;
         }
     }
 
-    impl ObjectImpl for GnomeSudoku {
+    impl ObjectImpl for RascacielosApplication {
         fn constructed(&self) {
             self.parent_constructed();
         }
@@ -140,22 +123,22 @@ use super::*;
             println!("app disposed");
         }
     }
-    impl GtkApplicationImpl for GnomeSudoku {}
-    impl AdwApplicationImpl for GnomeSudoku {}
+    impl GtkApplicationImpl for RascacielosApplication {}
+    impl AdwApplicationImpl for RascacielosApplication {}
 }
 
 glib::wrapper! {
-    pub struct GnomeSudoku(ObjectSubclass<imp::GnomeSudoku>)
+    pub struct RascacielosApplication(ObjectSubclass<imp::RascacielosApplication>)
     @extends adw::Application, gtk::Application, gio::Application,
     @implements gio::ActionGroup, gio::ActionMap;
 }
 
-impl GnomeSudoku {
+impl RascacielosApplication {
     pub fn new () -> Self {
-        let obj : GnomeSudoku = glib::Object::builder()
+        let obj : RascacielosApplication = glib::Object::builder()
             .property("application-id", config::APP_ID)
             .property("flags", ApplicationFlags::FLAGS_NONE)
-            .property("resource-base-path", "/org/gnome/Sudoku")
+            .property("resource-base-path", "/io/github/nacho/rascacielos")
             .build();
 
         use gettextrs::gettext;
@@ -180,11 +163,11 @@ fn main() -> glib::ExitCode {
         .expect("Unable to bind the text domain codeset");
     gettextrs::textdomain(GETTEXT_PACKAGE).expect("Unable to switch to the text domain");
 
-    let resources = gio::Resource::from_data(&glib::Bytes::from_static(GNOME_SUDOKU_RESOURCES))
+    let resources = gio::Resource::from_data(&glib::Bytes::from_static(RASCACIELOS_RESOURCES))
         .expect("failed to load resources");
 
     gio::resources_register(&resources);
 
-    let app = GnomeSudoku::new();
+    let app = RascacielosApplication::new();
     return app.run();
 }
