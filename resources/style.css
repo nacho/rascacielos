@@ -157,3 +157,13 @@ sudoku-picker label.value {
   margin-top: 4px;
   margin-bottom: 4px;
 }
+sudoku-clue {
+  font-weight: bold;
+}
+sudoku-clue.error {
+  color: var(--error-color);
+}
+.paused sudoku-clue {
+  opacity: 0;
+  transition: opacity var(--sudoku-pause-delay);
+}

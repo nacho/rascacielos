@@ -36,7 +36,7 @@ use crate::lib::enums::Coord;
 use crate::lib::enums::DifficultyCategory;
 use crate::lib::enums::ZoomLevel;
 use crate::lib::generator;
-use crate::lib::puzzle::Tier;
+use crate::lib::puzzle::{ClueConflict, Side, Tier};
 use crate::lib::{board::SudokuError, data::SudokuData, game::SudokuGame};
 
 use std::cell::Cell;
@@ -461,6 +461,14 @@ impl SudokuBackend {
 
     pub fn game_is_empty(&self) -> bool {
         game!(self).board().is_empty()
+    }
+
+    pub fn game_clue(&self, side: Side, index: usize) -> Option<u8> {
+        game!(self).board().clue(side, index)
+    }
+
+    pub fn game_clue_conflict(&self, side: Side, index: usize) -> Option<ClueConflict> {
+        game!(self).board().clue_conflict(side, index)
     }
 
     pub fn game_size(&self) -> usize {

@@ -42,6 +42,7 @@ mod config {
     include!(concat!(env!("OUT_DIR"), "/config.rs"));
 }
 mod cell;
+mod clue_frame;
 mod earmark_picker;
 mod game_view;
 mod grid;

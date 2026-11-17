@@ -144,6 +144,31 @@ pub fn visible(heights: impl IntoIterator<Item = u8>) -> u8 {
     count
 }
 
+/// Why the buildings placed along a line contradict its clue.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ClueConflict {
+    /// The line is full and shows a different number of buildings.
+    Full,
+    /// The buildings placed from the clue onwards already show too many
+    /// buildings, or the tallest one hides the rest while too few are
+    /// visible.
+    Early,
+}
+
+/// Checks `clue` against the heights placed along its line so far, nearest
+/// to the clue first, in a puzzle of size `line.len()`.
+pub fn clue_conflict(clue: u8, line: &[Option<u8>]) -> Option<ClueConflict> {
+    if line.iter().all(Option::is_some) {
+        let seen = visible(line.iter().flatten().copied());
+        return (seen != clue).then_some(ClueConflict::Full);
+    }
+    let prefix = line.iter().map_while(|h| *h);
+    let seen = visible(prefix.clone());
+    let tallest = prefix.max().unwrap_or(0);
+    let early = seen > clue || (tallest as usize == line.len() && seen < clue);
+    early.then_some(ClueConflict::Early)
+}
+
 /// Whether `grid` (row-major, heights 1..=n) holds every height exactly
 /// once in each row and each column.
 pub fn is_latin(n: usize, grid: &[u8]) -> bool {
@@ -441,6 +466,33 @@ mod tests {
         assert_eq!(visible([3, 1, 2, 5, 4]), 2);
         assert_eq!(visible([1, 3, 2, 5, 4, 6]), 4);
         assert_eq!(visible([]), 0);
+    }
+
+    #[test]
+    fn clue_conflicts() {
+        use ClueConflict::*;
+        assert_eq!(
+            clue_conflict(2, &[Some(3), Some(4), Some(1), Some(2)]),
+            None
+        );
+        assert_eq!(
+            clue_conflict(3, &[Some(3), Some(4), Some(1), Some(2)]),
+            Some(Full)
+        );
+        assert_eq!(clue_conflict(1, &[Some(1), None, None, None]), None);
+        assert_eq!(
+            clue_conflict(1, &[Some(1), Some(2), None, None]),
+            Some(Early)
+        );
+        // Only the cells next to the clue count.
+        assert_eq!(clue_conflict(1, &[None, Some(1), Some(2), None]), None);
+        // The 4 hides everything behind it.
+        assert_eq!(
+            clue_conflict(3, &[Some(1), Some(4), None, None]),
+            Some(Early)
+        );
+        assert_eq!(clue_conflict(2, &[Some(1), Some(4), None, None]), None);
+        assert_eq!(clue_conflict(3, &[None; 4]), None);
     }
 
     #[test]

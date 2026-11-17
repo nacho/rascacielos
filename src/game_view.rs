@@ -32,6 +32,7 @@ use gtk::{
     pango::AttrSize,
 };
 
+use crate::clue_frame::SudokuClueFrame;
 use crate::grid::SudokuGrid;
 use crate::grid_layout::SudokuGridLayout;
 use crate::lib::backend::SudokuBackend;
@@ -85,6 +86,7 @@ mod imp {
         width_is_small: Cell<bool>,
 
         pub grid: SudokuGrid,
+        pub clue_frame: SudokuClueFrame,
         pub backend: OnceCell<SudokuBackend>,
 
         #[template_child]
@@ -131,6 +133,7 @@ mod imp {
 
     impl Default for SudokuGameView {
         fn default() -> Self {
+            let grid = SudokuGrid::new_unitialized();
             Self {
                 is_vertical: Default::default(),
                 width_is_small: Default::default(),
@@ -138,7 +141,8 @@ mod imp {
                 redo_action: SimpleAction::new("redo", None),
                 reset_board_action: SimpleAction::new("reset-board", None),
                 toggle_pause_action: SimpleAction::new("toggle-pause", None),
-                grid: SudokuGrid::new_unitialized(),
+                grid: grid.clone(),
+                clue_frame: SudokuClueFrame::new(&grid),
                 backend: Default::default(),
                 top_headerbar: Default::default(),
                 grid_overlay: Default::default(),
@@ -270,6 +274,7 @@ mod imp {
             self.add_game_hooks();
 
             self.grid.init(backend);
+            self.clue_frame.init(backend);
         }
 
         pub fn initialize_clock_label(&self) {
@@ -662,7 +667,7 @@ mod imp {
     impl ObjectImpl for SudokuGameView {
         fn constructed(&self) {
             self.parent_constructed();
-            self.grid_overlay.set_child(Some(&self.grid));
+            self.grid_overlay.set_child(Some(&self.clue_frame));
 
             let grid_layout = SudokuGridLayout::new();
             self.grid_bin.set_layout_manager(Some(grid_layout));

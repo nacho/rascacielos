@@ -27,7 +27,7 @@ use std::{
 
 use crate::lib::enums::Coord;
 use crate::lib::enums::DifficultyCategory;
-use crate::lib::puzzle::{Puzzle, PuzzleError, Side};
+use crate::lib::puzzle::{ClueConflict, Puzzle, PuzzleError, Side, clue_conflict, line_coords};
 
 //You should never be interacting with SudokuBoard directly
 //everything goes through SudokuGame and SudokuBackend
@@ -132,8 +132,23 @@ impl SudokuBoard {
     }
 
     pub fn is_complete(&self) -> bool {
+        let n = self.size();
         let broken: bool = !self.broken_coords.borrow().is_empty();
-        !broken && self.total_filled.get() == self.size() * self.size()
+        !broken
+            && self.total_filled.get() == n * n
+            && Side::ALL
+                .iter()
+                .all(|side| (0..n).all(|i| self.clue_conflict(*side, i).is_none()))
+    }
+
+    /// Whether the values entered so far contradict the clue at `index` on
+    /// `side`. `None` when there is no clue there.
+    pub fn clue_conflict(&self, side: Side, index: usize) -> Option<ClueConflict> {
+        let clue = self.clue(side, index)?;
+        let line: Vec<Option<u8>> = line_coords(self.size(), side, index)
+            .map(|(row, col)| self.cells[row][col].value.get().map(|v| v as u8 + 1))
+            .collect();
+        clue_conflict(clue, &line)
     }
 
     pub fn is_empty(&self) -> bool {
@@ -540,6 +555,43 @@ mod tests {
         assert!(board.is_complete());
         board.insert(pos(1, 1), 0);
         assert!(!board.is_complete());
+        board.insert(pos(1, 1), 2);
+        assert!(board.is_complete());
+    }
+
+    #[test]
+    fn complete_needs_matching_clues() {
+        // Swapping heights 1 and 3 in rows 0 and 3 keeps a Latin square but
+        // breaks the clues.
+        let puzzle = Puzzle::from_solution(4, &SOLUTION).unwrap();
+        let board = SudokuBoard::from_generated(puzzle, &SOLUTION, DifficultyCategory::Medium);
+        let mut swapped = SOLUTION;
+        for i in [0, 2, 12, 14] {
+            swapped[i] = 4 - swapped[i];
+        }
+        for row in 0..4 {
+            for col in 0..4 {
+                if !board.is_fixed(pos(row, col)) {
+                    board.insert(pos(row, col), swapped[row * 4 + col] as usize - 1);
+                }
+            }
+        }
+        assert!(board.broken_coords.borrow().is_empty());
+        assert!(!board.is_complete());
+    }
+
+    #[test]
+    fn clue_conflicts() {
+        let board = board();
+        // Row 0 is 1 2 3 4 with clues 4 on the left and 1 on the right.
+        assert_eq!(board.clue_conflict(Side::Top, 2), None);
+        board.insert(pos(0, 3), 2);
+        assert_eq!(board.clue_conflict(Side::Right, 0), None);
+        board.insert(pos(0, 3), 3);
+        board.insert(pos(0, 1), 2);
+        board.insert(pos(0, 2), 1);
+        assert_eq!(board.clue_conflict(Side::Left, 0), Some(ClueConflict::Full));
+        assert_eq!(board.clue_conflict(Side::Right, 0), None);
     }
 
     #[test]
