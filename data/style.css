@@ -1,0 +1,165 @@
+/*Variables in common for both light mode and dark mode*/
+:root {
+  --sudoku-pause-delay: 2s;
+  --sudoku-completed-duration: 500ms;
+  --sudoku-rounded-corner: 10px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --sudoku-accent-blue: oklch(0.92 0.25 270);
+    --sudoku-accent-teal: oklch(0.92 0.10 205);
+    --sudoku-accent-green: oklch(0.92 0.25 145);
+    --sudoku-accent-yellow: oklch(0.92 0.25 100);
+    --sudoku-accent-orange: oklch(0.92 0.25 60);
+    --sudoku-accent-red: oklch(0.92 0.25 20);
+    --sudoku-accent-pink: oklch(0.92 0.20 5);
+    --sudoku-accent-purple: oklch(0.92 0.25 300);
+    --sudoku-accent-slate: oklch(0.88 0.03 250);
+
+    --sudoku-cell-color: var(--view-bg-color);
+    --sudoku-cell-fixed-color: #CCC;
+    --sudoku-cell-highlight-color: oklch(from var(--sudoku-accent-color) calc(l - 0.02) calc(c * 0.25) h);
+    --sudoku-cell-highlight-color-extra: oklch(from var(--sudoku-accent-color) calc(l - 0.07) c h);
+  }
+  sudoku-grid {
+    border: 2px solid #333;
+    border-radius: var(--sudoku-rounded-corner);
+  }
+  block-separator {
+    background: #333;
+  }
+  cell-separator {
+    background: #999;
+  }
+  sudoku-cell {
+    background: var(--sudoku-cell-color);
+  }
+  sudoku-cell.fixed {
+    background: var(--sudoku-cell-fixed-color);
+  }
+  sudoku-earmark.highlight-digit {
+    color: oklab(from var(--sudoku-accent-color) 0.5 a b);
+    font-weight: bold;
+  }
+  sudoku-cell.paused {
+    background: var(--view-bg-color);
+    transition: background var(--sudoku-pause-delay);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sudoku-accent-blue: oklch(0.35 0.1 230);
+    --sudoku-accent-teal: oklch(0.35 0.1 205);
+    --sudoku-accent-green: oklch(0.35 0.1 145);
+    --sudoku-accent-yellow: oklch(0.35 0.1 100);
+    --sudoku-accent-orange: oklch(0.35 0.1 60);
+    --sudoku-accent-red: oklch(0.35 0.1 30);
+    --sudoku-accent-pink: oklch(0.35 0.1 345);
+    --sudoku-accent-purple: oklch(0.35 0.1 310);
+    --sudoku-accent-slate: oklch(0.35 0.03 250);
+
+    --sudoku-cell-color: oklch(0.39 0 0);
+    --sudoku-cell-fixed-color: oklch(0.32 0 0);
+    --sudoku-cell-highlight-color: oklch(from var(--sudoku-accent-color) l calc(c * 0.25) h);
+    --sudoku-cell-highlight-color-extra: oklch(from var(--sudoku-accent-color) 0.32 calc(c * 0.7) h);
+  }
+  block-separator {
+    background: oklch(0.56 0 0);
+  }
+  cell-separator {
+    background: oklch(0.47 0 0);
+  }
+  sudoku-cell {
+    background: var(--sudoku-cell-color);
+  }
+  sudoku-cell.fixed {
+    background: var(--sudoku-cell-fixed-color);
+  }
+  sudoku-earmark.highlight-digit {
+    color: oklab(from var(--sudoku-accent-color) 0.85 a b);
+    font-weight: bold;
+  }
+  sudoku-cell.paused {
+    background: var(--sudoku-cell-color);
+    transition: background var(--sudoku-pause-delay);
+  }
+}
+
+/*Styles in common for both light mode and dark mode*/
+sudoku-cell.top-left {
+  border-top-left-radius: var(--sudoku-rounded-corner);
+}
+sudoku-cell.top-right {
+  border-top-right-radius: var(--sudoku-rounded-corner);
+}
+sudoku-cell.bottom-left {
+  border-bottom-left-radius: var(--sudoku-rounded-corner);
+}
+sudoku-cell.bottom-right {
+  border-bottom-right-radius: var(--sudoku-rounded-corner);
+}
+
+@keyframes completed-animation {
+  0% {background-color: var(--sudoku-cell-color);}
+  50% {background-color: var(--sudoku-cell-highlight-color-extra);}
+  100% {background-color: var(--sudoku-cell-highlight-color);}
+}
+sudoku-cell.highlight-coord {
+    background: var(--sudoku-cell-highlight-color);
+}
+sudoku-cell.highlight-digit {
+    background: var(--sudoku-cell-highlight-color-extra);
+}
+sudoku-cell.completed {
+  animation: completed-animation forwards var(--sudoku-completed-duration);
+}
+sudoku-cell.error {
+  color: var(--error-color);
+}
+sudoku-earmark.error{
+  text-decoration: line-through;
+}
+sudoku-value.error {
+  font-weight: bold;
+}
+@keyframes slow-appear {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+overlay.paused > label {
+  font-weight: bold;
+  color: #FFF;
+  border-radius: var(--sudoku-rounded-corner);
+  background: rgba(0, 0, 0, 0.75);
+  transition: background var(--sudoku-pause-delay);
+  animation: success-animation forwards 1s;
+  animation: slow-appear var(--sudoku-pause-delay) forwards;
+}
+.paused > sudoku-value, .paused sudoku-earmark {
+  opacity: 0;
+  transition: opacity var(--sudoku-pause-delay);
+}
+sudoku-cell.accented {
+  background: var(--sudoku-accent-color);
+}
+sudoku-picker {
+  margin: 2px;
+}
+sudoku-picker .text-button {
+  font-size: larger;
+  /*Overrides the default text-button padding*/
+  padding-left: 10px;
+  padding-right: 10px;
+}
+sudoku-picker label.earmark {
+  margin-right: 16px;
+  margin-bottom: 8px;
+}
+sudoku-picker label.value {
+  margin-right: 8px;
+  margin-left: 8px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}

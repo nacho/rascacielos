@@ -1,0 +1,178 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $SudokuStartView : Adw.Bin {
+  Adw.ToolbarView {
+    top-bar-style: raised;
+
+    [top]
+    Adw.HeaderBar headerbar {
+      centering-policy: strict;
+      title-widget: Adw.WindowTitle windowtitle {
+        title: _("Sudoku");
+        subtitle: _("Select Difficulty");
+      };
+
+      [start]
+      Button back_button {
+        visible: false;
+        halign: center;
+        valign: center;
+        tooltip-text: _("Back");
+        use-underline: true;
+        action-name: "app.back";
+        icon-name: "go-previous-symbolic";
+      }
+
+      [end]
+      $SudokuMenuButton menu_button {}
+    }
+
+    content: Adw.StatusPage {
+      title: _("Select Puzzle Difficulty");
+      valign: start;
+
+      child: Adw.Clamp {
+        maximum-size: 400;
+
+        Box {
+          orientation: vertical;
+
+          Adw.PreferencesGroup {
+            Adw.ActionRow {
+              [prefix]
+              CheckButton custom_check {
+                group: easy_check;
+                can-focus: false;
+                can-target: false;
+              }
+
+              title: C_("Difficulty", "_Custom");
+              use-underline: true;
+              activatable-widget: custom_check;
+              activated => $custom_checkbutton_activated_cb() swapped;
+            }
+          }
+
+          Adw.PreferencesGroup {
+            Adw.ActionRow custom_difficulty_action_row {
+              [prefix]
+              CheckButton easy_check {
+                can-focus: false;
+                can-target: false;
+              }
+
+              title: C_("Difficulty", "_Easy");
+              use-underline: true;
+              activatable-widget: easy_check;
+              activated => $difficulty_checkbutton_activated_cb() swapped;
+            }
+
+            Adw.ActionRow {
+              [prefix]
+              CheckButton medium_check {
+                group: easy_check;
+                can-focus: false;
+                can-target: false;
+              }
+
+              title: C_("Difficulty", "_Medium");
+              use-underline: true;
+              activatable-widget: medium_check;
+              activated => $difficulty_checkbutton_activated_cb() swapped;
+            }
+
+            Adw.ActionRow {
+              [prefix]
+              CheckButton hard_check {
+                group: easy_check;
+                can-focus: false;
+                can-target: false;
+              }
+
+              title: C_("Difficulty", "_Hard");
+              use-underline: true;
+              activatable-widget: hard_check;
+              activated => $difficulty_checkbutton_activated_cb() swapped;
+            }
+
+            Adw.ActionRow {
+              [prefix]
+              CheckButton very_hard_check {
+                group: easy_check;
+                can-focus: false;
+                can-target: false;
+              }
+
+              title: C_("Difficulty", "_Very Hard");
+              use-underline: true;
+              activatable-widget: very_hard_check;
+              activated => $difficulty_checkbutton_activated_cb() swapped;
+            }
+          }
+
+          Stack start_open_stack {
+            transition-type: crossfade;
+
+            Button start_button {
+              margin-top: 12;
+              halign: center;
+              label: _("_Start Game");
+              use-underline: true;
+              action-name: "app.start-generated-game";
+
+              styles [
+                "pill",
+                "suggested-action",
+              ]
+            }
+
+            Box open_and_shared_box {
+              margin-top: 12;
+              spacing: 12;
+              homogeneous: true;
+
+              Button open_button_round {
+                hexpand: true;
+                label: _("_Open...");
+                can-shrink: true;
+                use-underline: true;
+                clicked => $open_file_cb() swapped;
+
+                styles [
+                  "round"
+                ]
+              }
+
+              Button start_shared_button {
+                label: _("_Start Shared Game");
+                hexpand: true;
+                can-shrink: true;
+                use-underline: true;
+                clicked => $start_shared_game_cb() swapped;
+
+                styles [
+                  "round",
+                  "suggested-action"
+                ]
+              }
+            }
+
+            Button open_button_pill {
+              margin-top: 12;
+              halign: center;
+              label: _("_Open…");
+              use-underline: true;
+              clicked => $open_file_cb() swapped;
+
+              styles [
+                "pill",
+                "suggested-action"
+              ]
+            }
+          }
+        }
+      };
+    };
+  }
+}

@@ -1,0 +1,41 @@
+{
+    "app-id": "org.gnome.Sudoku.Devel",
+    "runtime": "org.gnome.Platform",
+    "runtime-version": "master",
+    "sdk": "org.gnome.Sdk",
+    "sdk-extensions": [
+        "org.freedesktop.Sdk.Extension.rust-stable",
+        "org.freedesktop.Sdk.Extension.llvm22"
+    ],
+    "build-options": {
+        "append-path": "/usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/llvm22/bin",
+        "build-args": [
+            "--share=network"
+        ],
+        "env": {
+            "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER": "clang",
+            "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS": "-C link-arg=-fuse-ld=/usr/lib/sdk/rust-stable/bin/mold",
+            "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER": "clang",
+            "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS": "-C link-arg=-fuse-ld=/usr/lib/sdk/rust-stable/bin/mold"
+        }
+    },
+    "command": "gnome-sudoku",
+    "tags": ["nightly"],
+    "finish-args": [
+        "--device=dri",
+        "--socket=wayland"
+    ],
+    "modules": [
+        {
+            "name": "gnome-sudoku",
+            "buildsystem": "meson",
+            "config-opts": [
+                "-Dprofile=Devel"
+            ],
+            "sources": [{
+                "type": "git",
+                "url": "https://gitlab.gnome.org/GNOME/gnome-sudoku.git"
+            }]
+        }
+    ]
+}

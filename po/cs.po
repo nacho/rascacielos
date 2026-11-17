@@ -1,0 +1,882 @@
+# Czech translation of gnome-games.
+# Copyright (C) 2002, 2006, 2007, 2008, 2009 the author(s) of gnome-games.
+# Copyright (C) 2004, 2005, 2006 Miloslav Trmac <mitr@volny.cz>.
+# Copyright (C) 2006 Lukas Novotny <lukasnov@cvs.gnome.org>.
+# This file is distributed under the same license as the gnome-games package.
+#
+# Michal Bukovjan <bukm@centrum.cz>, 2002.
+# Miloslav Trmac <mitr@volny.cz>, 2003, 2004, 2005, 2006.
+# Petr Tomeš <ptomes@gmail.com>, 2006.
+# Lukas Novotny <lukasnov@cvs.gnome.org>, 2006.
+# Jakub Friedl <jfriedl@suse.cz>, 2006, 2007.
+# Jan Parkman <parkmaj@users.sourceforge.net>, 2008.
+# Lucas Lommer <llommer@svn.gnome.org>, 2008, 2009, 2010.
+# Kamil Páral <ripper42@gmail.com>, 2008.
+# Marek Lisy <marek.lisy@centrum.cz>, 2008.
+# Petr Pulc <petrpulc@gmail.com>, 2009.
+# Andre Klapper <ak-47@gmx.net>, 2009.
+# Petr Kovar <pknbe@volny.cz>, 2008, 2012.
+# Marek Černocký <marek@manet.cz>, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-sudoku master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/gnome-sudoku/issues/\n"
+"POT-Creation-Date: 2026-09-12 06:44+0000\n"
+"PO-Revision-Date: 2026-09-12 11:52+0200\n"
+"Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
+"Language-Team: čeština <gnome-cs-list@gnome.org>\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Poedit 3.9\n"
+"X-Project-Style: gnome\n"
+
+#: data/org.gnome.Sudoku.desktop.in.in:2 src/blueprints/game-view.blp:17
+#: src/blueprints/start-view.blp:12 src/blueprints/window.blp:10
+msgid "Sudoku"
+msgstr "Sudoku"
+
+#: data/org.gnome.Sudoku.desktop.in.in:3
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:8
+msgid "Test yourself in the classic puzzle"
+msgstr "Otestujte se v tomto klasickém hlavolamu"
+
+#. Translators: Search terms to find this application. Do NOT translate or localize the semicolons! The list MUST also end with a semicolon!
+#: data/org.gnome.Sudoku.desktop.in.in:5
+msgid "magic;square;"
+msgstr "magický;čtverec;"
+
+#: data/org.gnome.Sudoku.gschema.xml:18
+msgid "Initialize the earmarks with the possible values for each cell"
+msgstr "Inicializovat u všech políček poznačení možných hodnot do oušek"
+
+#: data/org.gnome.Sudoku.gschema.xml:25
+msgid "Check for duplicates in row, column and block"
+msgstr "Kontrolovat duplikáty v řádku, sloupci a bloku"
+
+#: data/org.gnome.Sudoku.gschema.xml:29
+msgid "Check earmarks against duplicates in row, column and block"
+msgstr "Kontrolovat ouška proti duplikátům v řádku, sloupci a bloku"
+
+#: data/org.gnome.Sudoku.gschema.xml:33
+msgid "Toggle timer and pause buttons"
+msgstr "Přepnout tlačítka časovače a pauzy"
+
+#: data/org.gnome.Sudoku.gschema.xml:37
+msgid "Additionally check against the solution for warnings"
+msgstr "Dodatečně porovnat s řešením pro varování"
+
+#: data/org.gnome.Sudoku.gschema.xml:41
+msgid "Automatically clear related earmarks on new number insertion"
+msgstr "Automaticky vymazat související ouška při vložení nového čísla"
+
+#: data/org.gnome.Sudoku.gschema.xml:45
+msgid "Display number picker on second click"
+msgstr "Zobrazovat výběr čísla při druhém kliknutí"
+
+#: data/org.gnome.Sudoku.gschema.xml:49
+msgid "Highlight the selected cell's row and column"
+msgstr "Zvýrazňovat řádek a sloupec vybraného políčka"
+
+#: data/org.gnome.Sudoku.gschema.xml:53
+msgid "Highlight the selected cell's block"
+msgstr "Zvýrazňovat blok vybraného políčka"
+
+#: data/org.gnome.Sudoku.gschema.xml:57
+msgid "Highlight the selected cell's matching numbers"
+msgstr "Zvýrazňovat odpovídající čísla vybraného políčka"
+
+#: data/org.gnome.Sudoku.gschema.xml:64
+msgid "Zoom level"
+msgstr "Úroveň přiblížení"
+
+#: data/org.gnome.Sudoku.gschema.xml:68
+msgid "Width of the window in pixels"
+msgstr "Šířka okna v pixelech"
+
+#: data/org.gnome.Sudoku.gschema.xml:72
+msgid "Height of the window in pixels"
+msgstr "Výška okna v pixelech"
+
+#: data/org.gnome.Sudoku.gschema.xml:76
+msgid "true if the window is maximized"
+msgstr "Zapnuto, když je okno maximalizováno"
+
+#: data/org.gnome.Sudoku.gschema.xml:80
+msgid "true if the window is fullscreen"
+msgstr "Zapnuto, když je okno přes celou obrazovku"
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:7
+msgid "GNOME Sudoku"
+msgstr "Sudoku GNOME"
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:10
+msgid ""
+"GNOME Sudoku is a must-install for puzzle lovers. Based on the popular "
+"Japanese game, it comes with a simple interface that makes playing Sudoku "
+"fun for players of all skill level."
+msgstr ""
+"Sudoku GNOME je nutností pro milovníky hádanek. Vychází z populární japonské "
+"hry a přichází s jednoduchým rozhraním, díky kterému je hraní sudoku zábavné "
+"pro hráče všech úrovní."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:15
+msgid "Features:"
+msgstr "Vlastnosti:"
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:17
+msgid "Automatically save and restore your session."
+msgstr "Automaticky ukládejte a obnovujte své sezení."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:18
+msgid "Generate an infinite amount of new puzzles with qqwing."
+msgstr "Vytvářejte nekonečné množství nových sudoku s qqwing."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:19
+msgid "Easily share puzzles with friends, or save them for later."
+msgstr "Snadno sdílejte sudoku s přáteli nebo si je uložte na později."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:20
+msgid "Adjust a scalable grid to your preferences."
+msgstr "Upravujte škálovatelnou mřížku podle svých preferencí."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:21
+msgid "Use the mouse, keyboard or touch to complete the puzzles."
+msgstr "K dokončení sudoku používejte myš, klávesnici nebo dotyk."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:22
+msgid "Set up advanced strategies like X-Wings with earmarks."
+msgstr "Nastavujte pokročilé strategie, jako jsou X-Wings, s oušky."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:23
+msgid "Take advantage of the highlighter to narrow down possibilities."
+msgstr "Využívejte zvýrazňovač k zúžení možností."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:24
+msgid "Get help with the built-in warnings."
+msgstr "Získávejte pomoc s vestavěnými varováními."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:25
+msgid "Keep track of your progression with highscores and a timer."
+msgstr "Sledujte svůj postup pomocí žebříčků a časovače."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:26
+msgid "Print puzzles to play Sudoku on the go."
+msgstr "Tiskněte si hlavolamy a hrajte sudoku na cestách."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:32
+msgid "A GNOME sudoku game preview"
+msgstr "Ukázka hry Sudoku GNOME"
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:36
+msgid "A GNOME sudoku game in dark mode featuring earmarks and warnings"
+msgstr "Sudoku v prostředí GNOME v tmavém režimu s oušky a upozorněními"
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:57
+msgid "The GNOME Project"
+msgstr "Projekt GNOME"
+
+#: src/blueprints/game-view.blp:6
+msgid "Paused"
+msgstr "Pozastaveno"
+
+#: src/blueprints/game-view.blp:22
+msgid "Undo Action"
+msgstr "Vrátit akci zpět"
+
+#: src/blueprints/game-view.blp:30
+msgid "Redo Action"
+msgstr "Znovu provést akci"
+
+#: src/blueprints/game-view.blp:38
+msgid "Earmark Mode"
+msgstr "Režim oušek"
+
+#: src/blueprints/game-view.blp:50
+msgid "Pause"
+msgstr "Pozastavit"
+
+#: src/blueprints/game-view.blp:57
+msgid "Play"
+msgstr "Hrát"
+
+#: src/blueprints/game-view.blp:80
+msgid "Clock"
+msgstr "Hodiny"
+
+#: src/blueprints/menu-button.blp:7 src/game_view.rs:464
+msgid "_New Game…"
+msgstr "_Nová hra…"
+
+#: src/blueprints/menu-button.blp:12
+msgid "_Puzzle"
+msgstr "_Sudoku"
+
+#: src/blueprints/menu-button.blp:16
+msgid "_Reset"
+msgstr "_Resetovat"
+
+#: src/blueprints/menu-button.blp:23
+msgid "_Share"
+msgstr "_Sdílet"
+
+#: src/blueprints/menu-button.blp:28
+msgid "_Save As…"
+msgstr "_Uložit jako…"
+
+#: src/blueprints/menu-button.blp:33
+msgid "_Export…"
+msgstr "_Exportovat…"
+
+#: src/blueprints/menu-button.blp:40
+msgid "Print _Generator"
+msgstr "_Generátor tisku"
+
+#: src/blueprints/menu-button.blp:49
+msgid "Zoom"
+msgstr "Zvětšení"
+
+#: src/blueprints/menu-button.blp:68
+msgid "_Preferences"
+msgstr "_Předvolby"
+
+#: src/blueprints/menu-button.blp:73
+msgid "_Keyboard Shortcuts"
+msgstr "_Klávesové zkratky"
+
+#: src/blueprints/menu-button.blp:78
+msgid "_Help"
+msgstr "_Nápověda"
+
+#: src/blueprints/menu-button.blp:83
+msgid "_About Sudoku"
+msgstr "O _aplikaci Sudoku"
+
+#: src/blueprints/menu-button.blp:93
+msgid "Main Menu"
+msgstr "Hlavní nabídka"
+
+#: src/blueprints/menu-button.blp:102
+msgid "Zoom Out"
+msgstr "Oddálit"
+
+#: src/blueprints/menu-button.blp:114
+msgid "Zoom In"
+msgstr "Přiblížit"
+
+#: src/blueprints/menu-button.blp:129
+msgid "Fullscreen"
+msgstr "Celá obrazovka"
+
+#: src/blueprints/menu-button.blp:140
+msgid "Leave Fullscreen"
+msgstr "Opustit celou obrazovku"
+
+#: src/blueprints/preferences-dialog.blp:7
+msgctxt "preferences dialog"
+msgid "General"
+msgstr "Obecné"
+
+#: src/blueprints/preferences-dialog.blp:10
+msgctxt "General Preferences"
+msgid "_Timer and Highscores"
+msgstr "Č_asovač a žebříčky"
+
+#: src/blueprints/preferences-dialog.blp:15
+msgctxt "General Preferences"
+msgid "Automatically _Clean Earmarks"
+msgstr "Automati_cky vyčistit ouška"
+
+#: src/blueprints/preferences-dialog.blp:20
+msgctxt "General Preferences"
+msgid "Number Picker on _Second Click"
+msgstr "Výběr čísla při _druhém kliknutí"
+
+#: src/blueprints/preferences-dialog.blp:25
+msgctxt "General Preferences"
+msgid "Show Earmark _Possibilities"
+msgstr "Zobrazit _možnosti oušek"
+
+#: src/blueprints/preferences-dialog.blp:31
+msgctxt "Preferences Dialog"
+msgid "Warnings"
+msgstr "Varování"
+
+#: src/blueprints/preferences-dialog.blp:33
+msgctxt "Warning Preferences"
+msgid "_Duplicate Warnings"
+msgstr "Varování _duplicit"
+
+#: src/blueprints/preferences-dialog.blp:38
+msgctxt "Warning Preferences"
+msgid "S_olution Warnings"
+msgstr "Var_ování řešení"
+
+#: src/blueprints/preferences-dialog.blp:43
+msgctxt "Warning Preferences"
+msgid "_Earmark Warnings"
+msgstr "Varování _oušek"
+
+#: src/blueprints/preferences-dialog.blp:49
+msgctxt "Preferences Dialog"
+msgid "Highlighter"
+msgstr "Zvýrazňovač"
+
+#: src/blueprints/preferences-dialog.blp:52
+msgctxt "Highlighter Preferences"
+msgid "Highlight _Row and Column"
+msgstr "Zvý_razňovat řádek a sloupec"
+
+#: src/blueprints/preferences-dialog.blp:57
+msgctxt "Highlighter Preferences"
+msgid "Highlight _Block"
+msgstr "Zvýrazňovat _blok"
+
+#: src/blueprints/preferences-dialog.blp:62
+msgctxt "Highlighter Preferences"
+msgid "Highlight Matching _Numbers"
+msgstr "Zvýrazňovat odpovídající čís_la"
+
+#: src/blueprints/print-generator-dialog.blp:5
+msgid "Print Multiple Puzzles"
+msgstr "Tisk několika sudoku"
+
+#: src/blueprints/print-generator-dialog.blp:23
+msgid "_Number of Puzzles"
+msgstr "_Počet sudoku"
+
+#: src/blueprints/print-generator-dialog.blp:37
+msgid "_Number of Puzzles per Page"
+msgstr "_Počet sudoku na stránku"
+
+#: src/blueprints/print-generator-dialog.blp:50
+msgid "_Difficulty"
+msgstr "_Obtížnost"
+
+#: src/blueprints/print-generator-dialog.blp:55
+msgid "Easy"
+msgstr "Jednoduchá"
+
+#: src/blueprints/print-generator-dialog.blp:56
+msgid "Medium"
+msgstr "Střední"
+
+#: src/blueprints/print-generator-dialog.blp:57
+msgid "Hard"
+msgstr "Těžká"
+
+#: src/blueprints/print-generator-dialog.blp:58
+msgid "Very Hard"
+msgstr "Velmi těžká"
+
+#: src/blueprints/print-generator-dialog.blp:64
+msgid "Print _Current Puzzle"
+msgstr "Vytisknout _současné sudoku"
+
+#: src/blueprints/print-generator-dialog.blp:72
+msgid "_Print…"
+msgstr "_Tisk…"
+
+#: src/blueprints/start-view.blp:13
+msgid "Select Difficulty"
+msgstr "Výběr obtížnosti"
+
+#: src/blueprints/start-view.blp:21
+msgid "Back"
+msgstr "Zpět"
+
+#: src/blueprints/start-view.blp:32
+msgid "Select Puzzle Difficulty"
+msgstr "Vyberte obtížnost sudoku"
+
+#: src/blueprints/start-view.blp:50
+msgctxt "Difficulty"
+msgid "_Custom"
+msgstr "V_lastní"
+
+#: src/blueprints/start-view.blp:65
+msgctxt "Difficulty"
+msgid "_Easy"
+msgstr "_Jednoduchá"
+
+#: src/blueprints/start-view.blp:79
+msgctxt "Difficulty"
+msgid "_Medium"
+msgstr "_Střední"
+
+#: src/blueprints/start-view.blp:93
+msgctxt "Difficulty"
+msgid "_Hard"
+msgstr "_Těžká"
+
+#: src/blueprints/start-view.blp:107
+msgctxt "Difficulty"
+msgid "_Very Hard"
+msgstr "_Velmi těžká"
+
+#: src/blueprints/start-view.blp:120
+msgid "_Start Game"
+msgstr "_Začít hru"
+
+#: src/blueprints/start-view.blp:137
+msgid "_Open..."
+msgstr "_Otevřít…"
+
+#: src/blueprints/start-view.blp:148
+msgid "_Start Shared Game"
+msgstr "_Začít sdílenou hru"
+
+#: src/blueprints/start-view.blp:164
+msgid "_Open…"
+msgstr "_Otevřít…"
+
+#: src/blueprints/shortcuts-dialog.blp:7
+msgctxt "Shortcuts Window"
+msgid "Game"
+msgstr "Hra"
+
+#: src/blueprints/shortcuts-dialog.blp:11
+#: src/blueprints/shortcuts-dialog.blp:16
+msgctxt "Shortcuts Window"
+msgid "Move"
+msgstr "Přesunout"
+
+#: src/blueprints/shortcuts-dialog.blp:20
+msgctxt "Shortcuts Window"
+msgid "Earmarks"
+msgstr "Ouška"
+
+#: src/blueprints/shortcuts-dialog.blp:25
+msgctxt "Shortcuts Window"
+msgid "Clear Cell"
+msgstr "Vymazat políčko"
+
+#: src/blueprints/shortcuts-dialog.blp:30
+msgctxt "Shortcuts Window"
+msgid "Number Picker"
+msgstr "Výběr čísel"
+
+#: src/blueprints/shortcuts-dialog.blp:35
+msgctxt "Shortcuts Window"
+msgid "Earmark Picker"
+msgstr "Výběr oušek"
+
+#: src/blueprints/shortcuts-dialog.blp:42
+msgctxt "Shortcuts Window"
+msgid "Earmark Mode"
+msgstr "Režim oušek"
+
+#: src/blueprints/shortcuts-dialog.blp:47
+msgctxt "Shortcuts Window"
+msgid "Pause"
+msgstr "Pozastavit"
+
+#: src/blueprints/shortcuts-dialog.blp:52
+msgctxt "Shortcuts Window"
+msgid "Undo"
+msgstr "Zpět"
+
+#: src/blueprints/shortcuts-dialog.blp:57
+msgctxt "Shortcuts Window"
+msgid "Redo"
+msgstr "Znovu"
+
+#: src/blueprints/shortcuts-dialog.blp:64
+msgctxt "Shortcuts Window"
+msgid "New Game…"
+msgstr "Nová hra…"
+
+#: src/blueprints/shortcuts-dialog.blp:69
+msgctxt "Shortcuts Window"
+msgid "Zoom In"
+msgstr "Přiblížit"
+
+#: src/blueprints/shortcuts-dialog.blp:74
+msgctxt "Shortcuts Window"
+msgid "Zoom Out"
+msgstr "Oddálit"
+
+#: src/blueprints/shortcuts-dialog.blp:79
+msgctxt "Shortcuts Window"
+msgid "Zoom Reset"
+msgstr "Výchozí přiblížení"
+
+#: src/blueprints/shortcuts-dialog.blp:84
+msgctxt "Shortcuts Window"
+msgid "Puzzle"
+msgstr "Sudoku"
+
+#: src/blueprints/shortcuts-dialog.blp:88
+msgctxt "Shortcuts Window"
+msgid "Reset"
+msgstr "Resetovat"
+
+#: src/blueprints/shortcuts-dialog.blp:93
+msgctxt "Shortcuts Window"
+msgid "Share"
+msgstr "Sdílet"
+
+#: src/blueprints/shortcuts-dialog.blp:98
+msgctxt "Shortcuts Window"
+msgid "Save As…"
+msgstr "Uložit jako…"
+
+#: src/blueprints/shortcuts-dialog.blp:103
+msgctxt "Shortcuts Window"
+msgid "Export…"
+msgstr "Exportovat…"
+
+#: src/blueprints/shortcuts-dialog.blp:108
+msgctxt "Shortcuts Window"
+msgid "Print Generator"
+msgstr "Generátor tisku"
+
+#: src/blueprints/shortcuts-dialog.blp:113
+msgctxt "Shortcuts Window"
+msgid "Window"
+msgstr "Okno"
+
+#: src/blueprints/shortcuts-dialog.blp:117
+msgctxt "Shortcuts Window"
+msgid "Go Back"
+msgstr "Přejít zpět"
+
+#: src/blueprints/shortcuts-dialog.blp:122
+msgctxt "Shortcuts Window"
+msgid "Preferences"
+msgstr "Předvolby"
+
+#: src/blueprints/shortcuts-dialog.blp:127
+msgctxt "Shortcuts Window"
+msgid "Keyboard Shortcuts"
+msgstr "Klávesové zkratky"
+
+#: src/blueprints/shortcuts-dialog.blp:132
+msgctxt "Shortcuts Window"
+msgid "Quit"
+msgstr "Ukončit"
+
+#: src/blueprints/shortcuts-dialog.blp:137
+msgctxt "Shortcuts Window"
+msgid "Help"
+msgstr "Nápověda"
+
+#: src/blueprints/shortcuts-dialog.blp:142
+msgctxt "Shortcuts Window"
+msgid "Menu"
+msgstr "Nabídka"
+
+#: src/blueprints/shortcuts-dialog.blp:147
+msgctxt "Shortcuts Window"
+msgid "Fullscreen"
+msgstr "Celá obrazovka"
+
+#: src/game_view.rs:452
+msgid "Puzzle Completed!"
+msgstr "Sudoku dokončeno!"
+
+#: src/game_view.rs:454
+msgid "_Quit"
+msgstr "U_končit"
+
+#: src/game_view.rs:457
+msgid "_Change Difficulty"
+msgstr "_Změnit obtížnost"
+
+#: src/game_view.rs:458 src/game_view.rs:463
+msgid "_Play Again"
+msgstr "Hrát znov_u"
+
+#~ msgid "The puzzle's difficulty"
+#~ msgstr "Obtížnost sudoku"
+
+#~ msgid "Unknown Difficulty"
+#~ msgstr "Neznámá obtížnost"
+
+#~ msgid "Easy Difficulty"
+#~ msgstr "Nízká obtížnost"
+
+#~ msgid "Medium Difficulty"
+#~ msgstr "Střední obtížnost"
+
+#~ msgid "Hard Difficulty"
+#~ msgstr "Vysoká obtížnost"
+
+#~ msgid "Very Hard Difficulty"
+#~ msgstr "Velmi vysoká obtížnost"
+
+#~ msgctxt ".skp is a file extension"
+#~ msgid "Sudoku puzzle.skp"
+#~ msgstr "Sudoku puzzle.skp"
+
+#~ msgid "Puzzle copied to clipboard"
+#~ msgstr "Sudoku zkopírováno do schránky"
+
+#~ msgid "Show release version"
+#~ msgstr "Zobrazit verzi vydání"
+
+#~ msgid "Failed to import the puzzle, please enter a valid Sudoku puzzle"
+#~ msgstr "Import sudoku se nezdařil, zadejte prosím platné Sudoku puzzle"
+
+#~ msgid "_Cancel"
+#~ msgstr "_Zrušit"
+
+#~ msgid "_Try Again"
+#~ msgstr "Zkusi_t znovu"
+
+#~ msgid "translator-credits"
+#~ msgstr ""
+#~ "Jirka Lébl\n"
+#~ "Michal Bukovjan <bukm@centrum.cz>\n"
+#~ "Miloslav Trmač <mitr@volny.cz>\n"
+#~ "Petr Tomeš <ptomes@gmail.com>\n"
+#~ "Lukáš Novotný <lukasnov@cvs.gnome.org>\n"
+#~ "Jakub Friedl <jfriedl@suse.cz>\n"
+#~ "Jan Parkman <parkmaj@users.sourceforge.net>\n"
+#~ "Petr Kovář <pknbe@volny.cz>\n"
+#~ "Lucas Lommer <llommer@svn.gnome.org>\n"
+#~ "Kamil Páral <ripper42@gmail.com>\n"
+#~ "Marek Lisý <marek.lisy@centrum.cz>\n"
+#~ "Petr Pulc <petrpulc@gmail.com>\n"
+#~ "Marek Černocký <marek@manet.cz>"
+
+#~ msgid "Clear"
+#~ msgstr "Vymazat"
+
+#~ msgid "Lock"
+#~ msgstr "Uzamknout"
+
+#~ msgid "Unlock"
+#~ msgstr "Odemknout"
+
+#~ msgid "Error printing file:"
+#~ msgstr "Chyba při tisku souboru:"
+
+#~ msgid "_Close"
+#~ msgstr "Za_vřít"
+
+#, c-format
+#~ msgid "%d minute"
+#~ msgid_plural "%d minutes"
+#~ msgstr[0] "%d minutu"
+#~ msgstr[1] "%d minuty"
+#~ msgstr[2] "%d minut"
+
+#, c-format
+#~ msgid ""
+#~ "Well done, you completed the puzzle in %s and set a new personal best!"
+#~ msgstr ""
+#~ "Úspěšně hotovo, sudoku jste vyřešili za %s a dosáhli jste nového osobního "
+#~ "rekordu!"
+
+#, c-format
+#~ msgid "Well done, you completed the puzzle in %s!"
+#~ msgstr "Úspěšně hotovo, sudoku jste vyřešili za %s!"
+
+#~ msgid "Difficulty level of sudokus to be printed"
+#~ msgstr "Úroveň obtížnosti tisknutých sudoku"
+
+#~ msgid ""
+#~ "Set the difficulty level of the sudokus you want to print. Possible "
+#~ "values are: \"easy\", \"medium\", \"hard\", \"very_hard\""
+#~ msgstr ""
+#~ "Nastavit úroveň obtížnosti pro sudoku, která se budou tisknout. Možné "
+#~ "hodnoty jsou: „easy“ (snadné), „medium“ (střední), „hard“ (těžké), "
+#~ "„very_hard“ (velmi těžké)."
+
+#~ msgid "Number of Sudokus to print"
+#~ msgstr "Počet tisknutých sudoku"
+
+#~ msgid "Set the number of sudokus you want to print"
+#~ msgstr "Nastavit počet sudoku, které se mají vytisknout."
+
+#~ msgid "Number of Sudokus to print per page"
+#~ msgstr "Počet tisknutých sudoku na stránku"
+
+#~ msgid "Set the number of sudokus you want to print per page"
+#~ msgstr "Nastavit počet sudoku, které se mají vytisknout na jednu stránku."
+
+#~ msgid "Color mistakes and duplicate numbers in red"
+#~ msgstr "Chyby v barvě a duplicitní čísla červeně"
+
+#~ msgid ""
+#~ "Displays a big red X in a square if it cannot possibly be filled by any "
+#~ "number and duplicate numbers are highlighted in red"
+#~ msgstr ""
+#~ "Zobrazovat velké červené X v políčcích, která není možné vyplnit žádným "
+#~ "číslem, a duplicitní čísla červeně zvýrazňovat."
+
+#~ msgid "Highlight row, column and square that contain the selected cell"
+#~ msgstr "Zvýrazňovat řádek, sloupec a pole obsahující vybrané políčko"
+
+#~ msgid "Create and solve custom puzzles from scratch."
+#~ msgstr "Vytvářejte a řešte vlastní sudoku od začátku."
+
+#~ msgid "Custom Puzzle"
+#~ msgstr "Vlastní sudoku"
+
+#~ msgid "Play Custom Game"
+#~ msgstr "Hrát vlastní hru"
+
+#~ msgid "Print _Current Puzzle…"
+#~ msgstr "Vytisknout _současné sudoku…"
+
+#~ msgid "Print _Multiple Puzzles…"
+#~ msgstr "Vytisknout několik su_doku…"
+
+#~ msgid "_Highlighter"
+#~ msgstr "Zvý_razňovač"
+
+#~ msgctxt "Warning Preferences"
+#~ msgid "Check _Against Solution"
+#~ msgstr "Zkontrolov_at proti řešení"
+
+#~ msgctxt "Shortcuts Window"
+#~ msgid "New Game"
+#~ msgstr "Nová hra"
+
+#~ msgctxt "Shortcuts Window"
+#~ msgid "Warnings"
+#~ msgstr "Varování"
+
+#~ msgctxt "Shortcuts Window"
+#~ msgid "Highlighter"
+#~ msgstr "Zvýrazňovač"
+
+#~ msgid "The puzzle you have entered is not a valid Sudoku."
+#~ msgstr "Sudoku, které jste zadali, není platné sudoku."
+
+#~ msgid "Please enter a valid puzzle."
+#~ msgstr "Zadejte prosím platný hlavolam."
+
+#~ msgid "The puzzle you have entered has multiple solutions."
+#~ msgstr "Sudoku, které jste zadali, má více řešení."
+
+#~ msgid "Valid Sudoku puzzles have exactly one solution."
+#~ msgstr "Platné Sudoku má právě jedno řešení."
+
+#~ msgid "_Back"
+#~ msgstr "_Zpět"
+
+#~ msgid "Play _Anyway"
+#~ msgstr "_Přesto hrát"
+
+#~ msgid "Well done, you completed the puzzle!"
+#~ msgstr "Úspěšně hotovo, sudoku jste vyřešili!"
+
+#~ msgid "Time yourself to keep track of your progression."
+#~ msgstr "Sledujte svůj čas pro sledování postupu."
+
+#, c-format
+#~ msgid ""
+#~ "The popular Japanese logic puzzle\n"
+#~ "\n"
+#~ "Puzzles generated by QQwing %s"
+#~ msgstr ""
+#~ "Populární japonský hlavolam\n"
+#~ "\n"
+#~ "Sudoku jsou vygenerované pomocí QQwing %s"
+
+#~ msgid "Create Puzzle"
+#~ msgstr "Vytváření sudoku"
+
+#~ msgid ""
+#~ "Each game is assigned a difficulty similar to those given by newspapers "
+#~ "and websites, so your game will be as easy or as difficult as you want it "
+#~ "to be."
+#~ msgstr ""
+#~ "Každá hra má přiřazené hodnocení obtížnosti, podobně jako ty tištěné nebo "
+#~ "na webových stránkách, takže vaše hry budou tak snadné nebo obtížné, jak "
+#~ "je budete chtít."
+
+#~ msgid ""
+#~ "If you like to play on paper, you can print games out. You can choose how "
+#~ "many games you want to print per page and what difficulty of games you "
+#~ "want to print: as a result, GNOME Sudoku can act a renewable Sudoku book "
+#~ "for you."
+#~ msgstr ""
+#~ "Pokud raději hrajete na papíře, můžete si hry vytisknout. Lze si zvolit, "
+#~ "kolik her chcete vytisknout na jednu stránku a jak obtížné hry chcete "
+#~ "tisnout. Sudoku GNOME vám tak může sloužit, jako stálá zásobárna nových "
+#~ "sešitů se Sudoku."
+
+#~ msgid "Check cells only against duplicates in row, column and block"
+#~ msgstr "Kontrolovat políčka pouze proti duplikátům v řádku, sloupci a bloku"
+
+#, fuzzy
+#~| msgid "Toggle timer and pause buttons"
+#~ msgctxt "general preferences"
+#~ msgid "Show timer and pause buttons"
+#~ msgstr "Přepnout tlačítka časovače a pauzy"
+
+#~ msgctxt "shortcuts window"
+#~ msgid "Pause"
+#~ msgstr "Pozastavit"
+
+#~ msgctxt "shortcuts window"
+#~ msgid "Warnings"
+#~ msgstr "Varování"
+
+#~ msgctxt "shortcuts window"
+#~ msgid "Highlighter"
+#~ msgstr "Zvýrazňovat"
+
+#~ msgctxt "shortcuts window"
+#~ msgid "Print"
+#~ msgstr "Tisk"
+
+#~ msgctxt "shortcuts window"
+#~ msgid "Quit"
+#~ msgstr "Ukončit"
+
+#~ msgid "_New Puzzle…"
+#~ msgstr "_Nové sudoku…"
+
+#~ msgid "_Create Custom Game…"
+#~ msgstr "_Vytvořit vlastní hru…"
+
+#~ msgid "_Clear Board…"
+#~ msgstr "Vy_mazat…"
+
+#~ msgid "Select Game Difficulty"
+#~ msgstr "Vybrat obtížnost hry"
+
+#~ msgid "Show the possible values for each cell"
+#~ msgstr "U každého políčka zobrazovat možné hodnoty"
+
+#~ msgid "_More Options"
+#~ msgstr "_Další volby"
+
+#~ msgid "Show _Timer"
+#~ msgstr "Zobrazit č_asovač"
+
+#~ msgid "Simple _Warnings Mode"
+#~ msgstr "Režim jednoduchých _varování"
+
+#~ msgid "Reset the board to its original state?"
+#~ msgstr "Vrátit herní desku do jejího původního stavu?"
+
+#~ msgid "No"
+#~ msgstr "Ne"
+
+#~ msgid "Yes"
+#~ msgstr "Ano"
+
+#~ msgid "Additionally warn when correct solution is violated or not earmarked"
+#~ msgstr "Navíc varovat, když je správné řešení porušeno nebo není poznačeno"
+
+#~ msgid ""
+#~ "Changes the background color of a square to red if the value does not "
+#~ "match puzzle solution, or if no earmark matches the puzzle solution"
+#~ msgstr ""
+#~ "Změní barvu pozadí políčka na červenou v situaci, kdy vyplněná hodnota "
+#~ "neodpovídá správnému řešení, nebo správná hodnota není poznačena v oušku."
+
+#~ msgid "Go back to the current game"
+#~ msgstr "Vrátit se do současné hry"
+
+#~ msgid "_Create your own puzzle"
+#~ msgstr "_Vytvořit svůj vlastní hlavolam"

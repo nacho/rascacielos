@@ -1,0 +1,23 @@
+# List of source files containing translatable strings.
+# Please keep this file in alphabetical order.
+data/org.gnome.Sudoku.desktop.in.in
+data/org.gnome.Sudoku.gschema.xml
+data/org.gnome.Sudoku.metainfo.xml.in.in
+
+src/blueprints/game-view.blp
+src/blueprints/menu-button.blp
+src/blueprints/preferences-dialog.blp
+src/blueprints/print-generator-dialog.blp
+src/blueprints/start-view.blp
+src/blueprints/shortcuts-dialog.blp
+src/blueprints/window.blp
+
+src/lib/enums.rs
+
+src/earmark_picker.rs
+src/game_view.rs
+src/main.rs
+src/printer.rs
+src/start_view.rs
+src/value_picker.rs
+src/window.rs

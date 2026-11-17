@@ -1,0 +1,657 @@
+# Hungarian translation for gnome-sudoku.
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2022, 2023, 2024, 2025, 2026 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gnome-sudoku package.
+#
+# Szabolcs Ban <shooby at gnome dot hu>, 1999, 2000, 2001.
+# Gergely Nagy <greg at gnome dot hu>, 2001.
+# Emese Kovacs <emese at gnome dot hu>, 2002.
+# Andras Timar <timar at gnome dot hu>, 2002, 2003.
+# Laszlo Dvornik <dvornik at gnome dot hu>, 2004.
+# Szabolcs Varga <shirokuma at shirokuma dot hu>, 2005.
+# Gabor Kelemen <kelemeng at gnome dot hu>, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014.
+# Balázs Úr <ur.balazs at fsf dot hu>, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2022, 2023, 2024, 2025, 2026.
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-sudoku master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/gnome-sudoku/issues/\n"
+"POT-Creation-Date: 2026-09-12 18:25+0000\n"
+"PO-Revision-Date: 2026-09-13 12:55+0200\n"
+"Last-Translator: Balázs Úr <ur.balazs at fsf dot hu>\n"
+"Language-Team: Hungarian <openscope at fsf dot hu>\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.12.3\n"
+
+#: data/org.gnome.Sudoku.desktop.in.in:2 src/blueprints/game-view.blp:17
+#: src/blueprints/start-view.blp:12 src/blueprints/window.blp:10
+msgid "Sudoku"
+msgstr "Sudoku"
+
+#: data/org.gnome.Sudoku.desktop.in.in:3
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:8
+msgid "Test yourself in the classic puzzle"
+msgstr "Próbálja ki magát a klasszikus feladványban"
+
+#. Translators: Search terms to find this application. Do NOT translate or localize the semicolons! The list MUST also end with a semicolon!
+#: data/org.gnome.Sudoku.desktop.in.in:5
+msgid "magic;square;"
+msgstr "bűvös;négyzet;"
+
+#: data/org.gnome.Sudoku.gschema.xml:18
+msgid "Initialize the earmarks with the possible values for each cell"
+msgstr "A füljelzők előkészítése az egyes cellák lehetséges értékeivel"
+
+#: data/org.gnome.Sudoku.gschema.xml:25
+msgid "Check for duplicates in row, column and block"
+msgstr "Kettőzések ellenőrzése a sorban, az oszlopban és a blokkban"
+
+#: data/org.gnome.Sudoku.gschema.xml:29
+msgid "Check earmarks against duplicates in row, column and block"
+msgstr ""
+"Füljelzők kettőzöttségének ellenőrzése a sorban, az oszlopban és a blokkban"
+
+#: data/org.gnome.Sudoku.gschema.xml:33
+msgid "Toggle timer and pause buttons"
+msgstr "Időzítő és szüneteltetés gombok be- és kikapcsolása"
+
+#: data/org.gnome.Sudoku.gschema.xml:37
+msgid "Additionally check against the solution for warnings"
+msgstr "További ellenőrzés a megoldással szemben a figyelmeztetésekért"
+
+#: data/org.gnome.Sudoku.gschema.xml:41
+msgid "Automatically clear related earmarks on new number insertion"
+msgstr "A kapcsolódó füljelzők automatikus törlése új szám behelyezésekor"
+
+#: data/org.gnome.Sudoku.gschema.xml:45
+msgid "Display number picker on second click"
+msgstr "Számválasztó megjelenítése a második kattintásra"
+
+#: data/org.gnome.Sudoku.gschema.xml:49
+msgid "Highlight the selected cell's row and column"
+msgstr "A kijelölt cella sorának és oszlopának kiemelése"
+
+#: data/org.gnome.Sudoku.gschema.xml:53
+msgid "Highlight the selected cell's block"
+msgstr "A kijelölt cella blokkjának kiemelése"
+
+#: data/org.gnome.Sudoku.gschema.xml:57
+msgid "Highlight the selected cell's matching numbers"
+msgstr "A kijelölt cellával egyező számok kiemelése"
+
+#: data/org.gnome.Sudoku.gschema.xml:64
+msgid "Zoom level"
+msgstr "Nagyítási szint"
+
+#: data/org.gnome.Sudoku.gschema.xml:68
+msgid "Width of the window in pixels"
+msgstr "Az ablak szélessége képpontokban"
+
+#: data/org.gnome.Sudoku.gschema.xml:72
+msgid "Height of the window in pixels"
+msgstr "Az ablak magassága képpontokban"
+
+#: data/org.gnome.Sudoku.gschema.xml:76
+msgid "true if the window is maximized"
+msgstr "igaz, ha az ablak teljes méretű"
+
+#: data/org.gnome.Sudoku.gschema.xml:80
+msgid "true if the window is fullscreen"
+msgstr "igaz, ha az ablak teljes képernyős"
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:7
+msgid "GNOME Sudoku"
+msgstr "GNOME Sudoku"
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:10
+msgid ""
+"GNOME Sudoku is a must-install for puzzle lovers. Based on the popular "
+"Japanese game, it comes with a simple interface that makes playing Sudoku "
+"fun for players of all skill level."
+msgstr ""
+"A GNOME Sudoku kötelezően telepítendő a feladványok szerelmeseinek. A "
+"népszerű japán játékon alapul, és egyszerű kezelőfelülettel rendelkezik, "
+"amely a Sudoku játékot szórakoztatóvá teszi minden tudásszintű játékos "
+"számára."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:15
+msgid "Features:"
+msgstr "Funkciók:"
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:17
+msgid "Automatically save and restore your session."
+msgstr "A munkamenet automatikus mentése és helyreállítása."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:18
+msgid "Generate an infinite amount of new puzzles with qqwing."
+msgstr "Végtelen mennyiségű új feladvány előállítása a qqwing használatával."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:19
+msgid "Easily share puzzles with friends, or save them for later."
+msgstr ""
+"Könnyedén megoszthatja a feladványokat az ismerőseivel, vagy elmentheti "
+"azokat későbbre."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:20
+msgid "Adjust a scalable grid to your preferences."
+msgstr "Méretezhető rács beállítása a tetszése szerint."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:21
+msgid "Use the mouse, keyboard or touch to complete the puzzles."
+msgstr ""
+"Az egér, a billentyűzet vagy érintés használata a feladványok befejezéséhez."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:22
+msgid "Set up advanced strategies like X-Wings with earmarks."
+msgstr "Speciális stratégiák beállítása, mint például X-szárnyak füljelzőkkel."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:23
+msgid "Take advantage of the highlighter to narrow down possibilities."
+msgstr "A kiemelő előnyeinek kihasználása a lehetőségek leszűkítéséhez."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:24
+msgid "Get help with the built-in warnings."
+msgstr "Segítség kérése a beépített figyelmeztetésekkel."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:25
+msgid "Keep track of your progression with highscores and a timer."
+msgstr "A fejlődés nyomon követése legjobb pontszámokkal és időzítővel."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:26
+msgid "Print puzzles to play Sudoku on the go."
+msgstr "Feladványok nyomtatása, hogy útközben is játszhasson Sudokut."
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:32
+msgid "A GNOME sudoku game preview"
+msgstr "Egy GNOME sudoku játékelőnézet"
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:36
+msgid "A GNOME sudoku game in dark mode featuring earmarks and warnings"
+msgstr "GNOME sudoku játék sötét módban, füljelzőkkel és figyelmeztetésekkel"
+
+#: data/org.gnome.Sudoku.metainfo.xml.in.in:57
+msgid "The GNOME Project"
+msgstr "A GNOME projekt"
+
+#: src/blueprints/game-view.blp:6
+msgid "Paused"
+msgstr "Szüneteltetve"
+
+#: src/blueprints/game-view.blp:22
+msgid "Undo Action"
+msgstr "Művelet visszavonása"
+
+#: src/blueprints/game-view.blp:30
+msgid "Redo Action"
+msgstr "Művelet ismétlése"
+
+#: src/blueprints/game-view.blp:38
+msgid "Earmark Mode"
+msgstr "Füljelző mód"
+
+#: src/blueprints/game-view.blp:50
+msgid "Pause"
+msgstr "Szüneteltetés"
+
+#: src/blueprints/game-view.blp:57
+msgid "Play"
+msgstr "Játszás"
+
+#: src/blueprints/game-view.blp:80
+msgid "Clock"
+msgstr "Óra"
+
+#: src/blueprints/menu-button.blp:7 src/game_view.rs:467
+msgid "_New Game…"
+msgstr "Ú_j játék…"
+
+#: src/blueprints/menu-button.blp:12
+msgid "_Puzzle"
+msgstr "_Feladvány"
+
+#: src/blueprints/menu-button.blp:16
+msgid "_Reset"
+msgstr "_Visszaállítás"
+
+#: src/blueprints/menu-button.blp:23
+msgid "_Share"
+msgstr "Meg_osztás"
+
+#: src/blueprints/menu-button.blp:28
+msgid "_Save As…"
+msgstr "_Mentés másként…"
+
+#: src/blueprints/menu-button.blp:33
+msgid "_Export…"
+msgstr "_Exportálás…"
+
+#: src/blueprints/menu-button.blp:40
+msgid "Print _Generator"
+msgstr "_Nyomtatási előállító"
+
+#: src/blueprints/menu-button.blp:49
+msgid "Zoom"
+msgstr "Nagyítás"
+
+#: src/blueprints/menu-button.blp:68
+msgid "_Preferences"
+msgstr "_Beállítások"
+
+#: src/blueprints/menu-button.blp:73
+msgid "_Keyboard Shortcuts"
+msgstr "_Gyorsbillentyűk"
+
+#: src/blueprints/menu-button.blp:78
+msgid "_Help"
+msgstr "_Súgó"
+
+#: src/blueprints/menu-button.blp:83
+msgid "_About Sudoku"
+msgstr "A Sudoku _névjegye"
+
+#: src/blueprints/menu-button.blp:93
+msgid "Main Menu"
+msgstr "Főmenü"
+
+#: src/blueprints/menu-button.blp:102
+msgid "Zoom Out"
+msgstr "Kicsinyítés"
+
+#: src/blueprints/menu-button.blp:114
+msgid "Zoom In"
+msgstr "Nagyítás"
+
+#: src/blueprints/menu-button.blp:129
+msgid "Fullscreen"
+msgstr "Teljes képernyő"
+
+#: src/blueprints/menu-button.blp:140
+msgid "Leave Fullscreen"
+msgstr "Teljes képernyő elhagyása"
+
+#: src/blueprints/preferences-dialog.blp:7
+msgctxt "preferences dialog"
+msgid "General"
+msgstr "Általános"
+
+#: src/blueprints/preferences-dialog.blp:10
+msgctxt "General Preferences"
+msgid "_Timer and Highscores"
+msgstr "_Időzítő és legjobb pontszámok"
+
+#: src/blueprints/preferences-dialog.blp:15
+msgctxt "General Preferences"
+msgid "Automatically _Clean Earmarks"
+msgstr "Füljelzők automatikus _törlése"
+
+#: src/blueprints/preferences-dialog.blp:20
+msgctxt "General Preferences"
+msgid "Number Picker on _Second Click"
+msgstr "Számválasztó a _második kattintásra"
+
+#: src/blueprints/preferences-dialog.blp:25
+msgctxt "General Preferences"
+msgid "Show Earmark _Possibilities"
+msgstr "Füljelző _lehetőségeinek megjelenítése"
+
+#: src/blueprints/preferences-dialog.blp:31
+msgctxt "Preferences Dialog"
+msgid "Warnings"
+msgstr "Figyelmeztetések"
+
+#: src/blueprints/preferences-dialog.blp:33
+msgctxt "Warning Preferences"
+msgid "_Duplicate Warnings"
+msgstr "_Kettőzési figyelmeztetések"
+
+#: src/blueprints/preferences-dialog.blp:38
+msgctxt "Warning Preferences"
+msgid "S_olution Warnings"
+msgstr "_Megoldási figyelmeztetések"
+
+#: src/blueprints/preferences-dialog.blp:43
+msgctxt "Warning Preferences"
+msgid "_Earmark Warnings"
+msgstr "_Füljelző figyelmeztetések"
+
+#: src/blueprints/preferences-dialog.blp:49
+msgctxt "Preferences Dialog"
+msgid "Highlighter"
+msgstr "Kiemelő"
+
+#: src/blueprints/preferences-dialog.blp:52
+msgctxt "Highlighter Preferences"
+msgid "Highlight _Row and Column"
+msgstr "_Sor és oszlop kiemelése"
+
+#: src/blueprints/preferences-dialog.blp:57
+msgctxt "Highlighter Preferences"
+msgid "Highlight _Block"
+msgstr "_Blokk kiemelése"
+
+#: src/blueprints/preferences-dialog.blp:62
+msgctxt "Highlighter Preferences"
+msgid "Highlight Matching _Numbers"
+msgstr "Egyező _számok kiemelése"
+
+#: src/blueprints/print-generator-dialog.blp:5
+msgid "Print Multiple Puzzles"
+msgstr "Több feladvány nyomtatása"
+
+#: src/blueprints/print-generator-dialog.blp:23
+msgid "_Number of Puzzles"
+msgstr "Feladványok _száma"
+
+#: src/blueprints/print-generator-dialog.blp:37
+msgid "_Number of Puzzles per Page"
+msgstr "Feladványok _száma oldalanként"
+
+#: src/blueprints/print-generator-dialog.blp:50
+msgid "_Difficulty"
+msgstr "_Nehézség"
+
+#: src/blueprints/print-generator-dialog.blp:55
+msgid "Easy"
+msgstr "Könnyű"
+
+#: src/blueprints/print-generator-dialog.blp:56
+msgid "Medium"
+msgstr "Közepes"
+
+#: src/blueprints/print-generator-dialog.blp:57
+msgid "Hard"
+msgstr "Nehéz"
+
+#: src/blueprints/print-generator-dialog.blp:58
+msgid "Very Hard"
+msgstr "Nagyon nehéz"
+
+#: src/blueprints/print-generator-dialog.blp:64
+msgid "Print _Current Puzzle"
+msgstr "_Jelenlegi feladvány nyomtatása"
+
+#: src/blueprints/print-generator-dialog.blp:72
+msgid "_Print…"
+msgstr "_Nyomtatás…"
+
+#: src/blueprints/start-view.blp:13
+msgid "Select Difficulty"
+msgstr "Nehézség kiválasztása"
+
+#: src/blueprints/start-view.blp:21
+msgid "Back"
+msgstr "Vissza"
+
+#: src/blueprints/start-view.blp:32
+msgid "Select Puzzle Difficulty"
+msgstr "Feladvány nehézségének kiválasztása"
+
+#: src/blueprints/start-view.blp:50
+msgctxt "Difficulty"
+msgid "_Custom"
+msgstr "_Egyéni"
+
+#: src/blueprints/start-view.blp:65
+msgctxt "Difficulty"
+msgid "_Easy"
+msgstr "_Könnyű"
+
+#: src/blueprints/start-view.blp:79
+msgctxt "Difficulty"
+msgid "_Medium"
+msgstr "Kö_zepes"
+
+#: src/blueprints/start-view.blp:93
+msgctxt "Difficulty"
+msgid "_Hard"
+msgstr "_Nehéz"
+
+#: src/blueprints/start-view.blp:107
+msgctxt "Difficulty"
+msgid "_Very Hard"
+msgstr "N_agyon nehéz"
+
+#: src/blueprints/start-view.blp:120 src/start_view.rs:135
+msgid "_Start Game"
+msgstr "Játék _indítása"
+
+#: src/blueprints/start-view.blp:137
+msgid "_Open..."
+msgstr "_Megnyitás…"
+
+#: src/blueprints/start-view.blp:148
+msgid "_Start Shared Game"
+msgstr "Megosztott játék _indítása"
+
+#: src/blueprints/start-view.blp:164
+msgid "_Open…"
+msgstr "_Megnyitás…"
+
+#: src/blueprints/shortcuts-dialog.blp:7
+msgctxt "Shortcuts Window"
+msgid "Game"
+msgstr "Játék"
+
+#: src/blueprints/shortcuts-dialog.blp:11
+#: src/blueprints/shortcuts-dialog.blp:16
+msgctxt "Shortcuts Window"
+msgid "Move"
+msgstr "Lépés"
+
+#: src/blueprints/shortcuts-dialog.blp:20
+msgctxt "Shortcuts Window"
+msgid "Earmarks"
+msgstr "Füljegyzők"
+
+#: src/blueprints/shortcuts-dialog.blp:25
+msgctxt "Shortcuts Window"
+msgid "Clear Cell"
+msgstr "Cella törlése"
+
+#: src/blueprints/shortcuts-dialog.blp:30
+msgctxt "Shortcuts Window"
+msgid "Number Picker"
+msgstr "Számválasztó"
+
+#: src/blueprints/shortcuts-dialog.blp:35
+msgctxt "Shortcuts Window"
+msgid "Earmark Picker"
+msgstr "Füljelzőválasztó"
+
+#: src/blueprints/shortcuts-dialog.blp:42
+msgctxt "Shortcuts Window"
+msgid "Earmark Mode"
+msgstr "Füljelző mód"
+
+#: src/blueprints/shortcuts-dialog.blp:47
+msgctxt "Shortcuts Window"
+msgid "Pause"
+msgstr "Szüneteltetés"
+
+#: src/blueprints/shortcuts-dialog.blp:52
+msgctxt "Shortcuts Window"
+msgid "Undo"
+msgstr "Visszavonás"
+
+#: src/blueprints/shortcuts-dialog.blp:57
+msgctxt "Shortcuts Window"
+msgid "Redo"
+msgstr "Újra"
+
+#: src/blueprints/shortcuts-dialog.blp:64
+msgctxt "Shortcuts Window"
+msgid "New Game…"
+msgstr "Új játék…"
+
+#: src/blueprints/shortcuts-dialog.blp:69
+msgctxt "Shortcuts Window"
+msgid "Zoom In"
+msgstr "Nagyítás"
+
+#: src/blueprints/shortcuts-dialog.blp:74
+msgctxt "Shortcuts Window"
+msgid "Zoom Out"
+msgstr "Kicsinyítés"
+
+#: src/blueprints/shortcuts-dialog.blp:79
+msgctxt "Shortcuts Window"
+msgid "Zoom Reset"
+msgstr "Nagyítás visszaállítása"
+
+#: src/blueprints/shortcuts-dialog.blp:84
+msgctxt "Shortcuts Window"
+msgid "Puzzle"
+msgstr "Feladvány"
+
+#: src/blueprints/shortcuts-dialog.blp:88
+msgctxt "Shortcuts Window"
+msgid "Reset"
+msgstr "Visszaállítás"
+
+#: src/blueprints/shortcuts-dialog.blp:93
+msgctxt "Shortcuts Window"
+msgid "Share"
+msgstr "Megosztás"
+
+#: src/blueprints/shortcuts-dialog.blp:98
+msgctxt "Shortcuts Window"
+msgid "Save As…"
+msgstr "Mentés másként…"
+
+#: src/blueprints/shortcuts-dialog.blp:103
+msgctxt "Shortcuts Window"
+msgid "Export…"
+msgstr "Exportálás…"
+
+#: src/blueprints/shortcuts-dialog.blp:108
+msgctxt "Shortcuts Window"
+msgid "Print Generator"
+msgstr "Nyomtatási előállító"
+
+#: src/blueprints/shortcuts-dialog.blp:113
+msgctxt "Shortcuts Window"
+msgid "Window"
+msgstr "Ablak"
+
+#: src/blueprints/shortcuts-dialog.blp:117
+msgctxt "Shortcuts Window"
+msgid "Go Back"
+msgstr "Vissza"
+
+#: src/blueprints/shortcuts-dialog.blp:122
+msgctxt "Shortcuts Window"
+msgid "Preferences"
+msgstr "Beállítások"
+
+#: src/blueprints/shortcuts-dialog.blp:127
+msgctxt "Shortcuts Window"
+msgid "Keyboard Shortcuts"
+msgstr "Gyorsbillentyűk"
+
+#: src/blueprints/shortcuts-dialog.blp:132
+msgctxt "Shortcuts Window"
+msgid "Quit"
+msgstr "Kilépés"
+
+#: src/blueprints/shortcuts-dialog.blp:137
+msgctxt "Shortcuts Window"
+msgid "Help"
+msgstr "Súgó"
+
+#: src/blueprints/shortcuts-dialog.blp:142
+msgctxt "Shortcuts Window"
+msgid "Menu"
+msgstr "Menü"
+
+#: src/blueprints/shortcuts-dialog.blp:147
+msgctxt "Shortcuts Window"
+msgid "Fullscreen"
+msgstr "Teljes képernyő"
+
+#: src/lib/enums.rs:52
+#| msgid "_Difficulty"
+msgid "Easy Difficulty"
+msgstr "Egyszerű nehézség"
+
+#: src/lib/enums.rs:53
+#| msgid "_Difficulty"
+msgid "Medium Difficulty"
+msgstr "Közepes nehézség"
+
+#: src/lib/enums.rs:54
+#| msgid "_Difficulty"
+msgid "Hard Difficulty"
+msgstr "Magas nehézség"
+
+#: src/lib/enums.rs:55
+#| msgid "Select Difficulty"
+msgid "Very Hard Difficulty"
+msgstr "Nagyon magas nehézség"
+
+#: src/earmark_picker.rs:73
+msgid "Lock"
+msgstr "Zárolás"
+
+#: src/earmark_picker.rs:81 src/value_picker.rs:75
+#| msgctxt "Shortcuts Window"
+#| msgid "Clear Cell"
+msgid "Clear"
+msgstr "Törlés"
+
+#: src/game_view.rs:388
+msgid "Puzzle copied to clipboard"
+msgstr "A feladvány a vágólapra másolva"
+
+#: src/game_view.rs:424
+msgctxt ".skp is a file extension"
+msgid "Sudoku puzzle.skp"
+msgstr "Sudoku feladvány.skp"
+
+#: src/game_view.rs:455
+msgid "Puzzle Completed!"
+msgstr "A feladvány befejezve!"
+
+#: src/game_view.rs:457
+msgid "_Quit"
+msgstr "_Kilépés"
+
+#: src/game_view.rs:460
+msgid "_Change Difficulty"
+msgstr "Nehézség _megváltoztatása"
+
+#: src/game_view.rs:461 src/game_view.rs:466
+msgid "_Play Again"
+msgstr "_Játék újra"
+
+#. Help string for command line --version flag
+#: src/main.rs:167
+msgid "Show release version"
+msgstr "Kiadási verzió megjelenítése"
+
+#: src/printer.rs:52
+msgid "Error printing file:"
+msgstr "Hiba a fájl nyomtatásakor:"
+
+#: src/printer.rs:55
+msgid "_Close"
+msgstr "_Bezárás"
+
+#: src/start_view.rs:178
+msgid "Failed to import the puzzle, please enter a valid Sudoku puzzle"
+msgstr ""
+"Nem sikerült importálni a feladványt, adjon meg egy érvényes Sudoku-feladványt"
+
+#: src/start_view.rs:181
+msgid "_Cancel"
+msgstr "_Mégse"
+
+#: src/start_view.rs:182
+#| msgid "_Play Again"
+msgid "_Try Again"
+msgstr "P_róbálja újra"
+
+#: src/window.rs:299
+msgid "translator-credits"
+msgstr "Úr Balázs <ur dot balazs at fsf dot hu>"

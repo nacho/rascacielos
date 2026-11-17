@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="@base-id-slashed@/">
+    <file preprocess="xml-stripblanks" alias="metainfo.xml">@app-id@.metainfo.xml</file>
+    <file>style.css</file>
+  </gresource>
+  <gresource prefix="@base-id-slashed@/ui/">
+    <file preprocess="xml-stripblanks">game-view.ui</file>
+    <file preprocess="xml-stripblanks">menu-button.ui</file>
+    <file preprocess="xml-stripblanks">preferences-dialog.ui</file>
+    <file preprocess="xml-stripblanks">print-generator-dialog.ui</file>
+    <file preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
+    <file preprocess="xml-stripblanks">start-view.ui</file>
+    <file preprocess="xml-stripblanks">window.ui</file>
+  </gresource>
+  <gresource prefix="@base-id-slashed@/icons/scalable/actions/">
+    <file preprocess="xml-stripblanks" alias="sudoku-pencil-symbolic.svg">icons/pencil-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="sudoku-play-symbolic.svg">icons/play-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="sudoku-pause-symbolic.svg">icons/pause-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="sudoku-lock-symbolic.svg">icons/lock-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="sudoku-clock-symbolic.svg">icons/clock-symbolic.svg</file>
+  </gresource>
+</gresources>

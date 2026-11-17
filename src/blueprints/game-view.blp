@@ -1,0 +1,119 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $SudokuGameView : Adw.BreakpointBin {
+  Label paused_label {
+    label: _("Paused");
+  }
+
+  child: Adw.ToolbarView {
+    top-bar-style: raised;
+    bottom-bar-style: raised;
+
+    [top]
+    Adw.HeaderBar top_headerbar {
+      centering-policy: strict;
+      title-widget: Adw.WindowTitle windowtitle {
+        title: _("Sudoku");
+      };
+
+      [start]
+      Button undo_button {
+        tooltip-text: _("Undo Action");
+        focus-on-click: false;
+        action-name: "game-view.undo";
+        icon-name: "edit-undo-symbolic";
+      }
+
+      [start]
+      Button redo_button {
+        tooltip-text: _("Redo Action");
+        focus-on-click: false;
+        action-name: "game-view.redo";
+        icon-name: "edit-redo-symbolic";
+      }
+
+      [start]
+      ToggleButton earmark_mode_button {
+        tooltip-text: _("Earmark Mode");
+        focus-on-click: false;
+        action-name: "game-view.earmark-mode";
+        icon-name: "sudoku-pencil-symbolic";
+      }
+
+      [start]
+      Stack play_pause_stack {
+        transition-type: crossfade;
+        visible: false;
+
+        Button pause_button {
+          tooltip-text: _("Pause");
+          focus-on-click: false;
+          action-name: "game-view.toggle-pause";
+          icon-name: "sudoku-pause-symbolic";
+        }
+
+        Button play_button {
+          tooltip-text: _("Play");
+          focus-on-click: false;
+          action-name: "game-view.toggle-pause";
+          icon-name: "sudoku-play-symbolic";
+        }
+      }
+
+      [end]
+      $SudokuMenuButton menu_button{}
+
+      [end]
+      Box clock_box {
+        can-focus: false;
+        spacing: 6;
+        //the margin is for vertical alignement with the bottom bar buttons
+        margin-start: 9;
+
+        Stack clock_stack {
+          Image clock_image {
+            can-focus: false;
+            icon-name: "sudoku-clock-symbolic";
+            icon-size: normal;
+            accessibility {
+              label : _("Clock");
+            }
+          }
+
+          Label clock_medal {
+            label: "🥇";
+            can-focus: false;
+          }
+        }
+
+        Label clock_label {
+          can-focus: false;
+          styles [
+            "numeric",
+          ]
+        }
+      }
+    }
+
+    [bottom]
+    Adw.HeaderBar bottom_headerbar {
+      visible: false;
+      show-title: false;
+      decoration-layout: ":";
+    }
+
+    content: Adw.ToastOverlay toast_overlay {
+      Adw.Bin grid_bin {
+        Overlay grid_overlay {}
+      }
+    };
+  };
+
+  Adw.Breakpoint ui_breakpoint {
+    condition ("max-aspect-ratio: 3/4")
+    setters {
+      bottom_headerbar.visible: true;
+    }
+  }
+}
