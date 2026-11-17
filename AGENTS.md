@@ -23,7 +23,8 @@ src/
   window.rs                # Main window, app actions, about dialog
   start_view.rs            # Size toggle group and difficulty selection
   game_view.rs             # Game page: board, header bar, timer, dialogs
-  clue_frame.rs            # SudokuClueFrame: the clue labels around the grid
+  clue.rs                  # SudokuClue: a clue drawn as a box with a tip into the grid
+  clue_frame.rs            # SudokuClueFrame: the clues around the grid
   grid.rs, cell.rs         # Cell widgets (created for 7×7, extra ones hidden)
   grid_layout.rs           # Keeps the board square
   value_picker.rs, earmark_picker.rs, picker_popover.rs

@@ -18,16 +18,17 @@
  * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! The clues around the grid: one label per row and column on each side,
-//! lined up with the cells.
+//! The clues around the grid: one per row and column on each side, lined
+//! up with the cells.
 
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 
 use gtk::glib::{self, closure_local};
-use gtk::{Allocation, graphene::Point, pango::AttrSize};
+use gtk::{Allocation, graphene::Point};
 
 use crate::cell::SudokuCell;
+use crate::clue::SudokuClue;
 use crate::connect_cb_pref;
 use crate::grid::SudokuGrid;
 use crate::lib::backend::SudokuBackend;
@@ -37,7 +38,7 @@ use crate::lib::puzzle::{ClueConflict, MAX_SIZE, Side};
 use std::cell::OnceCell;
 
 /// The width of the clue band, in cells.
-const CLUE_BAND: f64 = 0.6;
+pub const CLUE_BAND: f64 = 1.0;
 
 mod imp {
     use super::*;
@@ -56,21 +57,13 @@ mod imp {
     pub struct SudokuClueFrame {
         pub grid: OnceCell<SudokuGrid>,
         /// Indexed by `Side::index()`, then by row or column.
-        pub labels: [[gtk::Label; MAX_SIZE]; 4],
+        pub labels: [[SudokuClue; MAX_SIZE]; 4],
         pub backend: OnceCell<SudokuBackend>,
     }
 
     impl Default for SudokuClueFrame {
         fn default() -> Self {
-            let labels = std::array::from_fn(|_| {
-                std::array::from_fn(|_| {
-                    let label: gtk::Label = glib::Object::builder()
-                        .property("css-name", "sudoku-clue")
-                        .build();
-                    label.add_css_class("numeric");
-                    label
-                })
-            });
+            let labels = Side::ALL.map(|side| std::array::from_fn(|_| SudokuClue::new(side)));
             Self {
                 grid: Default::default(),
                 labels,
@@ -84,7 +77,7 @@ mod imp {
             self.backend.get().unwrap()
         }
 
-        pub fn label(&self, side: Side, index: usize) -> &gtk::Label {
+        pub fn label(&self, side: Side, index: usize) -> &SudokuClue {
             &self.labels[side.index()][index]
         }
 
@@ -100,7 +93,7 @@ mod imp {
                         .then(|| backend.game_clue(side, index))
                         .flatten();
                     label.set_child_visible(index < n);
-                    label.set_label(&clue.map_or(String::new(), |c| c.to_string()));
+                    label.set_clue(clue);
                     if clue.is_none() {
                         label.remove_css_class("error");
                         continue;
@@ -160,12 +153,6 @@ mod imp {
             self.update_clues();
         }
 
-        fn set_font_size(label: &gtk::Label, font_size: i32) {
-            let attr_list = label.attributes().unwrap_or_default();
-            attr_list.change(AttrSize::new_size_absolute(font_size * gtk::pango::SCALE));
-            label.set_attributes(Some(&attr_list));
-        }
-
         /// The bounds of `cell` in frame coordinates.
         fn cell_bounds(&self, cell: &SudokuCell) -> Allocation {
             let origin = cell
@@ -217,7 +204,7 @@ mod imp {
                 baseline,
             );
 
-            let font_size = (band as f64 * 0.7) as i32;
+            let font_size = (band as f64 * 0.45) as i32;
             for i in 0..n {
                 let column = self.cell_bounds(&grid.imp().cells[0][i]);
                 let row = self.cell_bounds(&grid.imp().cells[i][0]);
@@ -238,7 +225,7 @@ mod imp {
                 ];
                 for (side, allocation) in allocations {
                     let label = self.label(side, i);
-                    Self::set_font_size(label, font_size);
+                    label.set_font_size(font_size);
                     label.size_allocate(&allocation, baseline);
                 }
             }

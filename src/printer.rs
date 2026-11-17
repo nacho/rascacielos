@@ -31,16 +31,16 @@ use gtk::{PrintContext, PrintOperationResult, TextDirection, gdk, graphene};
 
 use adw::prelude::{AdwDialogExt, AlertDialogExt};
 
+use crate::clue::{clue_box, clue_path};
+use crate::clue_frame::CLUE_BAND;
 use crate::lib::board::SudokuBoard;
 use crate::lib::puzzle::Side;
 
 use std::cell::OnceCell;
 
-/// The width of the clue band, in cells.
-const CLUE_BAND: f32 = 0.6;
-
 const BLACK: gdk::RGBA = gdk::RGBA::BLACK;
 const GREY: gdk::RGBA = gdk::RGBA::new(0.3, 0.3, 0.3, 1.0);
+const CLUE_FILL: gdk::RGBA = gdk::RGBA::new(0.8, 0.8, 0.8, 1.0);
 
 mod imp {
     use super::*;
@@ -198,8 +198,8 @@ mod imp {
             size: f32,
         ) {
             let n = board.size();
-            let cell = size / (n as f32 + 2.0 * CLUE_BAND);
-            let band = cell * CLUE_BAND;
+            let cell = size / (n as f32 + 2.0 * CLUE_BAND as f32);
+            let band = cell * CLUE_BAND as f32;
             let grid = cell * n as f32;
             let thin = size / 500.0;
             let thick = thin * 5.0;
@@ -253,42 +253,40 @@ mod imp {
                 }
             }
 
-            let clue_font = format!("Sans Bold {}px", (band * 0.7) as i32);
-            for i in 0..n {
-                let real_i = if invert { n - i - 1 } else { i };
-                let clues = [
-                    (board.clue(Side::Top, real_i), center(i), band / 2.0),
-                    (
-                        board.clue(Side::Bottom, real_i),
-                        center(i),
-                        size - band / 2.0,
-                    ),
-                    (board.clue(Side::Left, i), band / 2.0, center(i)),
-                    (board.clue(Side::Right, i), size - band / 2.0, center(i)),
-                ];
-                let clues = if invert {
-                    // Left and right swap places when the grid is mirrored.
-                    [
-                        clues[0],
-                        clues[1],
-                        (clues[3].0, clues[2].1, clues[2].2),
-                        (clues[2].0, clues[3].1, clues[3].2),
-                    ]
-                } else {
-                    clues
-                };
-                for (clue, x, y) in clues {
-                    if let Some(clue) = clue {
-                        Self::centered_text(
-                            snapshot,
-                            context,
-                            &clue.to_string(),
-                            &clue_font,
-                            &BLACK,
-                            x,
-                            y,
-                        );
-                    }
+            let clue_font = format!("Sans Bold {}px", (band * 0.45) as i32);
+            let start = |i: usize| band + i as f32 * cell;
+            for side in Side::ALL {
+                for i in 0..n {
+                    // The grid is mirrored for right-to-left locales: columns
+                    // swap places and the left and right clues swap sides.
+                    let (clue_side, index) = match side {
+                        Side::Top | Side::Bottom if invert => (side, n - i - 1),
+                        Side::Left if invert => (Side::Right, i),
+                        Side::Right if invert => (Side::Left, i),
+                        _ => (side, i),
+                    };
+                    let Some(clue) = board.clue(clue_side, index) else {
+                        continue;
+                    };
+                    let rect = match side {
+                        Side::Top => graphene::Rect::new(start(i), 0.0, cell, band),
+                        Side::Bottom => graphene::Rect::new(start(i), size - band, cell, band),
+                        Side::Left => graphene::Rect::new(0.0, start(i), band, cell),
+                        Side::Right => graphene::Rect::new(size - band, start(i), band, cell),
+                    };
+                    let path = clue_path(side, &rect);
+                    snapshot.append_fill(&path, gsk::FillRule::Winding, &CLUE_FILL);
+                    snapshot.append_stroke(&path, &Stroke::new(thin * 2.0), &BLACK);
+                    let area = clue_box(side, &rect);
+                    Self::centered_text(
+                        snapshot,
+                        context,
+                        &clue.to_string(),
+                        &clue_font,
+                        &BLACK,
+                        area.x() + area.width() / 2.0,
+                        area.y() + area.height() / 2.0,
+                    );
                 }
             }
         }
