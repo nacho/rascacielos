@@ -399,7 +399,7 @@ impl RascacielosBackend {
     pub fn game_set_value(&self, pos: Coord, new_val: usize) {
         let binding = self.game();
         let game = binding.as_ref().unwrap();
-        // The keyboard shortcuts go up to 9.
+        // The keyboard shortcuts go up to the largest size.
         if game.board().is_fixed(pos) || new_val >= game.board().size() {
             return;
         }

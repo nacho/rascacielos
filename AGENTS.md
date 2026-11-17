@@ -80,7 +80,7 @@ release workflow.
 - **Meson target dir**: Meson runs cargo with `--target-dir <builddir>/target`
   and copies the binary out, so Flatpak builds never touch `./target`.
 - **Fixed widget pool**: the grid, clue frame and pickers create widgets for
-  the largest size (or 9 for the pickers) and hide the ones beyond the
+  the largest size and hide the ones beyond the
   current puzzle, instead of rebuilding them on every game.
 - **Generation runs in threads**: `RascacielosGame::generate` blocks on all
   processors; callers on the main thread wrap it in `gio::spawn_blocking`.

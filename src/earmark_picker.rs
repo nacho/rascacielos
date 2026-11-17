@@ -32,6 +32,7 @@ use crate::lib::backend::RascacielosBackend;
 use crate::lib::enums::CompatValue;
 use crate::lib::enums::Coord;
 use crate::lib::game::RascacielosGame;
+use crate::lib::puzzle::MAX_SIZE;
 use crate::picker_popover::{PickerBase, PickerBaseImp};
 use crate::{build_picker, game};
 
@@ -48,7 +49,7 @@ mod imp {
 
     pub struct RascacielosEarmarkPicker {
         pub backend: OnceCell<RascacielosBackend>,
-        pub earmark_buttons: [gtk::ToggleButton; 9],
+        pub earmark_buttons: [gtk::ToggleButton; MAX_SIZE],
         pub lock_button: gtk::ToggleButton,
         pub clear_button: gtk::Button,
         pub cell: Cell<Option<Coord>>,
@@ -58,7 +59,7 @@ mod imp {
 
     impl Default for RascacielosEarmarkPicker {
         fn default() -> Self {
-            let buttons: [_; 9] = {
+            let buttons: [_; MAX_SIZE] = {
                 from_fn(|number| {
                     let button = gtk::ToggleButton::with_label(&(number + 1).to_string());
                     let label = button.child().unwrap();
@@ -120,7 +121,9 @@ mod imp {
             for row_block in (0..3).rev() {
                 for col_block in 0..3 {
                     let index = col_block + (2 - row_block) * 3;
-                    let button = &self.earmark_buttons[index];
+                    let Some(button) = self.earmark_buttons.get(index) else {
+                        continue;
+                    };
 
                     button.connect_clicked(glib::clone!(
                         #[weak(rename_to = earmark_picker)]

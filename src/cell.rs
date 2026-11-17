@@ -34,6 +34,7 @@ use gtk::{
 use crate::lib::backend::RascacielosBackend;
 use crate::lib::enums::Coord;
 use crate::lib::game::RascacielosGame;
+use crate::lib::puzzle::MAX_SIZE;
 use crate::lib::utils::{get_cloned, new_shortcut, new_shortcut_with_args};
 use crate::{
     connect_cb_action, connect_cb_action_with_arg, picker_popover::RascacielosPickerPopover,
@@ -65,7 +66,7 @@ mod imp {
             );
 
             new_shortcut(klass, "cell.clear", "Delete|BackSpace|KP_0|0");
-            for i in 1..10 {
+            for i in 1..=MAX_SIZE as i32 {
                 let accel = i.to_string();
                 let accel = accel.clone() + "|KP_" + &accel;
                 new_shortcut_with_args(klass, "cell.insert-value", &accel, i - 1);
@@ -85,8 +86,8 @@ mod imp {
         pub show_picker_action: SimpleAction,
         pub clear_action: SimpleAction,
         pub value_label: gtk::Label,
-        pub earmark_labels: [gtk::Label; 9],
-        pub earmark_hide_animations: [adw::TimedAnimation; 9],
+        pub earmark_labels: [gtk::Label; MAX_SIZE],
+        pub earmark_hide_animations: [adw::TimedAnimation; MAX_SIZE],
         pub insert_value_closure_id: Cell<Option<SignalHandlerId>>,
         pub insert_earmark_closure_id: Cell<Option<SignalHandlerId>>,
         pub backend: OnceCell<RascacielosBackend>,
@@ -105,7 +106,7 @@ mod imp {
 
             value_label.add_css_class("numeric");
 
-            let earmark_labels: [_; 9] = std::array::from_fn(|num| {
+            let earmark_labels: [_; MAX_SIZE] = std::array::from_fn(|num| {
                 let earmark_label: gtk::Label = glib::Object::builder()
                     .property("label", (num + 1).to_string())
                     .property("css-name", "rascacielos-earmark")
@@ -115,7 +116,7 @@ mod imp {
                 earmark_label
             });
 
-            let earmark_hide_animations: [_; 9] = std::array::from_fn(|num| {
+            let earmark_hide_animations: [_; MAX_SIZE] = std::array::from_fn(|num| {
                 let anim_target =
                     adw::PropertyAnimationTarget::new(&earmark_labels[num], "opacity");
                 let hide_animation =
@@ -398,8 +399,9 @@ mod imp {
             let max_earmark_size = width / 3; //3 earmarks per row and per column
             for row in (0..3).rev() {
                 for col in 0..3 {
-                    let earmark = &self.earmark_labels[num];
-                    if earmark.is_visible() {
+                    if let Some(earmark) = self.earmark_labels.get(num)
+                        && earmark.is_visible()
+                    {
                         let earmark_nat = earmark.preferred_size().1;
                         let earmark_width = i32::min(max_earmark_size, earmark_nat.width());
                         let earmark_height = i32::min(max_earmark_size, earmark_nat.height());
@@ -631,7 +633,7 @@ impl RascacielosCell {
         }
         self.imp().value_label.set_visible(new_val.is_some());
         if old_val.is_none() {
-            for num in 0..9 {
+            for num in 0..MAX_SIZE {
                 self.set_earmark_visibility(num, false);
             }
         }
