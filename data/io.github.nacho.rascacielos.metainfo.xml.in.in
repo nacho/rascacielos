@@ -13,6 +13,15 @@
       so that each row and column holds every height once, and the numbers
       around the edge match how many buildings can be seen from that side.
     </p>
+    <p>Features:</p>
+    <ul>
+      <li>Endless puzzles from 4×4 to 7×7 in four difficulties, each with a single solution.</li>
+      <li>Pencil marks, undo and redo, and warnings for repeated heights and broken clues.</li>
+      <li>Highscores and a timer for every size and difficulty.</li>
+      <li>Your game is saved and restored automatically.</li>
+      <li>Share puzzles with a short code, or export and open them as text.</li>
+      <li>Print puzzles to solve on paper.</li>
+    </ul>
     <p>
       Rascacielos is based on GNOME Sudoku by Thomas M. Hinkle, Robert Ancell,
       Parin Porecha, Jamie Murphy, Johan Gay and contributors.
@@ -40,9 +49,13 @@
     <display_length compare="ge">360</display_length>
   </requires>
   <releases>
-    <release version="0.1.0" date="2026-11-17" type="development">
+    <release version="0.1.0" date="2026-11-17" type="stable">
       <description>
-        <p>First development snapshot, forked from GNOME Sudoku.</p>
+        <p>First release.</p>
+        <ul>
+          <li>Skyscrapers puzzles from 4×4 to 7×7 in four difficulties.</li>
+          <li>Pencil marks, warnings, highscores, sharing and printing, inherited from GNOME Sudoku.</li>
+        </ul>
       </description>
     </release>
   </releases>
