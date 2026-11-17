@@ -784,7 +784,15 @@ mod tests {
         game.insert(pos(1, 1), 2);
         game.enable_all_earmark_possibilities();
         assert!(!game.board().is_earmark_enabled(pos(1, 2), 2));
-        assert!(game.board().is_earmark_enabled(pos(2, 2), 2));
         assert!(!game.board().has_earmarks(pos(1, 1)));
+        // The solution is always among the possibilities.
+        for row in 0..4 {
+            for col in 0..4 {
+                let cell = game.board().cell(pos(row, col));
+                if cell.value.get().is_none() {
+                    assert!(cell.earmarks[cell.solution].get());
+                }
+            }
+        }
     }
 }

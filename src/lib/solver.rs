@@ -342,6 +342,15 @@ pub fn solve(puzzle: &Puzzle, max_tier: Tier) -> Option<(Vec<u8>, Tier)> {
         .then_some((grid, solver.tier_used))
 }
 
+/// The heights each cell can hold from the clue rules and the given cells
+/// alone, as bitmasks with bit `h` set for height `h`. `None` when they
+/// contradict each other.
+pub fn initial_candidates(puzzle: &Puzzle) -> Option<Vec<u16>> {
+    let mut solver = Solver::new(puzzle).ok()?;
+    solver.naked_singles().ok()?;
+    Some(solver.candidates)
+}
+
 /// Finds up to `limit` solutions of `puzzle` with a backtracking search.
 pub fn find_solutions(puzzle: &Puzzle, limit: usize) -> Vec<Vec<u8>> {
     fn search(solver: Solver, limit: usize, found: &mut Vec<Vec<u8>>) {
@@ -448,6 +457,22 @@ mod tests {
         assert_eq!(c(2, 0), mask(&[1, 2, 3, 4]));
         // A clue of 2 cannot have the 4 next to it.
         assert_eq!(c(3, 3), mask(&[1, 2, 3]));
+    }
+
+    #[test]
+    fn initial_candidates_use_clues_and_givens() {
+        let mut puzzle = Puzzle::empty(4).unwrap();
+        puzzle.set_clue(Side::Left, 0, Some(1));
+        puzzle.set_given(1, 1, Some(2));
+        let candidates = initial_candidates(&puzzle).unwrap();
+        assert_eq!(candidates[0], mask(&[4]));
+        // The 4 next to the clue rules it out from the rest of row 0.
+        assert_eq!(candidates[1], mask(&[1, 3]));
+        assert_eq!(candidates[5], mask(&[2]));
+        // The given 2 is ruled out from its row and column.
+        assert_eq!(candidates[4], mask(&[1, 3]));
+        assert_eq!(candidates[9], mask(&[1, 3, 4]));
+        assert_eq!(candidates[15], full_mask(4));
     }
 
     #[test]

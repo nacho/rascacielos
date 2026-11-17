@@ -107,7 +107,8 @@ mod imp {
                     }
                     let error = match backend.game_clue_conflict(side, index) {
                         Some(ClueConflict::Full) => backend.pref_duplicate_warnings(),
-                        Some(ClueConflict::Early) | None => false,
+                        Some(ClueConflict::Early) => backend.pref_clue_warnings(),
+                        None => false,
                     };
                     if error {
                         label.add_css_class("error");
@@ -153,6 +154,7 @@ mod imp {
                 ),
             );
             connect_cb_pref!(self, connect_pref_duplicate_warnings_notify, update_clues);
+            connect_cb_pref!(self, connect_pref_clue_warnings_notify, update_clues);
 
             self.add_game_hooks();
             self.update_clues();

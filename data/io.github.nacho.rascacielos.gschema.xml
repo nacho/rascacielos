@@ -14,11 +14,15 @@
     </key>
     <key name="duplicate-warnings" type="b">
       <default>true</default>
-      <summary>Check for duplicates in row, column and block</summary>
+      <summary>Check for duplicates in rows and columns and for clues that do not match full lines</summary>
     </key>
     <key name="earmark-warnings" type="b">
       <default>false</default>
-      <summary>Check earmarks against duplicates in row, column and block</summary>
+      <summary>Check earmarks against duplicates in row and column</summary>
+    </key>
+    <key name="clue-warnings" type="b">
+      <default>true</default>
+      <summary>Warn as soon as the buildings placed next to a clue contradict it</summary>
     </key>
     <key name="show-timer" type="b">
       <default>false</default>
@@ -39,10 +43,6 @@
     <key name="highlight-row-column" type="b">
       <default>false</default>
       <summary>Highlight the selected cell's row and column</summary>
-    </key>
-    <key name="highlight-block" type="b">
-      <default>false</default>
-      <summary>Highlight the selected cell's block</summary>
     </key>
     <key name="highlight-numbers" type="b">
       <default>false</default>

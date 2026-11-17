@@ -27,7 +27,10 @@ use std::{
 
 use crate::lib::enums::Coord;
 use crate::lib::enums::DifficultyCategory;
-use crate::lib::puzzle::{ClueConflict, Puzzle, PuzzleError, Side, clue_conflict, line_coords};
+use crate::lib::puzzle::{
+    ClueConflict, Puzzle, PuzzleError, Side, bit, clue_conflict, full_mask, line_coords,
+};
+use crate::lib::solver;
 
 //You should never be interacting with SudokuBoard directly
 //everything goes through SudokuGame and SudokuBackend
@@ -45,6 +48,9 @@ pub struct SudokuBoard {
     /// value then by row or column.
     in_row: Vec<Vec<Cell<usize>>>,
     in_col: Vec<Vec<Cell<usize>>>,
+    /// The heights each cell can hold from the clues and given cells, as
+    /// bitmasks with bit `h` set for height `h`.
+    candidates: Vec<u16>,
 
     pub difficulty_category: DifficultyCategory,
     pub loaded_time: f64,
@@ -80,6 +86,8 @@ impl SudokuBoard {
             })
             .collect();
         let counts = || (0..n).map(|_| vec![Cell::new(0); n]).collect();
+        let candidates =
+            solver::initial_candidates(&puzzle).unwrap_or_else(|| vec![full_mask(n); n * n]);
 
         let mut board = Self {
             puzzle,
@@ -90,6 +98,7 @@ impl SudokuBoard {
             broken_coords: Default::default(),
             in_row: counts(),
             in_col: counts(),
+            candidates,
             difficulty_category: Default::default(),
             loaded_time: Default::default(),
         };
@@ -244,9 +253,12 @@ impl SudokuBoard {
         self.cells[pos.row][pos.col].fixed
     }
 
+    /// The values the cell at `pos` can still hold: those allowed by the
+    /// clues and given cells that are not already in its row or column.
     pub fn cell_possibilies(&self, pos: Coord) -> Vec<bool> {
+        let candidates = self.candidates[pos.row * self.size() + pos.col];
         (0..self.size())
-            .map(|num| self.is_earmark_possible(pos, num))
+            .map(|num| self.is_earmark_possible(pos, num) && candidates & bit(num as u8 + 1) != 0)
             .collect()
     }
 
@@ -592,6 +604,21 @@ mod tests {
         board.insert(pos(0, 2), 1);
         assert_eq!(board.clue_conflict(Side::Left, 0), Some(ClueConflict::Full));
         assert_eq!(board.clue_conflict(Side::Right, 0), None);
+    }
+
+    #[test]
+    fn possibilities_follow_the_clues() {
+        let board = board();
+        // Row 0 has a clue of 4 on the left, so it must read 1 2 3 4.
+        assert_eq!(
+            board.cell_possibilies(pos(0, 1)),
+            [false, true, false, false]
+        );
+        // Column 3 has a clue of 1 at the top.
+        assert_eq!(
+            board.cell_possibilies(pos(0, 3)),
+            [false, false, false, true]
+        );
     }
 
     #[test]

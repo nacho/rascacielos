@@ -69,7 +69,7 @@ mod imp {
         #[template_child]
         pub highlight_numbers: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub highlight_block: TemplateChild<adw::SwitchRow>,
+        pub clue_warnings: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub highlight_row_column: TemplateChild<adw::SwitchRow>,
     }
@@ -137,7 +137,7 @@ mod imp {
                 .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL)
                 .build();
             self.backend()
-                .bind_property("pref-highlight-block", &*self.highlight_block, "active")
+                .bind_property("pref-clue-warnings", &*self.clue_warnings, "active")
                 .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL)
                 .build();
             self.backend()

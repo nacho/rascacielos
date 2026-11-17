@@ -71,7 +71,7 @@ mod imp {
         #[property(get, set)]
         pub pref_highlight_row_column: Cell<bool>,
         #[property(get, set)]
-        pub pref_highlight_block: Cell<bool>,
+        pub pref_clue_warnings: Cell<bool>,
         #[property(get, set)]
         pub pref_highlight_numbers: Cell<bool>,
         #[property(get, set)]
@@ -110,7 +110,7 @@ mod imp {
                 earmark_mode: Default::default(),
                 pref_show_all_possibilities: Default::default(),
                 pref_highlight_row_column: Default::default(),
-                pref_highlight_block: Default::default(),
+                pref_clue_warnings: Default::default(),
                 pref_highlight_numbers: Default::default(),
                 pref_duplicate_warnings: Default::default(),
                 pref_solution_warnings: Default::default(),
@@ -181,7 +181,7 @@ mod imp {
                 )
                 .build();
             self.settings
-                .bind("highlight-block", &*self.obj(), "pref_highlight_block")
+                .bind("clue-warnings", &*self.obj(), "pref_clue_warnings")
                 .build();
             self.settings
                 .bind("highlight-numbers", &*self.obj(), "pref_highlight_numbers")

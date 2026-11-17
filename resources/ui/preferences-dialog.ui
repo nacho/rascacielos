@@ -50,6 +50,13 @@
               </object>
             </child>
             <child>
+              <object class="AdwSwitchRow" id="clue_warnings">
+                <property name="title" translatable="yes" context="Warning Preferences">_Clue Warnings</property>
+                <property name="subtitle" translatable="yes" context="Warning Preferences">Warn as soon as the buildings next to a clue contradict it</property>
+                <property name="use-underline">true</property>
+              </object>
+            </child>
+            <child>
               <object class="AdwSwitchRow" id="earmark_warnings">
                 <property name="title" translatable="yes" context="Warning Preferences">_Earmark Warnings</property>
                 <property name="use-underline">true</property>
@@ -63,12 +70,6 @@
             <child>
               <object class="AdwSwitchRow" id="highlight_row_column">
                 <property name="title" translatable="yes" context="Highlighter Preferences">Highlight _Row and Column</property>
-                <property name="use-underline">true</property>
-              </object>
-            </child>
-            <child>
-              <object class="AdwSwitchRow" id="highlight_block">
-                <property name="title" translatable="yes" context="Highlighter Preferences">Highlight _Block</property>
                 <property name="use-underline">true</property>
               </object>
             </child>
