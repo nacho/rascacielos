@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use adw::prelude::*;
@@ -27,14 +28,14 @@ use gtk::gio;
 use gtk::glib;
 use gtk::glib::subclass::InitializingObject;
 
-use crate::lib::backend::SudokuBackend;
-use crate::lib::board::SudokuBoard;
+use crate::lib::backend::RascacielosBackend;
+use crate::lib::board::RascacielosBoard;
 use crate::lib::enums::DifficultyCategory;
-use crate::lib::game::SudokuGame;
+use crate::lib::game::RascacielosGame;
 use crate::lib::generator;
 use crate::lib::puzzle::{MIN_SIZE, Tier};
-use crate::menu_button::SudokuMenuButton;
-use crate::{game, printer::SudokuPrinter};
+use crate::menu_button::RascacielosMenuButton;
+use crate::{game, printer::RascacielosPrinter};
 
 use std::cell::OnceCell;
 
@@ -42,9 +43,9 @@ mod imp {
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuPrintGeneratorDialog {
-        const NAME: &'static str = "SudokuPrintGeneratorDialog";
-        type Type = super::SudokuPrintGeneratorDialog;
+    impl ObjectSubclass for RascacielosPrintGeneratorDialog {
+        const NAME: &'static str = "RascacielosPrintGeneratorDialog";
+        type Type = super::RascacielosPrintGeneratorDialog;
         type ParentType = adw::Dialog;
 
         fn class_init(klass: &mut Self::Class) {
@@ -53,15 +54,15 @@ mod imp {
         }
 
         fn instance_init(obj: &InitializingObject<Self>) {
-            SudokuMenuButton::ensure_type();
+            RascacielosMenuButton::ensure_type();
             obj.init_template();
         }
     }
 
     #[derive(Default, CompositeTemplate)]
     #[template(resource = "/io/github/nacho/rascacielos/ui/print-generator-dialog.ui")]
-    pub struct SudokuPrintGeneratorDialog {
-        pub backend: OnceCell<SudokuBackend>,
+    pub struct RascacielosPrintGeneratorDialog {
+        pub backend: OnceCell<RascacielosBackend>,
         #[template_child]
         pub puzzles_row: TemplateChild<adw::SpinRow>,
         #[template_child]
@@ -77,14 +78,14 @@ mod imp {
     }
 
     #[gtk::template_callbacks]
-    impl SudokuPrintGeneratorDialog {
+    impl RascacielosPrintGeneratorDialog {
         #[template_callback]
         fn print_button_pressed(&self, _: &gtk::Button) {
             let mut puzzles_to_generate = self.puzzles_row.adjustment().value() as u8;
             let puzzles_per_page = self.puzzles_per_page_row.adjustment().value() as i32;
             let size = self.selected_size();
             let difficulty_category = self.selected_difficulty();
-            let mut boards: Vec<SudokuBoard> = Default::default();
+            let mut boards: Vec<RascacielosBoard> = Default::default();
 
             if self.print_current_puzzle_row.is_active() {
                 boards.push(game!(self.backend.get().unwrap()).board().clone());
@@ -103,7 +104,7 @@ mod imp {
                 self,
                 async move {
                     let generated = gio::spawn_blocking(move || {
-                        SudokuGame::generate(
+                        RascacielosGame::generate(
                             size,
                             difficulty_category,
                             puzzles_to_generate as usize,
@@ -112,7 +113,7 @@ mod imp {
                     .await
                     .expect("The puzzle generator failed");
                     boards.extend(generated.into_iter().map(|(puzzle, solution)| {
-                        SudokuBoard::from_generated(puzzle, &solution, difficulty_category)
+                        RascacielosBoard::from_generated(puzzle, &solution, difficulty_category)
                     }));
                     dialog.print_button.set_sensitive(true);
                     dialog.send_to_printer(boards, puzzles_per_page);
@@ -137,7 +138,7 @@ mod imp {
             }
         }
 
-        pub fn init(&self, backend: &SudokuBackend) {
+        pub fn init(&self, backend: &RascacielosBackend) {
             self.backend
                 .set(backend.clone())
                 .expect("Print Generator Dialog is already initialized");
@@ -161,11 +162,11 @@ mod imp {
             self.check_difficulty();
         }
 
-        fn send_to_printer(&self, boards: Vec<SudokuBoard>, puzzles_per_page: i32) {
-            let printer = SudokuPrinter::new(boards, puzzles_per_page);
+        fn send_to_printer(&self, boards: Vec<RascacielosBoard>, puzzles_per_page: i32) {
+            let printer = RascacielosPrinter::new(boards, puzzles_per_page);
             let window: gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
 
-            if printer.imp().print_sudoku(&window) == PrintOperationResult::Apply {
+            if printer.imp().print_puzzles(&window) == PrintOperationResult::Apply {
                 for board in printer.imp().boards.get().unwrap() {
                     self.backend.get().unwrap().save_printed_board(board);
                 }
@@ -173,7 +174,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for SudokuPrintGeneratorDialog {
+    impl ObjectImpl for RascacielosPrintGeneratorDialog {
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -211,18 +212,18 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for SudokuPrintGeneratorDialog {}
-    impl AdwDialogImpl for SudokuPrintGeneratorDialog {}
+    impl WidgetImpl for RascacielosPrintGeneratorDialog {}
+    impl AdwDialogImpl for RascacielosPrintGeneratorDialog {}
 }
 
 glib::wrapper! {
-    pub struct SudokuPrintGeneratorDialog(ObjectSubclass<imp::SudokuPrintGeneratorDialog>)
+    pub struct RascacielosPrintGeneratorDialog(ObjectSubclass<imp::RascacielosPrintGeneratorDialog>)
         @extends gtk::Widget, adw::Dialog,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
-impl SudokuPrintGeneratorDialog {
-    pub fn new(backend: &SudokuBackend) -> Self {
+impl RascacielosPrintGeneratorDialog {
+    pub fn new(backend: &RascacielosBackend) -> Self {
         let dialog: Self = glib::Object::builder().build();
 
         dialog.imp().init(backend);

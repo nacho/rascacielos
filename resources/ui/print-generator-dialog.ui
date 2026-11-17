@@ -2,7 +2,7 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.0"/>
-  <template class="SudokuPrintGeneratorDialog" parent="AdwDialog">
+  <template class="RascacielosPrintGeneratorDialog" parent="AdwDialog">
     <property name="title" translatable="yes">Print Multiple Puzzles</property>
     <property name="content-width">460</property>
     <property name="focus-widget">print_button</property>

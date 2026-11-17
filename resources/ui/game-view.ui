@@ -2,7 +2,7 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.0"/>
-  <template class="SudokuGameView" parent="AdwBreakpointBin">
+  <template class="RascacielosGameView" parent="AdwBreakpointBin">
     <child>
       <object class="GtkLabel" id="paused_label">
         <property name="label" translatable="yes">Paused</property>
@@ -67,7 +67,7 @@
               </object>
             </child>
             <child type="end">
-              <object class="SudokuMenuButton" id="menu_button"/>
+              <object class="RascacielosMenuButton" id="menu_button"/>
             </child>
             <child type="end">
               <object class="GtkBox" id="clock_box">

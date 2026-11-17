@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use adw::subclass::prelude::*;
@@ -26,7 +27,7 @@ use gtk::glib::Object;
 use gtk::glib::subclass::InitializingObject;
 use gtk::glib::{BindingFlags, object::ObjectExt};
 
-use crate::lib::backend::SudokuBackend;
+use crate::lib::backend::RascacielosBackend;
 
 use std::cell::OnceCell;
 
@@ -34,9 +35,9 @@ mod imp {
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuPreferencesDialog {
-        const NAME: &'static str = "SudokuPreferencesDialog";
-        type Type = super::SudokuPreferencesDialog;
+    impl ObjectSubclass for RascacielosPreferencesDialog {
+        const NAME: &'static str = "RascacielosPreferencesDialog";
+        type Type = super::RascacielosPreferencesDialog;
         type ParentType = adw::PreferencesDialog;
 
         fn class_init(klass: &mut Self::Class) {
@@ -50,8 +51,8 @@ mod imp {
 
     #[derive(Default, CompositeTemplate)]
     #[template(resource = "/io/github/nacho/rascacielos/ui/preferences-dialog.ui")]
-    pub struct SudokuPreferencesDialog {
-        pub backend: OnceCell<SudokuBackend>,
+    pub struct RascacielosPreferencesDialog {
+        pub backend: OnceCell<RascacielosBackend>,
         #[template_child]
         pub show_timer: TemplateChild<adw::SwitchRow>,
         #[template_child]
@@ -74,12 +75,12 @@ mod imp {
         pub highlight_row_column: TemplateChild<adw::SwitchRow>,
     }
 
-    impl SudokuPreferencesDialog {
-        pub fn backend(&self) -> &SudokuBackend {
+    impl RascacielosPreferencesDialog {
+        pub fn backend(&self) -> &RascacielosBackend {
             self.backend.get().unwrap()
         }
 
-        pub fn init(&self, backend: &SudokuBackend) {
+        pub fn init(&self, backend: &RascacielosBackend) {
             self.backend
                 .set(backend.clone())
                 .expect("PreferencesDialog is already initialized");
@@ -147,20 +148,20 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for SudokuPreferencesDialog {}
-    impl WidgetImpl for SudokuPreferencesDialog {}
-    impl AdwDialogImpl for SudokuPreferencesDialog {}
-    impl PreferencesDialogImpl for SudokuPreferencesDialog {}
+    impl ObjectImpl for RascacielosPreferencesDialog {}
+    impl WidgetImpl for RascacielosPreferencesDialog {}
+    impl AdwDialogImpl for RascacielosPreferencesDialog {}
+    impl PreferencesDialogImpl for RascacielosPreferencesDialog {}
 }
 
 glib::wrapper! {
-    pub struct SudokuPreferencesDialog(ObjectSubclass<imp::SudokuPreferencesDialog>)
+    pub struct RascacielosPreferencesDialog(ObjectSubclass<imp::RascacielosPreferencesDialog>)
     @extends adw::PreferencesDialog, adw::Dialog, gtk::Widget,
     @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
-impl SudokuPreferencesDialog {
-    pub fn new(backend: &SudokuBackend) -> Self {
+impl RascacielosPreferencesDialog {
+    pub fn new(backend: &RascacielosBackend) -> Self {
         let dialog: Self = Object::builder().build();
 
         dialog.imp().init(backend);

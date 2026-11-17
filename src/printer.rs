@@ -3,20 +3,20 @@
  * Copyright © 2026 Johan GAY
  * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 //! Prints puzzles. Each puzzle is drawn with a `gtk::Snapshot` and the
@@ -33,7 +33,7 @@ use adw::prelude::{AdwDialogExt, AlertDialogExt};
 
 use crate::clue::{clue_box, clue_path};
 use crate::clue_frame::CLUE_BAND;
-use crate::lib::board::SudokuBoard;
+use crate::lib::board::RascacielosBoard;
 use crate::lib::puzzle::Side;
 
 use std::cell::OnceCell;
@@ -45,16 +45,16 @@ const CLUE_FILL: gdk::RGBA = gdk::RGBA::new(0.8, 0.8, 0.8, 1.0);
 mod imp {
     use super::*;
 
-    pub struct SudokuPrinter {
-        pub boards: OnceCell<Vec<SudokuBoard>>,
+    pub struct RascacielosPrinter {
+        pub boards: OnceCell<Vec<RascacielosBoard>>,
         pub print_operation: gtk::PrintOperation,
         pub margin: i32,
-        pub sudokus_count: OnceCell<i32>,
-        pub sudokus_per_page: OnceCell<i32>,
+        pub puzzles_count: OnceCell<i32>,
+        pub puzzles_per_page: OnceCell<i32>,
     }
 
-    impl SudokuPrinter {
-        pub fn print_sudoku(&self, window: &gtk::Window) -> PrintOperationResult {
+    impl RascacielosPrinter {
+        pub fn print_puzzles(&self, window: &gtk::Window) -> PrintOperationResult {
             let result = self
                 .print_operation
                 .run(gtk::PrintOperationAction::PrintDialog, Some(window));
@@ -113,22 +113,22 @@ mod imp {
                 self.fit_squares_in_rectangle(width, height, label_height, self.margin);
             let margin_x = (width - best_square_size * n_across as f64) / (n_across as f64 + 1.0);
             let margin_y = (height - best_square_size * n_down as f64) / (n_down as f64 + 1.0);
-            let spp = *self.sudokus_per_page.get().unwrap();
+            let spp = *self.puzzles_per_page.get().unwrap();
             let start = page_nr * spp;
             let end = i32::min(start + spp, self.boards.get().unwrap().len() as i32);
-            let sudokus_on_page = &self.boards.get().unwrap()[start as usize..end as usize];
+            let puzzles_on_page = &self.boards.get().unwrap()[start as usize..end as usize];
 
             let snapshot = gtk::Snapshot::new();
-            for (index, sudoku) in sudokus_on_page.iter().enumerate() {
+            for (index, board) in puzzles_on_page.iter().enumerate() {
                 let index = index as i32;
                 let left = margin_x + (index % n_across) as f64 * (best_square_size + margin_x);
                 let top = margin_y
                     + label_height
                     + (index / n_across) as f64 * (best_square_size + margin_y + label_height);
-                let n = sudoku.size();
+                let n = board.size();
                 let label = format!(
                     "{n}×{n} · {}",
-                    sudoku.difficulty_category.to_translated_string()
+                    board.difficulty_category.to_translated_string()
                 );
                 Self::centered_text(
                     &snapshot,
@@ -142,7 +142,7 @@ mod imp {
 
                 snapshot.save();
                 snapshot.translate(&graphene::Point::new(left as f32, top as f32));
-                Self::draw_sudoku(&snapshot, &pango_context, sudoku, best_square_size as f32);
+                Self::draw_puzzle(&snapshot, &pango_context, board, best_square_size as f32);
                 snapshot.restore();
             }
 
@@ -158,7 +158,7 @@ mod imp {
             label_height: f64,
             margin: i32,
         ) -> (f64, i32, i32) {
-            let n = self.sudokus_per_page.get().unwrap();
+            let n = self.puzzles_per_page.get().unwrap();
             let mut across = 1;
             let mut down = *n;
             let mut n_across = 1;
@@ -191,10 +191,10 @@ mod imp {
 
         /// Draws `board` with its clues in a square of side `size` at the
         /// origin.
-        fn draw_sudoku(
+        fn draw_puzzle(
             snapshot: &gtk::Snapshot,
             context: &pango::Context,
-            board: &SudokuBoard,
+            board: &RascacielosBoard,
             size: f32,
         ) {
             let n = board.size();
@@ -293,12 +293,12 @@ mod imp {
     }
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuPrinter {
-        const NAME: &'static str = "SudokuPrinter";
-        type Type = super::SudokuPrinter;
+    impl ObjectSubclass for RascacielosPrinter {
+        const NAME: &'static str = "RascacielosPrinter";
+        type Type = super::RascacielosPrinter;
     }
 
-    impl ObjectImpl for SudokuPrinter {
+    impl ObjectImpl for RascacielosPrinter {
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -306,10 +306,10 @@ mod imp {
                 #[weak(rename_to = printer)]
                 self,
                 move |_, _| {
-                    let sudokus = printer.sudokus_count.get().unwrap();
-                    let spp = printer.sudokus_per_page.get().unwrap();
-                    let mut pages = sudokus / spp;
-                    while pages * spp < *sudokus {
+                    let puzzles = printer.puzzles_count.get().unwrap();
+                    let spp = printer.puzzles_per_page.get().unwrap();
+                    let mut pages = puzzles / spp;
+                    while pages * spp < *puzzles {
                         pages += 1;
                     }
                     printer.print_operation.set_n_pages(pages);
@@ -324,35 +324,35 @@ mod imp {
         }
     }
 
-    impl Default for SudokuPrinter {
+    impl Default for RascacielosPrinter {
         fn default() -> Self {
             Self {
                 margin: 25,
-                sudokus_count: Default::default(),
+                puzzles_count: Default::default(),
                 print_operation: Default::default(),
                 boards: Default::default(),
-                sudokus_per_page: Default::default(),
+                puzzles_per_page: Default::default(),
             }
         }
     }
 }
 
 glib::wrapper! {
-    pub struct SudokuPrinter(ObjectSubclass<imp::SudokuPrinter>);
+    pub struct RascacielosPrinter(ObjectSubclass<imp::RascacielosPrinter>);
 }
 
-impl SudokuPrinter {
-    pub fn new(boards: Vec<SudokuBoard>, sudokus_per_page: i32) -> Self {
+impl RascacielosPrinter {
+    pub fn new(boards: Vec<RascacielosBoard>, puzzles_per_page: i32) -> Self {
         let printer: Self = glib::Object::builder().build();
         printer
             .imp()
-            .sudokus_count
+            .puzzles_count
             .set(boards.len() as i32)
             .unwrap();
         printer
             .imp()
-            .sudokus_per_page
-            .set(sudokus_per_page)
+            .puzzles_per_page
+            .set(puzzles_per_page)
             .unwrap();
         printer.imp().boards.set(boards).unwrap();
         printer

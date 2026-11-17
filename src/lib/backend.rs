@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use gtk::gio;
@@ -30,12 +31,12 @@ use glib::timeout_add_local;
 use glib::timeout_add_seconds_local_once;
 use glib::user_data_dir;
 
-use crate::lib::board::SudokuBoard;
+use crate::lib::board::RascacielosBoard;
 use crate::lib::enums::Coord;
 use crate::lib::enums::DifficultyCategory;
 use crate::lib::enums::ZoomLevel;
 use crate::lib::puzzle::{ClueConflict, Side};
-use crate::lib::{board::SudokuError, data::SudokuData, game::SudokuGame};
+use crate::lib::{board::RascacielosError, data::RascacielosData, game::RascacielosGame};
 
 use std::cell::Cell;
 use std::cell::Ref;
@@ -53,12 +54,12 @@ mod imp {
     use super::*;
 
     #[derive(Properties)]
-    #[properties(wrapper_type = super::SudokuBackend)]
-    pub struct SudokuBackend {
-        pub game: RefCell<Option<SudokuGame>>,
+    #[properties(wrapper_type = super::RascacielosBackend)]
+    pub struct RascacielosBackend {
+        pub game: RefCell<Option<RascacielosGame>>,
         settings: gio::Settings,
-        pub paths: SudokuPaths,
-        pub sdata: SudokuData,
+        pub paths: RascacielosPaths,
+        pub sdata: RascacielosData,
         pub keyboard_pressed_sourceid: Cell<Option<SourceId>>,
         pub autosave_sourceid: Cell<Option<SourceId>>,
 
@@ -85,7 +86,7 @@ mod imp {
         #[property(get, set)]
         pub pref_picker_second_click: Cell<bool>,
         #[property(get)]
-        pub tgame: RefCell<Option<SudokuGame>>,
+        pub tgame: RefCell<Option<RascacielosGame>>,
         //doesn't get saved and it's reset in between games
         #[property(get, set)]
         pub earmark_mode: Cell<bool>,
@@ -93,14 +94,14 @@ mod imp {
         pub keyboard_pressed_recently: Cell<bool>,
     }
 
-    impl Default for SudokuBackend {
+    impl Default for RascacielosBackend {
         fn default() -> Self {
-            let paths = SudokuPaths::default();
+            let paths = RascacielosPaths::default();
             let settings = gio::Settings::new("io.github.nacho.rascacielos");
-            let sudoku_data = SudokuData::new(paths.data_file.clone());
+            let data = RascacielosData::new(paths.data_file.clone());
 
             Self {
-                sdata: sudoku_data,
+                sdata: data,
                 game: Default::default(),
                 tgame: Default::default(),
                 paths,
@@ -125,13 +126,13 @@ mod imp {
     }
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuBackend {
-        const NAME: &'static str = "SudokuBackend";
-        type Type = super::SudokuBackend;
+    impl ObjectSubclass for RascacielosBackend {
+        const NAME: &'static str = "RascacielosBackend";
+        type Type = super::RascacielosBackend;
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for SudokuBackend {
+    impl ObjectImpl for RascacielosBackend {
         fn constructed(&self) {
             self.settings
                 .bind("zoom-level", &*self.obj(), "pref_zoom")
@@ -189,14 +190,14 @@ mod imp {
 
             self.add_preference_cbs();
             let save_path = &self.paths.active_save_file;
-            match SudokuGame::new_from_json(save_path) {
+            match RascacielosGame::new_from_json(save_path) {
                 Ok(game) => {
                     self.game.replace(Some(game));
                     self.obj().game_enable_all_possibilities();
                     self.game_changed();
                 }
                 Err(e) => {
-                    if e != SudokuError::FileNotFound {
+                    if e != RascacielosError::FileNotFound {
                         eprintln!("{}", e);
                     }
                 }
@@ -219,7 +220,7 @@ mod imp {
         }
     }
 
-    impl SudokuBackend {
+    impl RascacielosBackend {
         pub fn save_game(&self, path: &str) {
             let binding = self.game.borrow();
             if let Some(game) = binding.as_ref()
@@ -276,7 +277,7 @@ mod imp {
         pub fn add_preference_cbs(&self) {
             self.obj()
                 .connect_pref_show_all_possibilities_notify(glib::clone!(
-                    move |backend: &crate::lib::backend::SudokuBackend| if backend
+                    move |backend: &crate::lib::backend::RascacielosBackend| if backend
                         .pref_show_all_possibilities()
                         && let Some(game) = &*backend.imp().game.borrow()
                     {
@@ -286,7 +287,7 @@ mod imp {
 
             self.obj()
                 .connect_keyboard_pressed_recently_notify(glib::clone!(
-                    move |backend: &crate::lib::backend::SudokuBackend| if backend
+                    move |backend: &crate::lib::backend::RascacielosBackend| if backend
                         .keyboard_pressed_recently()
                     {
                         if let Some(source_id) = backend.imp().keyboard_pressed_sourceid.take() {
@@ -313,7 +314,7 @@ mod imp {
                 )));
         }
 
-        pub fn save_printed_board(&self, board: &SudokuBoard) {
+        pub fn save_printed_board(&self, board: &RascacielosBoard) {
             let save_name = board.fixed_to_string() + ".save";
             let save_path = self.paths.printed_dir.join(save_name);
             let save_path = save_path.to_str().expect("Failed to convert path");
@@ -335,7 +336,7 @@ mod imp {
             Self::create_file_for_board(save_path, board, timer);
         }
 
-        fn create_file_for_board(file_name: &str, board: &SudokuBoard, elapsed_time: f64) {
+        fn create_file_for_board(file_name: &str, board: &RascacielosBoard, elapsed_time: f64) {
             let board = board.to_json(elapsed_time);
             match &mut File::create(file_name) {
                 Ok(file) => match file.write_all(&board.into_bytes()) {
@@ -358,7 +359,7 @@ macro_rules! game {
     };
 }
 
-impl SudokuBackend {
+impl RascacielosBackend {
     pub fn new() -> Self {
         glib::Object::builder().build()
     }
@@ -367,7 +368,7 @@ impl SudokuBackend {
         game!(self).board().is_complete()
     }
 
-    pub fn game(&self) -> Ref<'_, Option<SudokuGame>> {
+    pub fn game(&self) -> Ref<'_, Option<RascacielosGame>> {
         self.imp().game.borrow()
     }
 
@@ -532,7 +533,7 @@ impl SudokuBackend {
 
     pub fn game_load(&self, path: &str) -> bool {
         let mut errors = Vec::new();
-        match SudokuGame::new_from_json(path) {
+        match RascacielosGame::new_from_json(path) {
             Ok(game) => {
                 self.imp().game.replace(Some(game));
                 self.imp().game_changed();
@@ -541,7 +542,7 @@ impl SudokuBackend {
             Err(e) => errors.push(e),
         }
         match std::fs::read_to_string(path) {
-            Ok(s) => match SudokuGame::new_from_string(&s) {
+            Ok(s) => match RascacielosGame::new_from_string(&s) {
                 Ok(game) => {
                     self.imp().game.replace(Some(game));
                     self.imp().game_changed();
@@ -549,7 +550,7 @@ impl SudokuBackend {
                 }
                 Err(e) => errors.push(e),
             },
-            Err(_) => errors.push(SudokuError::InvalidPuzzle),
+            Err(_) => errors.push(RascacielosError::InvalidPuzzle),
         }
 
         for error in errors.iter().enumerate() {
@@ -639,12 +640,12 @@ impl SudokuBackend {
             self,
             async move {
                 let generated = gio::spawn_blocking(move || {
-                    let mut found = SudokuGame::generate(size, difficulty, 1);
+                    let mut found = RascacielosGame::generate(size, difficulty, 1);
                     found.pop().unwrap()
                 })
                 .await
                 .expect("The puzzle generator failed");
-                let game = SudokuGame::new_from_generated(generated, difficulty);
+                let game = RascacielosGame::new_from_generated(generated, difficulty);
                 backend.imp().game.replace(Some(game));
                 backend.imp().game_changed();
                 done();
@@ -653,7 +654,7 @@ impl SudokuBackend {
     }
 
     pub fn check_clipboard(&self, s: &str) {
-        match SudokuGame::new_from_ascii(s) {
+        match RascacielosGame::new_from_ascii(s) {
             Ok(game) => {
                 self.imp().tgame.replace(Some(game));
                 self.notify_tgame();
@@ -686,17 +687,17 @@ impl SudokuBackend {
         self.imp().sdata.start_button_selected.set(difficulty);
     }
 
-    pub fn save_printed_board(&self, board: &SudokuBoard) {
+    pub fn save_printed_board(&self, board: &RascacielosBoard) {
         self.imp().save_printed_board(board);
     }
 }
 
 glib::wrapper! {
-    pub struct SudokuBackend(ObjectSubclass<imp::SudokuBackend>);
+    pub struct RascacielosBackend(ObjectSubclass<imp::RascacielosBackend>);
 }
 
 #[derive(Clone)]
-pub struct SudokuPaths {
+pub struct RascacielosPaths {
     pub active_save_file: String,
     pub data_file: String,
     pub printed_dir: PathBuf,
@@ -704,21 +705,21 @@ pub struct SudokuPaths {
     pub saved_dir: PathBuf,
 }
 
-impl Default for SudokuPaths {
+impl Default for RascacielosPaths {
     fn default() -> Self {
         let data_dir = &user_data_dir();
-        let sudoku_dir = data_dir.join("rascacielos");
-        let printed_dir = sudoku_dir.join("printed");
-        let finished_dir = sudoku_dir.join("finished");
-        let saved_dir = sudoku_dir.join("saved");
+        let app_dir = data_dir.join("rascacielos");
+        let printed_dir = app_dir.join("printed");
+        let finished_dir = app_dir.join("finished");
+        let saved_dir = app_dir.join("saved");
 
-        SudokuPaths::create_dir(&sudoku_dir);
-        SudokuPaths::create_dir(&printed_dir);
-        SudokuPaths::create_dir(&finished_dir);
-        SudokuPaths::create_dir(&saved_dir);
+        RascacielosPaths::create_dir(&app_dir);
+        RascacielosPaths::create_dir(&printed_dir);
+        RascacielosPaths::create_dir(&finished_dir);
+        RascacielosPaths::create_dir(&saved_dir);
         Self {
-            active_save_file: Self::convert_path(&sudoku_dir.join("savefile")),
-            data_file: Self::convert_path(&sudoku_dir.join("data")),
+            active_save_file: Self::convert_path(&app_dir.join("savefile")),
+            data_file: Self::convert_path(&app_dir.join("data")),
             printed_dir,
             finished_dir,
             saved_dir,
@@ -726,7 +727,7 @@ impl Default for SudokuPaths {
     }
 }
 
-impl SudokuPaths {
+impl RascacielosPaths {
     fn create_dir(dir: &PathBuf) {
         if let Err(e) = std::fs::create_dir(dir)
             && e.kind() != AlreadyExists

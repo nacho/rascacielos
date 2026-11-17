@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use adw::prelude::*;
@@ -24,35 +25,35 @@ use adw::subclass::prelude::*;
 use gtk::glib;
 use gtk::glib::closure_local;
 
-use crate::cell::SudokuCell;
-use crate::lib::backend::SudokuBackend;
+use crate::cell::RascacielosCell;
+use crate::lib::backend::RascacielosBackend;
 use crate::lib::enums::CompatValue;
 use crate::lib::enums::Coord;
 
 use std::cell::{Cell, OnceCell};
 
-use crate::{earmark_picker::SudokuEarmarkPicker, value_picker::SudokuValuePicker};
+use crate::{earmark_picker::RascacielosEarmarkPicker, value_picker::RascacielosValuePicker};
 
 mod imp {
 
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuNumberPicker {
-        const NAME: &'static str = "SudokuPickerPopover";
-        type Type = super::SudokuPickerPopover;
+    impl ObjectSubclass for RascacielosNumberPicker {
+        const NAME: &'static str = "RascacielosPickerPopover";
+        type Type = super::RascacielosPickerPopover;
         type ParentType = gtk::Popover;
     }
 
-    pub struct SudokuNumberPicker {
-        pub backend: OnceCell<SudokuBackend>,
+    pub struct RascacielosNumberPicker {
+        pub backend: OnceCell<RascacielosBackend>,
         pub picker_stack: gtk::Stack,
-        pub value_picker: SudokuValuePicker,
-        pub earmark_picker: SudokuEarmarkPicker,
+        pub value_picker: RascacielosValuePicker,
+        pub earmark_picker: RascacielosEarmarkPicker,
         pub state: Cell<Option<PopoverPickerState>>,
     }
 
-    impl ObjectImpl for SudokuNumberPicker {
+    impl ObjectImpl for RascacielosNumberPicker {
         fn constructed(&self) {
             self.parent_constructed();
             self.picker_stack.add_child(&self.value_picker);
@@ -62,7 +63,7 @@ mod imp {
                 closure_local!(
                     #[weak(rename_to = picker_popover)]
                     self.obj(),
-                    move |_: SudokuValuePicker| picker_popover.popdown()
+                    move |_: RascacielosValuePicker| picker_popover.popdown()
                 ),
             );
 
@@ -73,14 +74,14 @@ mod imp {
                 closure_local!(
                     #[weak(rename_to = picker_popover)]
                     self.obj(),
-                    move |_: SudokuEarmarkPicker| picker_popover.popdown()
+                    move |_: RascacielosEarmarkPicker| picker_popover.popdown()
                 ),
             );
             self.obj().set_child(Some(&self.picker_stack));
         }
     }
 
-    impl Default for SudokuNumberPicker {
+    impl Default for RascacielosNumberPicker {
         fn default() -> Self {
             let stack = glib::Object::builder()
                 .property("interpolate-size", true)
@@ -90,15 +91,15 @@ mod imp {
             Self {
                 backend: Default::default(),
                 picker_stack: stack,
-                value_picker: SudokuValuePicker::new_unitialized(),
-                earmark_picker: SudokuEarmarkPicker::new_unitialized(),
+                value_picker: RascacielosValuePicker::new_unitialized(),
+                earmark_picker: RascacielosEarmarkPicker::new_unitialized(),
                 state: Default::default(),
             }
         }
     }
 
-    impl WidgetImpl for SudokuNumberPicker {}
-    impl PopoverImpl for SudokuNumberPicker {
+    impl WidgetImpl for RascacielosNumberPicker {}
+    impl PopoverImpl for RascacielosNumberPicker {
         fn closed(&self) {
             self.parent_closed();
             if let Some(state) = self.state.get() {
@@ -113,7 +114,7 @@ mod imp {
                 .obj()
                 .parent()
                 .unwrap()
-                .downcast::<SudokuCell>()
+                .downcast::<RascacielosCell>()
                 .unwrap();
             cell.drop_picker();
             self.obj().unparent();
@@ -122,12 +123,12 @@ mod imp {
 }
 
 glib::wrapper! {
-    pub struct SudokuPickerPopover(ObjectSubclass<imp::SudokuNumberPicker>)
+    pub struct RascacielosPickerPopover(ObjectSubclass<imp::RascacielosNumberPicker>)
         @extends gtk::Popover, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::ShortcutManager;
 }
 
-impl SudokuPickerPopover {
+impl RascacielosPickerPopover {
     pub fn new_unitialized() -> Self {
         let picker_popover: Self = glib::Object::builder()
             .property("autohide", false)
@@ -137,7 +138,7 @@ impl SudokuPickerPopover {
         picker_popover
     }
 
-    pub fn init(&self, backend: &SudokuBackend) {
+    pub fn init(&self, backend: &RascacielosBackend) {
         self.imp()
             .backend
             .set(backend.clone())
@@ -146,16 +147,16 @@ impl SudokuPickerPopover {
         self.imp().earmark_picker.init(backend);
     }
 
-    /* pub fn popdown_if_not_parent (&self, cell: &SudokuCell) {
+    /* pub fn popdown_if_not_parent (&self, cell: &RascacielosCell) {
         if let Some(parent) = self.parent() {
-            let parent = parent.downcast::<SudokuCell>().unwrap();
+            let parent = parent.downcast::<RascacielosCell>().unwrap();
             if parent != *cell {
                 self.popdown();
             }
         }
     } */
 
-    pub fn show_value_picker(&self, cell: &SudokuCell) {
+    pub fn show_value_picker(&self, cell: &RascacielosCell) {
         let imp = self.imp();
 
         if let Some(state) = imp.state.get() {
@@ -187,7 +188,7 @@ impl SudokuPickerPopover {
         imp.state.set(Some(PopoverPickerState::ValuePicker));
     }
 
-    pub fn show_earmark_picker(&self, cell: &SudokuCell) {
+    pub fn show_earmark_picker(&self, cell: &RascacielosCell) {
         let imp = self.imp();
 
         if let Some(state) = imp.state.get() {
@@ -224,7 +225,7 @@ impl SudokuPickerPopover {
 macro_rules! build_picker {
     ($obj: ty) => {
         glib::Object::builder::<$obj>()
-            .property("css-name", "sudoku-picker")
+            .property("css-name", "rascacielos-picker")
             .property("row-spacing", 3)
             .property("column-spacing", 3)
             .build()

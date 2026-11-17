@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use gtk::glib::types::{StaticType, Type};
@@ -198,7 +199,7 @@ impl StaticVariantType for DifficultyCategory {
     }
 }
 
-pub enum SudokuDirection {
+pub enum RascacielosDirection {
     TabForward,
     TabBackward,
     Up,
@@ -208,9 +209,9 @@ pub enum SudokuDirection {
     __Unknown(i32),
 }
 
-impl FromVariant for SudokuDirection {
+impl FromVariant for RascacielosDirection {
     fn from_variant(variant: &Variant) -> Option<Self> {
-        use SudokuDirection::*;
+        use RascacielosDirection::*;
         let variant = variant.get::<i32>().unwrap();
         match variant {
             0 => Some(TabForward),
@@ -223,15 +224,15 @@ impl FromVariant for SudokuDirection {
         }
     }
 }
-impl StaticVariantType for SudokuDirection {
+impl StaticVariantType for RascacielosDirection {
     fn static_variant_type() -> std::borrow::Cow<'static, VariantTy> {
         i32::static_variant_type()
     }
 }
 
-impl ToVariant for SudokuDirection {
+impl ToVariant for RascacielosDirection {
     fn to_variant(&self) -> Variant {
-        use SudokuDirection::*;
+        use RascacielosDirection::*;
         match self {
             TabForward => 0.to_variant(),
             TabBackward => 1.to_variant(),
@@ -244,9 +245,9 @@ impl ToVariant for SudokuDirection {
     }
 }
 
-impl From<DirectionType> for SudokuDirection {
+impl From<DirectionType> for RascacielosDirection {
     fn from(value: DirectionType) -> Self {
-        use SudokuDirection::*;
+        use RascacielosDirection::*;
         use gtk::DirectionType as d;
         match value {
             d::TabForward => TabForward,
@@ -260,9 +261,9 @@ impl From<DirectionType> for SudokuDirection {
     }
 }
 
-impl From<SudokuDirection> for DirectionType {
-    fn from(val: SudokuDirection) -> Self {
-        use SudokuDirection::*;
+impl From<RascacielosDirection> for DirectionType {
+    fn from(val: RascacielosDirection) -> Self {
+        use RascacielosDirection::*;
         use gtk::DirectionType as d;
         match val {
             TabForward => d::TabForward,

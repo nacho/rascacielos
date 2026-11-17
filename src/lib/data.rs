@@ -3,20 +3,20 @@
  * Copyright © 2026 Johan GAY
  * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use std::{
@@ -27,10 +27,10 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::lib::{backend::DEFAULT_SIZE, board::SudokuError, enums::DifficultyCategory};
+use crate::lib::{backend::DEFAULT_SIZE, board::RascacielosError, enums::DifficultyCategory};
 
 #[derive(Serialize, Deserialize, Default, Debug)]
-pub struct SudokuData {
+pub struct RascacielosData {
     #[serde(default)]
     highscores: RefCell<Vec<Highscore>>,
     #[serde(default)]
@@ -79,7 +79,7 @@ impl Default for PrintData {
     }
 }
 
-impl SudokuData {
+impl RascacielosData {
     pub fn new(path: String) -> Self {
         if let Ok(str) = std::fs::read_to_string(&path)
             && let Ok(mut data) = Self::load(&str)
@@ -97,7 +97,7 @@ impl SudokuData {
         }
     }
 
-    fn load(str: &str) -> Result<Self, SudokuError> {
+    fn load(str: &str) -> Result<Self, RascacielosError> {
         let data: Self = serde_json::from_str(str)?;
         Ok(data)
     }
@@ -154,7 +154,7 @@ mod tests {
     #[test]
     fn highscores_per_size_and_difficulty() {
         use DifficultyCategory::*;
-        let data = SudokuData::new("/nonexistent/rascacielos-data".to_string());
+        let data = RascacielosData::new("/nonexistent/rascacielos-data".to_string());
         assert_eq!(data.highscore(5, Easy), None);
         assert!(data.record_time(5, Easy, 60.0));
         assert!(data.record_time(7, Easy, 300.0));
@@ -170,14 +170,14 @@ mod tests {
     #[test]
     fn json_round_trip() {
         use DifficultyCategory::*;
-        let data = SudokuData::new("/nonexistent/rascacielos-data".to_string());
+        let data = RascacielosData::new("/nonexistent/rascacielos-data".to_string());
         data.record_time(6, Medium, 120.0);
         data.size_selected.set(6);
-        let loaded = SudokuData::load(&serde_json::to_string(&data).unwrap()).unwrap();
+        let loaded = RascacielosData::load(&serde_json::to_string(&data).unwrap()).unwrap();
         assert_eq!(loaded.highscore(6, Medium), Some(120.0));
         assert_eq!(loaded.size_selected.get(), 6);
         // Data saved before sizes existed falls back to the default size.
-        let old = SudokuData::load("{}").unwrap();
+        let old = RascacielosData::load("{}").unwrap();
         assert_eq!(old.size_selected.get(), DEFAULT_SIZE);
         assert_eq!(old.print_data.borrow().size, DEFAULT_SIZE);
     }

@@ -68,7 +68,7 @@
       </item>
     </section>
   </menu>
-  <template class="SudokuMenuButton" parent="AdwBin">
+  <template class="RascacielosMenuButton" parent="AdwBin">
     <child>
       <object class="GtkMenuButton">
         <property name="icon-name">open-menu-symbolic</property>

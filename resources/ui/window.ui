@@ -5,16 +5,16 @@
   <object class="GSettings" id="settings">
     <property name="schema-id">io.github.nacho.rascacielos</property>
   </object>
-  <template class="SudokuWindow" parent="AdwApplicationWindow">
+  <template class="RascacielosWindow" parent="AdwApplicationWindow">
     <property name="title" translatable="yes">Rascacielos</property>
     <property name="content">
       <object class="AdwViewStack" id="view_stack">
         <property name="enable-transitions">true</property>
         <child>
-          <object class="SudokuGameView" id="game_view"/>
+          <object class="RascacielosGameView" id="game_view"/>
         </child>
         <child>
-          <object class="SudokuStartView" id="start_view"/>
+          <object class="RascacielosStartView" id="start_view"/>
         </child>
       </object>
     </property>

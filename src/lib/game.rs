@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use fastrand::Rng;
@@ -25,8 +26,8 @@ use gtk::glib::{Properties, subclass::Signal};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 
-use crate::lib::board::SudokuBoard;
-use crate::lib::board::SudokuError;
+use crate::lib::board::RascacielosBoard;
+use crate::lib::board::RascacielosError;
 use crate::lib::enums::CompatValue;
 use crate::lib::enums::Coord;
 use crate::lib::enums::DifficultyCategory;
@@ -46,19 +47,19 @@ mod imp {
     use super::*;
 
     #[derive(Properties, Default)]
-    #[properties(wrapper_type = super::SudokuGame)]
-    pub struct SudokuGame {
+    #[properties(wrapper_type = super::RascacielosGame)]
+    pub struct RascacielosGame {
         pub timer: Cell<Option<SystemTime>>,
         pub stored_time: Cell<f64>,
         pub paused: Cell<bool>,
         pub timer_source_id: Cell<Option<SourceId>>,
-        pub board: OnceCell<SudokuBoard>,
+        pub board: OnceCell<RascacielosBoard>,
         pub stack_head_index: Cell<Option<usize>>,
         pub current_action: Cell<Option<StackAction>>,
         pub stack: RefCell<Vec<StackItem>>,
     }
 
-    impl SudokuGame {
+    impl RascacielosGame {
         pub fn add_value_step(
             &self,
             item: &mut StackItem,
@@ -157,13 +158,13 @@ mod imp {
     }
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuGame {
-        const NAME: &'static str = "SudokuGame";
-        type Type = super::SudokuGame;
+    impl ObjectSubclass for RascacielosGame {
+        const NAME: &'static str = "RascacielosGame";
+        type Type = super::RascacielosGame;
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for SudokuGame {
+    impl ObjectImpl for RascacielosGame {
         fn signals() -> &'static [Signal] {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
             SIGNALS.get_or_init(|| {
@@ -231,17 +232,17 @@ macro_rules! finish_action {
 }
 
 glib::wrapper! {
-    pub struct SudokuGame(ObjectSubclass<imp::SudokuGame>);
+    pub struct RascacielosGame(ObjectSubclass<imp::RascacielosGame>);
 }
 
-impl SudokuGame {
-    pub fn new_from_fn<F: Fn(&str) -> Result<SudokuBoard, SudokuError>>(
+impl RascacielosGame {
+    pub fn new_from_fn<F: Fn(&str) -> Result<RascacielosBoard, RascacielosError>>(
         func: F,
         path: &str,
-    ) -> Result<Self, SudokuError> {
+    ) -> Result<Self, RascacielosError> {
         let game: Self = glib::Object::new();
         let mut board = func(path)?;
-        if let Some(error) = SudokuGame::solve(&mut board) {
+        if let Some(error) = RascacielosGame::solve(&mut board) {
             return Err(error);
         }
         game.imp().board.set(board).unwrap();
@@ -249,16 +250,16 @@ impl SudokuGame {
         Ok(game)
     }
 
-    pub fn new_from_json(path: &str) -> Result<Self, SudokuError> {
-        Self::new_from_fn(SudokuBoard::from_json, path)
+    pub fn new_from_json(path: &str) -> Result<Self, RascacielosError> {
+        Self::new_from_fn(RascacielosBoard::from_json, path)
     }
 
-    pub fn new_from_string(s: &str) -> Result<Self, SudokuError> {
-        Self::new_from_fn(SudokuBoard::from_string, s)
+    pub fn new_from_string(s: &str) -> Result<Self, RascacielosError> {
+        Self::new_from_fn(RascacielosBoard::from_string, s)
     }
 
-    pub fn new_from_ascii(s: &str) -> Result<Self, SudokuError> {
-        Self::new_from_fn(SudokuBoard::from_ascii, s)
+    pub fn new_from_ascii(s: &str) -> Result<Self, RascacielosError> {
+        Self::new_from_fn(RascacielosBoard::from_ascii, s)
     }
 
     /// Generates `count` puzzles of size `n` and `difficulty` on every
@@ -295,7 +296,7 @@ impl SudokuGame {
 
     pub fn new_from_generated(generated: Generated, difficulty: DifficultyCategory) -> Self {
         let (puzzle, solution) = generated;
-        let board = SudokuBoard::from_generated(puzzle, &solution, difficulty);
+        let board = RascacielosBoard::from_generated(puzzle, &solution, difficulty);
         let game: Self = glib::Object::new();
         game.imp().board.set(board).unwrap();
         game.start_clock();
@@ -304,7 +305,7 @@ impl SudokuGame {
 
     /// Finds the solution of `board` and grades it. Fails when the puzzle
     /// has no solution or more than one.
-    pub fn solve(board: &mut SudokuBoard) -> Option<SudokuError> {
+    pub fn solve(board: &mut RascacielosBoard) -> Option<RascacielosError> {
         if let Some((solution, tier)) = solver::solve(board.puzzle(), Tier::VeryHard) {
             board.set_solution(&solution);
             board.difficulty_category = DifficultyCategory::from_tier(tier);
@@ -314,17 +315,17 @@ impl SudokuGame {
         // Too hard for the solver's techniques, check it with a search.
         let solutions = solver::find_solutions(board.puzzle(), 2);
         match solutions.as_slice() {
-            [] => Some(SudokuError::InvalidPuzzle),
+            [] => Some(RascacielosError::InvalidPuzzle),
             [solution] => {
                 board.set_solution(solution);
                 board.difficulty_category = DifficultyCategory::Custom;
                 None
             }
-            _ => Some(SudokuError::MultipleSolutions),
+            _ => Some(RascacielosError::MultipleSolutions),
         }
     }
 
-    pub fn board(&self) -> &SudokuBoard {
+    pub fn board(&self) -> &RascacielosBoard {
         self.imp().board.get().unwrap()
     }
 
@@ -714,10 +715,10 @@ mod tests {
         3, 4, 1, 2, //
     ];
 
-    fn game() -> SudokuGame {
+    fn game() -> RascacielosGame {
         let mut puzzle = Puzzle::from_solution(4, &SOLUTION).unwrap();
         puzzle.set_clue(Side::Top, 0, None);
-        SudokuGame::new_from_ascii(&puzzle.to_share_code(None)).unwrap()
+        RascacielosGame::new_from_ascii(&puzzle.to_share_code(None)).unwrap()
     }
 
     fn pos(row: usize, col: usize) -> Coord {
@@ -741,17 +742,17 @@ mod tests {
         let path = path.to_str().unwrap();
         for content in ["", "{\"version\": 1}", "+..+\n....\n"] {
             std::fs::write(path, content).unwrap();
-            assert!(SudokuGame::new_from_json(path).is_err());
+            assert!(RascacielosGame::new_from_json(path).is_err());
         }
         std::fs::remove_file(path).unwrap();
-        assert!(SudokuGame::new_from_string("not a puzzle").is_err());
-        assert!(SudokuGame::new_from_ascii("#R5e").is_err());
+        assert!(RascacielosGame::new_from_string("not a puzzle").is_err());
+        assert!(RascacielosGame::new_from_ascii("#R5e").is_err());
 
         // A saved game resumes with its values and time.
         let game = game();
         game.insert(pos(1, 1), 2);
         std::fs::write(path, game.board().to_json(42.0)).unwrap();
-        let resumed = SudokuGame::new_from_json(path).unwrap();
+        let resumed = RascacielosGame::new_from_json(path).unwrap();
         std::fs::remove_file(path).unwrap();
         assert_eq!(resumed.board().cell(pos(1, 1)).value.get(), Some(2));
         assert_eq!(resumed.board().loaded_time, 42.0);
@@ -759,7 +760,7 @@ mod tests {
 
         // Exported text imports as the same puzzle.
         let text = game.board().fixed_to_string_pretty();
-        let imported = SudokuGame::new_from_string(&text).unwrap();
+        let imported = RascacielosGame::new_from_string(&text).unwrap();
         assert_eq!(imported.board().puzzle(), game.board().puzzle());
     }
 
@@ -769,14 +770,14 @@ mod tests {
         assert_ne!(game.difficulty(), DifficultyCategory::Unknown);
         let several = Puzzle::empty(4).unwrap().to_share_code(None);
         assert_eq!(
-            SudokuGame::new_from_ascii(&several).err(),
-            Some(SudokuError::MultipleSolutions)
+            RascacielosGame::new_from_ascii(&several).err(),
+            Some(RascacielosError::MultipleSolutions)
         );
     }
 
     fn undo_and_redo() {
         let game = game();
-        let value = |game: &SudokuGame| game.board().cell(pos(1, 1)).value.get();
+        let value = |game: &RascacielosGame| game.board().cell(pos(1, 1)).value.get();
         game.insert(pos(1, 1), 2);
         game.enable_earmark(pos(0, 0), 3);
         game.insert(pos(1, 1), 1);

@@ -86,23 +86,23 @@ mod imp {
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuClue {
-        const NAME: &'static str = "SudokuClue";
-        type Type = super::SudokuClue;
+    impl ObjectSubclass for RascacielosClue {
+        const NAME: &'static str = "RascacielosClue";
+        type Type = super::RascacielosClue;
         type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
-            klass.set_css_name("sudoku-clue");
+            klass.set_css_name("rascacielos-clue");
             klass.set_accessible_role(gtk::AccessibleRole::Label);
         }
     }
 
-    pub struct SudokuClue {
+    pub struct RascacielosClue {
         pub label: gtk::Label,
         pub side: Cell<Side>,
     }
 
-    impl Default for SudokuClue {
+    impl Default for RascacielosClue {
         fn default() -> Self {
             let label = gtk::Label::new(None);
             label.add_css_class("numeric");
@@ -113,7 +113,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for SudokuClue {
+    impl ObjectImpl for RascacielosClue {
         fn constructed(&self) {
             self.parent_constructed();
             self.label.set_parent(&*self.obj());
@@ -124,7 +124,7 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for SudokuClue {
+    impl WidgetImpl for RascacielosClue {
         fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
             let rect = graphene::Rect::new(0.0, 0.0, width as f32, height as f32);
             let area = clue_box(self.side.get(), &rect);
@@ -155,12 +155,12 @@ mod imp {
 }
 
 glib::wrapper! {
-    pub struct SudokuClue(ObjectSubclass<imp::SudokuClue>)
+    pub struct RascacielosClue(ObjectSubclass<imp::RascacielosClue>)
         @extends gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl SudokuClue {
+impl RascacielosClue {
     pub fn new(side: Side) -> Self {
         let clue: Self = glib::Object::builder().build();
         clue.imp().side.set(side);

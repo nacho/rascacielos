@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use adw::prelude::*;
@@ -27,10 +28,10 @@ use gtk::glib::{SignalHandlerId, subclass::Signal};
 use std::cell::{Cell, OnceCell};
 use std::{array::from_fn, sync::OnceLock};
 
-use crate::lib::backend::SudokuBackend;
+use crate::lib::backend::RascacielosBackend;
 use crate::lib::enums::CompatValue;
 use crate::lib::enums::Coord;
-use crate::lib::game::SudokuGame;
+use crate::lib::game::RascacielosGame;
 use crate::picker_popover::{PickerBase, PickerBaseImp};
 use crate::{build_picker, game};
 
@@ -39,14 +40,14 @@ mod imp {
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuEarmarkPicker {
-        const NAME: &'static str = "SudokuEarmarkPicker";
-        type Type = super::SudokuEarmarkPicker;
+    impl ObjectSubclass for RascacielosEarmarkPicker {
+        const NAME: &'static str = "RascacielosEarmarkPicker";
+        type Type = super::RascacielosEarmarkPicker;
         type ParentType = gtk::Grid;
     }
 
-    pub struct SudokuEarmarkPicker {
-        pub backend: OnceCell<SudokuBackend>,
+    pub struct RascacielosEarmarkPicker {
+        pub backend: OnceCell<RascacielosBackend>,
         pub earmark_buttons: [gtk::ToggleButton; 9],
         pub lock_button: gtk::ToggleButton,
         pub clear_button: gtk::Button,
@@ -55,7 +56,7 @@ mod imp {
         pub earmark_cb_handler: Cell<Option<SignalHandlerId>>,
     }
 
-    impl Default for SudokuEarmarkPicker {
+    impl Default for RascacielosEarmarkPicker {
         fn default() -> Self {
             let buttons: [_; 9] = {
                 from_fn(|number| {
@@ -84,7 +85,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for SudokuEarmarkPicker {
+    impl ObjectImpl for RascacielosEarmarkPicker {
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -145,7 +146,7 @@ mod imp {
         }
     }
 
-    impl SudokuEarmarkPicker {
+    impl RascacielosEarmarkPicker {
         pub fn current_position(&self) -> Coord {
             let row = self.cell.get().unwrap().row;
             let col = self.cell.get().unwrap().col;
@@ -156,7 +157,7 @@ mod imp {
             self.obj().emit_by_name::<()>("finished", &[]);
         }
 
-        pub fn backend(&self) -> &SudokuBackend {
+        pub fn backend(&self) -> &RascacielosBackend {
             self.backend.get().unwrap()
         }
 
@@ -177,7 +178,7 @@ mod imp {
         }
     }
 
-    impl PickerBaseImp for SudokuEarmarkPicker {
+    impl PickerBaseImp for RascacielosEarmarkPicker {
         fn value_changed_cb(&self, new_val: CompatValue) {
             let new_val: Option<usize> = new_val.into();
             self.clear_button.set_sensitive(new_val.is_some());
@@ -190,22 +191,22 @@ mod imp {
             self.earmark_buttons[num].set_active(enabled);
         }
     }
-    impl WidgetImpl for SudokuEarmarkPicker {}
-    impl GridImpl for SudokuEarmarkPicker {}
+    impl WidgetImpl for RascacielosEarmarkPicker {}
+    impl GridImpl for RascacielosEarmarkPicker {}
 }
 
 glib::wrapper! {
-    pub struct SudokuEarmarkPicker(ObjectSubclass<imp::SudokuEarmarkPicker>)
+    pub struct RascacielosEarmarkPicker(ObjectSubclass<imp::RascacielosEarmarkPicker>)
         @extends gtk::Grid, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
-impl SudokuEarmarkPicker {
+impl RascacielosEarmarkPicker {
     pub fn new_unitialized() -> Self {
         build_picker!(Self)
     }
 
-    pub fn init(&self, backend: &SudokuBackend) {
+    pub fn init(&self, backend: &RascacielosBackend) {
         self.imp()
             .backend
             .set(backend.clone())
@@ -213,7 +214,7 @@ impl SudokuEarmarkPicker {
     }
 }
 
-impl PickerBase for SudokuEarmarkPicker {
+impl PickerBase for RascacielosEarmarkPicker {
     fn connect_picker(&self, pos: Coord) {
         let imp = self.imp();
         imp.cell.set(Some(pos));
@@ -225,7 +226,7 @@ impl PickerBase for SudokuEarmarkPicker {
             false,
             closure_local! {
                 #[weak(rename_to = earmark_picker)] imp,
-                move |_ : SudokuGame, _: i32, _: i32, _: CompatValue, new_val: CompatValue| {
+                move |_ : RascacielosGame, _: i32, _: i32, _: CompatValue, new_val: CompatValue| {
                     earmark_picker.value_changed_cb (new_val);
                 }
             },
@@ -237,7 +238,7 @@ impl PickerBase for SudokuEarmarkPicker {
             false,
             closure_local! {
                 #[weak(rename_to = earmark_picker)] imp,
-                move |_ : SudokuGame, row: i32, col: i32, num: i32, enabled: bool| {
+                move |_ : RascacielosGame, row: i32, col: i32, num: i32, enabled: bool| {
                     earmark_picker.earmark_changed_cb (
                         Coord {row: row as usize, col: col as usize},
                         num as usize,

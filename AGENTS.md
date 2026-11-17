@@ -11,8 +11,8 @@ Built with Rust (edition 2024), GTK 4 (`v4_22` feature) and libadwaita
 (`v1_10` feature), Meson for production and Cargo for development. App ID
 `io.github.nacho.rascacielos` (`.Devel` for the Devel profile).
 
-Most widget and GObject type names still carry the `Sudoku` prefix and the
-`sudoku-*` CSS node names inherited from upstream.
+Types use the `Rascacielos` prefix and CSS nodes and custom properties the
+`rascacielos-` prefix.
 
 ## Directory Map
 
@@ -23,8 +23,8 @@ src/
   window.rs                # Main window, app actions, about dialog
   start_view.rs            # Size toggle group and difficulty selection
   game_view.rs             # Game page: board, header bar, timer, dialogs
-  clue.rs                  # SudokuClue: a clue drawn as a box with a tip into the grid
-  clue_frame.rs            # SudokuClueFrame: the clues around the grid
+  clue.rs                  # RascacielosClue: a clue drawn as a box with a tip into the grid
+  clue_frame.rs            # RascacielosClueFrame: the clues around the grid
   grid.rs, cell.rs         # Cell widgets (created for 7×7, extra ones hidden)
   grid_layout.rs           # Keeps the board square
   value_picker.rs, earmark_picker.rs, picker_popover.rs
@@ -36,8 +36,8 @@ src/
     solver.rs              # Tiered solver, solution search, initial candidates (no GTK)
     generator.rs           # Puzzle generator and size/difficulty availability (no GTK)
     board.rs               # Play state of a puzzle, JSON saves
-    game.rs                # SudokuGame: undo stack, timer, signals, threaded generation
-    backend.rs             # SudokuBackend: settings, current game, files, highscores
+    game.rs                # RascacielosGame: undo stack, timer, signals, threaded generation
+    backend.rs             # RascacielosBackend: settings, current game, files, highscores
     data.rs                # Highscores per size and difficulty, last selections, print options
     enums.rs               # DifficultyCategory (<-> puzzle::Tier), ZoomLevel, Coord…
 resources/
@@ -59,10 +59,10 @@ build.rs                   # config.rs + metainfo.xml generation, GResource
   and unit tested. `board.rs` wraps a `Puzzle` with the cells being played;
   values and earmarks there are **0-based** (index `h` is height `h + 1`),
   while `Puzzle` and the solver use heights 1..N.
-- `SudokuBackend` owns the GSettings bindings (`pref_*` properties), the
+- `RascacielosBackend` owns the GSettings bindings (`pref_*` properties), the
   current game, save files under `$XDG_DATA_HOME/rascacielos/` and the
-  `SudokuData` file (highscores, last size and difficulty, print options).
-- `SudokuGame` emits `value-changed`, `earmark-changed`, `completed`,
+  `RascacielosData` file (highscores, last size and difficulty, print options).
+- `RascacielosGame` emits `value-changed`, `earmark-changed`, `completed`,
   `tick`, `paused` and `action-completed`. The backend emits `game-changed`
   when a new game starts; widgets reconnect their game hooks then.
 - App actions are in an action group inserted as `app` on the window
@@ -82,7 +82,7 @@ release workflow.
 - **Fixed widget pool**: the grid, clue frame and pickers create widgets for
   the largest size (or 9 for the pickers) and hide the ones beyond the
   current puzzle, instead of rebuilding them on every game.
-- **Generation runs in threads**: `SudokuGame::generate` blocks on all
+- **Generation runs in threads**: `RascacielosGame::generate` blocks on all
   processors; callers on the main thread wrap it in `gio::spawn_blocking`.
 - **Game tests share one `#[test]`**: games start a clock on the default
   main context, which only one thread can own (`lib/game.rs` tests).
@@ -124,7 +124,8 @@ release workflow.
 - Keep the puzzle logic in `src/lib/{puzzle,solver,generator}.rs` free of GTK
 - Draw with GTK (`gtk::Snapshot`, `GskPath`), not cairo directly; the printer
   only uses cairo to hand the render node to the print context
-- Keep the upstream GNOME Sudoku copyright headers in adapted files and add
+- Files adapted from GNOME Sudoku say "This file is part of Rascacielos,
+  based on GNOME Sudoku" and keep the upstream copyright lines; add
   a new copyright line; new files use the Rascacielos header
 - Application icon MUST follow the GNOME HIG palette
 - Keep dependencies minimal and well-justified

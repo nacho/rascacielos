@@ -27,11 +27,11 @@ use adw::subclass::prelude::*;
 use gtk::glib::{self, closure_local};
 use gtk::{Allocation, graphene::Point};
 
-use crate::cell::SudokuCell;
-use crate::clue::SudokuClue;
+use crate::cell::RascacielosCell;
+use crate::clue::RascacielosClue;
 use crate::connect_cb_pref;
-use crate::grid::SudokuGrid;
-use crate::lib::backend::SudokuBackend;
+use crate::grid::RascacielosGrid;
+use crate::lib::backend::RascacielosBackend;
 use crate::lib::enums::CompatValue;
 use crate::lib::puzzle::{ClueConflict, MAX_SIZE, Side};
 
@@ -44,26 +44,26 @@ mod imp {
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuClueFrame {
-        const NAME: &'static str = "SudokuClueFrame";
-        type Type = super::SudokuClueFrame;
+    impl ObjectSubclass for RascacielosClueFrame {
+        const NAME: &'static str = "RascacielosClueFrame";
+        type Type = super::RascacielosClueFrame;
         type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
-            klass.set_css_name("sudoku-clues");
+            klass.set_css_name("rascacielos-clues");
         }
     }
 
-    pub struct SudokuClueFrame {
-        pub grid: OnceCell<SudokuGrid>,
+    pub struct RascacielosClueFrame {
+        pub grid: OnceCell<RascacielosGrid>,
         /// Indexed by `Side::index()`, then by row or column.
-        pub labels: [[SudokuClue; MAX_SIZE]; 4],
-        pub backend: OnceCell<SudokuBackend>,
+        pub labels: [[RascacielosClue; MAX_SIZE]; 4],
+        pub backend: OnceCell<RascacielosBackend>,
     }
 
-    impl Default for SudokuClueFrame {
+    impl Default for RascacielosClueFrame {
         fn default() -> Self {
-            let labels = Side::ALL.map(|side| std::array::from_fn(|_| SudokuClue::new(side)));
+            let labels = Side::ALL.map(|side| std::array::from_fn(|_| RascacielosClue::new(side)));
             Self {
                 grid: Default::default(),
                 labels,
@@ -72,12 +72,12 @@ mod imp {
         }
     }
 
-    impl SudokuClueFrame {
-        pub fn backend(&self) -> &SudokuBackend {
+    impl RascacielosClueFrame {
+        pub fn backend(&self) -> &RascacielosBackend {
             self.backend.get().unwrap()
         }
 
-        pub fn label(&self, side: Side, index: usize) -> &SudokuClue {
+        pub fn label(&self, side: Side, index: usize) -> &RascacielosClue {
             &self.labels[side.index()][index]
         }
 
@@ -129,7 +129,7 @@ mod imp {
             );
         }
 
-        pub fn init(&self, backend: &SudokuBackend) {
+        pub fn init(&self, backend: &RascacielosBackend) {
             self.backend
                 .set(backend.clone())
                 .expect("Clue frame is already initialized");
@@ -140,7 +140,7 @@ mod imp {
                 closure_local!(
                     #[weak(rename_to = frame)]
                     self,
-                    move |_: SudokuBackend| {
+                    move |_: RascacielosBackend| {
                         frame.add_game_hooks();
                         frame.update_clues();
                     }
@@ -154,7 +154,7 @@ mod imp {
         }
 
         /// The bounds of `cell` in frame coordinates.
-        fn cell_bounds(&self, cell: &SudokuCell) -> Allocation {
+        fn cell_bounds(&self, cell: &RascacielosCell) -> Allocation {
             let origin = cell
                 .compute_point(&*self.obj(), &Point::new(0.0, 0.0))
                 .unwrap_or(Point::new(0.0, 0.0));
@@ -167,7 +167,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for SudokuClueFrame {
+    impl ObjectImpl for RascacielosClueFrame {
         fn constructed(&self) {
             self.parent_constructed();
             for side in &self.labels {
@@ -189,7 +189,7 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for SudokuClueFrame {
+    impl WidgetImpl for RascacielosClueFrame {
         fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
             let Some(grid) = self.grid.get() else {
                 return;
@@ -234,21 +234,21 @@ mod imp {
 }
 
 glib::wrapper! {
-    pub struct SudokuClueFrame(ObjectSubclass<imp::SudokuClueFrame>)
+    pub struct RascacielosClueFrame(ObjectSubclass<imp::RascacielosClueFrame>)
         @extends gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl SudokuClueFrame {
+impl RascacielosClueFrame {
     /// A frame around `grid`.
-    pub fn new(grid: &SudokuGrid) -> Self {
+    pub fn new(grid: &RascacielosGrid) -> Self {
         let frame: Self = glib::Object::builder().build();
         grid.insert_after(&frame, gtk::Widget::NONE);
         frame.imp().grid.set(grid.clone()).unwrap();
         frame
     }
 
-    pub fn init(&self, backend: &SudokuBackend) {
+    pub fn init(&self, backend: &RascacielosBackend) {
         self.imp().init(backend);
     }
 }

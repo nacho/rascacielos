@@ -2,7 +2,7 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.0"/>
-  <template class="SudokuStartView" parent="AdwBin">
+  <template class="RascacielosStartView" parent="AdwBin">
     <child>
       <object class="AdwToolbarView">
         <property name="top-bar-style">raised</property>
@@ -27,7 +27,7 @@
               </object>
             </child>
             <child type="end">
-              <object class="SudokuMenuButton" id="menu_button"/>
+              <object class="RascacielosMenuButton" id="menu_button"/>
             </child>
           </object>
         </child>

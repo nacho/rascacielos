@@ -28,7 +28,7 @@ progress and records the hardest one used.
 
 `solve()` succeeding means the solution is unique (every deduction is
 sound). `find_solutions()` is a backtracking search for puzzles beyond the
-tiers; `SudokuGame::solve` grades those as `Custom`.
+tiers; `RascacielosGame::solve` grades those as `Custom`.
 
 ## Generator (`src/lib/generator.rs`)
 

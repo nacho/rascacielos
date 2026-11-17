@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use adw::prelude::*;
@@ -30,16 +31,16 @@ use gtk::{
     glib::{Propagation, Variant, WeakRef, closure_local},
 };
 
-use crate::lib::backend::SudokuBackend;
-use crate::lib::enums::{CompatValue, Coord, SudokuDirection};
-use crate::lib::game::{StackAction, SudokuGame};
+use crate::lib::backend::RascacielosBackend;
+use crate::lib::enums::{CompatValue, Coord, RascacielosDirection};
+use crate::lib::game::{RascacielosGame, StackAction};
 use crate::lib::utils::{new_shortcut, new_shortcut_with_args};
 
-use crate::cell::SudokuCell;
+use crate::cell::RascacielosCell;
 use crate::connect_cb_action;
 use crate::connect_cb_pref;
 use crate::lib::puzzle::MAX_SIZE;
-use crate::picker_popover::SudokuPickerPopover;
+use crate::picker_popover::RascacielosPickerPopover;
 
 use std::cell::{Cell, OnceCell};
 use std::pin::Pin;
@@ -54,42 +55,43 @@ mod imp {
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuGrid {
-        const NAME: &'static str = "SudokuGrid";
-        type Type = super::SudokuGrid;
+    impl ObjectSubclass for RascacielosGrid {
+        const NAME: &'static str = "RascacielosGrid";
+        type Type = super::RascacielosGrid;
         type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
-            klass.set_css_name("sudoku-grid");
+            klass.set_css_name("rascacielos-grid");
             new_shortcut(klass, "grid.escape", "Escape");
 
-            new_shortcut_with_args(klass, "grid.move-up", "w", SudokuDirection::Up);
-            new_shortcut_with_args(klass, "grid.move-down", "s", SudokuDirection::Down);
-            new_shortcut_with_args(klass, "grid.move-left", "a", SudokuDirection::Left);
-            new_shortcut_with_args(klass, "grid.move-right", "d", SudokuDirection::Right);
+            new_shortcut_with_args(klass, "grid.move-up", "w", RascacielosDirection::Up);
+            new_shortcut_with_args(klass, "grid.move-down", "s", RascacielosDirection::Down);
+            new_shortcut_with_args(klass, "grid.move-left", "a", RascacielosDirection::Left);
+            new_shortcut_with_args(klass, "grid.move-right", "d", RascacielosDirection::Right);
         }
     }
 
     /// The cells are created for the largest grid and the ones outside the
     /// current puzzle are hidden.
-    pub struct SudokuGrid {
-        pub cells: [[SudokuCell; MAX_SIZE]; MAX_SIZE],
+    pub struct RascacielosGrid {
+        pub cells: [[RascacielosCell; MAX_SIZE]; MAX_SIZE],
         pub cell_horizontal_separators: [Separator; MAX_SIZE - 1],
         pub cell_vertical_separators: [Separator; MAX_SIZE - 1],
         pub size: Cell<usize>,
         pub focus_controller: WeakRef<EventControllerFocus>,
         pub selected_row: Cell<usize>,
         pub selected_col: Cell<usize>,
-        pub picker_popover: SudokuPickerPopover,
-        pub backend: OnceCell<SudokuBackend>,
+        pub picker_popover: RascacielosPickerPopover,
+        pub backend: OnceCell<RascacielosBackend>,
         pub completed_css_provider: CssProvider,
         pub completed_source_id: Cell<Option<SourceId>>,
     }
 
-    impl Default for SudokuGrid {
+    impl Default for RascacielosGrid {
         fn default() -> Self {
-            let cells: [[SudokuCell; MAX_SIZE]; MAX_SIZE] =
-                std::array::from_fn(|row| std::array::from_fn(|col| SudokuCell::new(row, col)));
+            let cells: [[RascacielosCell; MAX_SIZE]; MAX_SIZE] = std::array::from_fn(|row| {
+                std::array::from_fn(|col| RascacielosCell::new(row, col))
+            });
 
             let cell_horizontal_separators: [Separator; MAX_SIZE - 1] = from_fn(|_| {
                 glib::Object::builder()
@@ -114,18 +116,18 @@ mod imp {
                 selected_row: Cell::new(0),
                 selected_col: Cell::new(0),
                 focus_controller: Default::default(),
-                picker_popover: SudokuPickerPopover::new_unitialized(),
+                picker_popover: RascacielosPickerPopover::new_unitialized(),
                 backend: Default::default(),
             }
         }
     }
 
-    impl SudokuGrid {
-        pub fn selected_cell(&self) -> &SudokuCell {
+    impl RascacielosGrid {
+        pub fn selected_cell(&self) -> &RascacielosCell {
             &self.cells[self.selected_row.get()][self.selected_col.get()]
         }
 
-        fn update_selected(&self, cell: &SudokuCell) {
+        fn update_selected(&self, cell: &RascacielosCell) {
             let old_pos = self.selected_pos();
             if self.selected_cell() != cell {
                 self.selected_cell().unselect();
@@ -141,7 +143,7 @@ mod imp {
         }
 
         fn move_cb(&self, variant: &Variant) {
-            let dir = SudokuDirection::from_variant(variant);
+            let dir = RascacielosDirection::from_variant(variant);
             self.obj().child_focus(dir.unwrap().into());
         }
 
@@ -159,7 +161,7 @@ mod imp {
             self.obj().insert_action_group("grid", Some(&action_group));
         }
 
-        pub fn backend(&self) -> &SudokuBackend {
+        pub fn backend(&self) -> &RascacielosBackend {
             self.backend.get().unwrap()
         }
 
@@ -238,7 +240,7 @@ mod imp {
                 false,
                 closure_local! {
                     #[weak(rename_to = grid)] self,
-                    move |game : SudokuGame, row: i32, col: i32, num: i32, enabled: bool| {
+                    move |game : RascacielosGame, row: i32, col: i32, num: i32, enabled: bool| {
                         let cell = &grid.cells[row as usize][col as usize];
                         let action = game.current_action();
                         if action.is_single_earmarks_change() {
@@ -388,7 +390,7 @@ mod imp {
             }
         }
 
-        pub fn init(&self, backend: &SudokuBackend) {
+        pub fn init(&self, backend: &RascacielosBackend) {
             self.backend
                 .set(backend.clone())
                 .expect("Grid is already initialized");
@@ -407,7 +409,7 @@ mod imp {
                 glib::closure_local!(
                     #[weak(rename_to = grid)]
                     self,
-                    move |_: SudokuBackend| {
+                    move |_: RascacielosBackend| {
                         for row in &grid.cells {
                             for cell in row {
                                 cell.add_game_hooks();
@@ -455,7 +457,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for SudokuGrid {
+    impl ObjectImpl for RascacielosGrid {
         fn constructed(&self) {
             self.parent_constructed();
             self.obj().set_accessible_role(gtk::AccessibleRole::Grid);
@@ -489,7 +491,7 @@ mod imp {
                         closure_local!(
                             #[weak(rename_to = grid)]
                             self,
-                            move |grid_cell: SudokuCell| {
+                            move |grid_cell: RascacielosCell| {
                                 grid.update_selected(&grid_cell);
                             }
                         ),
@@ -501,7 +503,7 @@ mod imp {
                         closure_local!(
                             #[weak(rename_to = grid)]
                             self,
-                            move |grid_cell: SudokuCell| {
+                            move |grid_cell: RascacielosCell| {
                                 grid_cell.set_picker(&grid.picker_popover);
                             }
                         ),
@@ -535,7 +537,7 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for SudokuGrid {
+    impl WidgetImpl for RascacielosGrid {
         fn focus(&self, direction_type: gtk::DirectionType) -> bool {
             use gtk::DirectionType::*;
             match direction_type {
@@ -628,19 +630,19 @@ mod imp {
 }
 
 glib::wrapper! {
-    pub struct SudokuGrid(ObjectSubclass<imp::SudokuGrid>)
+    pub struct RascacielosGrid(ObjectSubclass<imp::RascacielosGrid>)
         @extends gtk::Widget, gtk::Grid,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
-impl SudokuGrid {
+impl RascacielosGrid {
     pub fn new_unitialized() -> Self {
         let grid: Self = glib::Object::builder().build();
 
         grid
     }
 
-    pub fn init(&self, backend: &SudokuBackend) {
+    pub fn init(&self, backend: &RascacielosBackend) {
         self.imp().init(backend);
     }
 
@@ -680,7 +682,10 @@ impl SudokuGrid {
 
         let pos = v[current];
         let s = {
-            ":root {--sudoku-completed-duration: ".to_owned() + &duration.to_string() + "ms" + ";}"
+            ":root {--rascacielos-completed-duration: ".to_owned()
+                + &duration.to_string()
+                + "ms"
+                + ";}"
         };
 
         self.imp().completed_css_provider.load_from_string(&s);

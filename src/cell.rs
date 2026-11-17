@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use adw::prelude::*;
@@ -30,11 +31,13 @@ use gtk::{
     pango::AttrSize,
 };
 
-use crate::lib::backend::SudokuBackend;
+use crate::lib::backend::RascacielosBackend;
 use crate::lib::enums::Coord;
-use crate::lib::game::SudokuGame;
+use crate::lib::game::RascacielosGame;
 use crate::lib::utils::{get_cloned, new_shortcut, new_shortcut_with_args};
-use crate::{connect_cb_action, connect_cb_action_with_arg, picker_popover::SudokuPickerPopover};
+use crate::{
+    connect_cb_action, connect_cb_action_with_arg, picker_popover::RascacielosPickerPopover,
+};
 use std::{
     cell::{Cell, OnceCell},
     sync::OnceLock,
@@ -46,13 +49,13 @@ mod imp {
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuCell {
-        const NAME: &'static str = "SudokuCell";
-        type Type = super::SudokuCell;
+    impl ObjectSubclass for RascacielosCell {
+        const NAME: &'static str = "RascacielosCell";
+        type Type = super::RascacielosCell;
         type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
-            klass.set_css_name("sudoku-cell");
+            klass.set_css_name("rascacielos-cell");
             new_shortcut_with_args(klass, "cell.show-picker", "Return|KP_Enter|space", true);
             new_shortcut_with_args(
                 klass,
@@ -75,8 +78,8 @@ mod imp {
     }
 
     #[derive(Properties)]
-    #[properties(wrapper_type = super::SudokuCell)]
-    pub struct SudokuCell {
+    #[properties(wrapper_type = super::RascacielosCell)]
+    pub struct RascacielosCell {
         pub insert_earmark_action: SimpleAction,
         pub insert_value_action: SimpleAction,
         pub show_picker_action: SimpleAction,
@@ -86,18 +89,18 @@ mod imp {
         pub earmark_hide_animations: [adw::TimedAnimation; 9],
         pub insert_value_closure_id: Cell<Option<SignalHandlerId>>,
         pub insert_earmark_closure_id: Cell<Option<SignalHandlerId>>,
-        pub backend: OnceCell<SudokuBackend>,
-        pub picker_popover: Cell<Option<SudokuPickerPopover>>,
+        pub backend: OnceCell<RascacielosBackend>,
+        pub picker_popover: Cell<Option<RascacielosPickerPopover>>,
         #[property(get, set)]
         pub accented: Cell<bool>,
         pub selected: Cell<bool>,
         pub position: OnceCell<Coord>,
     }
 
-    impl Default for SudokuCell {
+    impl Default for RascacielosCell {
         fn default() -> Self {
             let value_label: gtk::Label = glib::Object::builder()
-                .property("css-name", "sudoku-value")
+                .property("css-name", "rascacielos-value")
                 .build();
 
             value_label.add_css_class("numeric");
@@ -105,7 +108,7 @@ mod imp {
             let earmark_labels: [_; 9] = std::array::from_fn(|num| {
                 let earmark_label: gtk::Label = glib::Object::builder()
                     .property("label", (num + 1).to_string())
-                    .property("css-name", "sudoku-earmark")
+                    .property("css-name", "rascacielos-earmark")
                     .build();
 
                 earmark_label.add_css_class("numeric");
@@ -147,7 +150,7 @@ mod imp {
         }
     }
 
-    impl SudokuCell {
+    impl RascacielosCell {
         pub fn init(&self) {
             self.backend().connect_earmark_mode_notify(glib::clone!(
                 #[weak(rename_to = cell)]
@@ -237,7 +240,7 @@ mod imp {
             }
         }
 
-        pub fn backend(&self) -> &SudokuBackend {
+        pub fn backend(&self) -> &RascacielosBackend {
             self.backend.get().unwrap()
         }
 
@@ -326,7 +329,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for SudokuCell {
+    impl ObjectImpl for RascacielosCell {
         fn constructed(&self) {
             self.parent_constructed();
             self.setup_actions();
@@ -371,7 +374,7 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for SudokuCell {
+    impl WidgetImpl for RascacielosCell {
         fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
             let value_label = &self.value_label;
             if value_label.is_visible() {
@@ -430,12 +433,12 @@ mod imp {
 }
 
 glib::wrapper! {
-    pub struct SudokuCell(ObjectSubclass<imp::SudokuCell>)
+    pub struct RascacielosCell(ObjectSubclass<imp::RascacielosCell>)
         @extends gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl SudokuCell {
+impl RascacielosCell {
     pub fn new(row: usize, col: usize) -> Self {
         let cell: Self = glib::Object::builder().property("focusable", true).build();
 
@@ -445,7 +448,7 @@ impl SudokuCell {
 
     pub fn set_font_sizes(&self, height: i32) {
         if self.imp().value_label.is_visible() {
-            imp::SudokuCell::set_font_size(
+            imp::RascacielosCell::set_font_size(
                 &self.imp().value_label,
                 (height as f64 * self.imp().backend().pref_zoom().to_value_multiplier()) as i32,
             );
@@ -453,7 +456,7 @@ impl SudokuCell {
 
         for earmark in &self.imp().earmark_labels {
             if earmark.is_visible() {
-                imp::SudokuCell::set_font_size(
+                imp::RascacielosCell::set_font_size(
                     earmark,
                     (height as f64 * self.imp().backend().pref_zoom().to_earmark_multiplier())
                         as i32,
@@ -462,7 +465,7 @@ impl SudokuCell {
         }
     }
 
-    pub fn init(&self, backend: &SudokuBackend) {
+    pub fn init(&self, backend: &RascacielosBackend) {
         self.imp()
             .backend
             .set(backend.clone())
@@ -471,7 +474,7 @@ impl SudokuCell {
         self.add_game_hooks();
     }
 
-    pub fn set_picker(&self, picker: &SudokuPickerPopover) {
+    pub fn set_picker(&self, picker: &RascacielosPickerPopover) {
         self.imp().picker_popover.set(Some(picker.clone()));
     }
 
@@ -577,7 +580,7 @@ impl SudokuCell {
             glib::closure_local!(
                 #[weak(rename_to = cell)]
                 self,
-                move |_: SudokuGame, paused: bool| {
+                move |_: RascacielosGame, paused: bool| {
                     cell.imp().set_actions(!paused);
                     if paused {
                         cell.add_css_class("paused");

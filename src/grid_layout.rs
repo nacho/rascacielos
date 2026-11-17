@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use adw::prelude::*;
@@ -30,19 +31,19 @@ mod imp {
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuGridLayout {
-        const NAME: &'static str = "SudokuGridLayout";
-        type Type = super::SudokuGridLayout;
+    impl ObjectSubclass for RascacielosGridLayout {
+        const NAME: &'static str = "RascacielosGridLayout";
+        type Type = super::RascacielosGridLayout;
         type ParentType = gtk::LayoutManager;
     }
 
-    pub struct SudokuGridLayout {
+    pub struct RascacielosGridLayout {
         margin_default_size: i32,
         margin_small_size: i32,
         margin_size_diff: i32,
     }
 
-    impl Default for SudokuGridLayout {
+    impl Default for RascacielosGridLayout {
         fn default() -> Self {
             const DEF: i32 = 25;
             const SMALL: i32 = 10;
@@ -55,12 +56,12 @@ mod imp {
         }
     }
 
-    impl SudokuGridLayout {
+    impl RascacielosGridLayout {
         fn calc_align(&self, size: i32) -> i32 {
             if size > config::MEDIUM_WINDOW_WIDTH {
                 self.margin_default_size
             } else {
-                let factor = SudokuGridLayout::normalize(
+                let factor = RascacielosGridLayout::normalize(
                     size,
                     config::SMALL_WINDOW_WIDTH,
                     config::MEDIUM_WINDOW_WIDTH,
@@ -75,7 +76,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for SudokuGridLayout {
+    impl ObjectImpl for RascacielosGridLayout {
         fn constructed(&self) {
             self.parent_constructed();
         }
@@ -85,7 +86,7 @@ mod imp {
         }
     }
 
-    impl LayoutManagerImpl for SudokuGridLayout {
+    impl LayoutManagerImpl for RascacielosGridLayout {
         fn measure(&self, widget: &Widget, _: Orientation, _: i32) -> (i32, i32, i32, i32) {
             let minimum: i32;
             let natural: i32;
@@ -132,11 +133,11 @@ mod imp {
 }
 
 glib::wrapper! {
-    pub struct SudokuGridLayout(ObjectSubclass<imp::SudokuGridLayout>)
+    pub struct RascacielosGridLayout(ObjectSubclass<imp::RascacielosGridLayout>)
         @extends gtk::LayoutManager;
 }
 
-impl SudokuGridLayout {
+impl RascacielosGridLayout {
     pub fn new() -> Self {
         let grid_layout: Self = Object::builder().build();
 

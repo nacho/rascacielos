@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use adw::prelude::*;
@@ -32,14 +33,14 @@ use gtk::{
     pango::AttrSize,
 };
 
-use crate::clue_frame::SudokuClueFrame;
-use crate::grid::SudokuGrid;
-use crate::grid_layout::SudokuGridLayout;
-use crate::lib::backend::SudokuBackend;
+use crate::clue_frame::RascacielosClueFrame;
+use crate::grid::RascacielosGrid;
+use crate::grid_layout::RascacielosGridLayout;
+use crate::lib::backend::RascacielosBackend;
 use crate::lib::enums::DifficultyCategory;
-use crate::lib::game::{StackAction, SudokuGame};
+use crate::lib::game::{RascacielosGame, StackAction};
 use crate::lib::utils::new_shortcut;
-use crate::menu_button::SudokuMenuButton;
+use crate::menu_button::RascacielosMenuButton;
 use crate::{connect_cb_pref, create_cb_entry};
 
 use std::cell::OnceCell;
@@ -52,9 +53,9 @@ mod imp {
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuGameView {
-        const NAME: &'static str = "SudokuGameView";
-        type Type = super::SudokuGameView;
+    impl ObjectSubclass for RascacielosGameView {
+        const NAME: &'static str = "RascacielosGameView";
+        type Type = super::RascacielosGameView;
         type ParentType = adw::BreakpointBin;
 
         fn class_init(klass: &mut Self::Class) {
@@ -76,7 +77,7 @@ mod imp {
 
     #[derive(CompositeTemplate)]
     #[template(resource = "/io/github/nacho/rascacielos/ui/game-view.ui")]
-    pub struct SudokuGameView {
+    pub struct RascacielosGameView {
         undo_action: SimpleAction,
         redo_action: SimpleAction,
         reset_board_action: SimpleAction,
@@ -85,9 +86,9 @@ mod imp {
         is_vertical: Cell<bool>,
         width_is_small: Cell<bool>,
 
-        pub grid: SudokuGrid,
-        pub clue_frame: SudokuClueFrame,
-        pub backend: OnceCell<SudokuBackend>,
+        pub grid: RascacielosGrid,
+        pub clue_frame: RascacielosClueFrame,
+        pub backend: OnceCell<RascacielosBackend>,
 
         #[template_child]
         pub top_headerbar: TemplateChild<adw::HeaderBar>,
@@ -104,7 +105,7 @@ mod imp {
         #[template_child]
         bottom_headerbar: TemplateChild<adw::HeaderBar>,
         #[template_child]
-        menu_button: TemplateChild<SudokuMenuButton>,
+        menu_button: TemplateChild<RascacielosMenuButton>,
         #[template_child]
         undo_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -131,9 +132,9 @@ mod imp {
         paused_label: TemplateChild<gtk::Label>,
     }
 
-    impl Default for SudokuGameView {
+    impl Default for RascacielosGameView {
         fn default() -> Self {
-            let grid = SudokuGrid::new_unitialized();
+            let grid = RascacielosGrid::new_unitialized();
             Self {
                 is_vertical: Default::default(),
                 width_is_small: Default::default(),
@@ -142,7 +143,7 @@ mod imp {
                 reset_board_action: SimpleAction::new("reset-board", None),
                 toggle_pause_action: SimpleAction::new("toggle-pause", None),
                 grid: grid.clone(),
-                clue_frame: SudokuClueFrame::new(&grid),
+                clue_frame: RascacielosClueFrame::new(&grid),
                 backend: Default::default(),
                 top_headerbar: Default::default(),
                 grid_overlay: Default::default(),
@@ -168,8 +169,8 @@ mod imp {
         }
     }
 
-    impl SudokuGameView {
-        pub fn init(&self, backend: &SudokuBackend) {
+    impl RascacielosGameView {
+        pub fn init(&self, backend: &RascacielosBackend) {
             let window: gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
             self.backend
                 .set(backend.clone())
@@ -243,7 +244,7 @@ mod imp {
                 glib::closure_local!(
                     #[weak(rename_to = game_view)]
                     self,
-                    move |backend: SudokuBackend| {
+                    move |backend: RascacielosBackend| {
                         game_view.add_game_hooks();
                         game_view.initialize_buttons();
                         game_view.initialize_clock_label();
@@ -360,7 +361,7 @@ mod imp {
                 .insert_action_group("game-view", Some(&action_group));
         }
 
-        pub fn backend(&self) -> &SudokuBackend {
+        pub fn backend(&self) -> &RascacielosBackend {
             self.backend.get().unwrap()
         }
 
@@ -602,7 +603,7 @@ mod imp {
                 false,
                 closure_local! {
                     #[weak(rename_to = game_view)] self,
-                    move |game : SudokuGame, _: StackAction| {
+                    move |game : RascacielosGame, _: StackAction| {
                         game_view.undo_action.set_enabled (!game.is_undostack_null ());
                         game_view.redo_action.set_enabled (!game.is_redostack_null ());
                         game_view.reset_board_action.set_enabled (!game.board().is_empty());
@@ -664,12 +665,12 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for SudokuGameView {
+    impl ObjectImpl for RascacielosGameView {
         fn constructed(&self) {
             self.parent_constructed();
             self.grid_overlay.set_child(Some(&self.clue_frame));
 
-            let grid_layout = SudokuGridLayout::new();
+            let grid_layout = RascacielosGridLayout::new();
             self.grid_bin.set_layout_manager(Some(grid_layout));
 
             self.menu_button
@@ -689,7 +690,7 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for SudokuGameView {
+    impl WidgetImpl for RascacielosGameView {
         fn grab_focus(&self) -> bool {
             self.obj().grid().grab_focus()
         }
@@ -707,20 +708,20 @@ mod imp {
             self.parent_size_allocate(width, height, baseline);
         }
     }
-    impl BinImpl for SudokuGameView {}
-    impl BreakpointBinImpl for SudokuGameView {}
+    impl BinImpl for RascacielosGameView {}
+    impl BreakpointBinImpl for RascacielosGameView {}
 }
 
 glib::wrapper! {
-    pub struct SudokuGameView(ObjectSubclass<imp::SudokuGameView>)
+    pub struct RascacielosGameView(ObjectSubclass<imp::RascacielosGameView>)
         @extends gtk::Widget, adw::Bin, adw::BreakpointBin,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl SudokuGameView {
+impl RascacielosGameView {
     //this is separated as the backend is required for functionality and its reference can't be initialized
     //during gobject construction
-    pub fn init(&self, backend: &SudokuBackend) {
+    pub fn init(&self, backend: &RascacielosBackend) {
         self.imp().init(backend);
     }
 
@@ -732,7 +733,7 @@ impl SudokuGameView {
         self.imp().grid.cancel_completed_animation();
     }
 
-    pub fn grid(&self) -> &SudokuGrid {
+    pub fn grid(&self) -> &RascacielosGrid {
         &self.imp().grid
     }
 }

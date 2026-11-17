@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use adw::prelude::*;
@@ -33,20 +34,20 @@ use std::cell::{Cell, OnceCell, RefCell};
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::lib::backend::SudokuBackend;
+use crate::lib::backend::RascacielosBackend;
 use crate::lib::enums::DifficultyCategory;
 use crate::lib::generator;
 use crate::lib::puzzle::Tier;
 use crate::lib::utils::new_shortcut;
-use crate::menu_button::SudokuMenuButton;
+use crate::menu_button::RascacielosMenuButton;
 
 mod imp {
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuStartView {
-        const NAME: &'static str = "SudokuStartView";
-        type Type = super::SudokuStartView;
+    impl ObjectSubclass for RascacielosStartView {
+        const NAME: &'static str = "RascacielosStartView";
+        type Type = super::RascacielosStartView;
         type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
@@ -56,15 +57,15 @@ mod imp {
         }
 
         fn instance_init(obj: &InitializingObject<Self>) {
-            SudokuMenuButton::ensure_type();
+            RascacielosMenuButton::ensure_type();
             obj.init_template();
         }
     }
 
     #[derive(Default, CompositeTemplate)]
     #[template(resource = "/io/github/nacho/rascacielos/ui/start-view.ui")]
-    pub struct SudokuStartView {
-        pub backend: OnceCell<SudokuBackend>,
+    pub struct RascacielosStartView {
+        pub backend: OnceCell<RascacielosBackend>,
         pub clipboard_handle: Cell<Option<SignalHandlerId>>,
         pub clipboard: OnceCell<Clipboard>,
         pub clipboard_string: RefCell<String>,
@@ -99,7 +100,7 @@ mod imp {
     }
 
     #[gtk::template_callbacks]
-    impl SudokuStartView {
+    impl RascacielosStartView {
         #[template_callback]
         fn size_changed_cb(&self) {
             let Some(backend) = self.backend.get() else {
@@ -282,7 +283,7 @@ mod imp {
             }
         }
 
-        pub fn init(&self, backend: &SudokuBackend) {
+        pub fn init(&self, backend: &RascacielosBackend) {
             self.backend
                 .set(backend.clone())
                 .expect("Start View is already initialized");
@@ -330,25 +331,25 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for SudokuStartView {
+    impl ObjectImpl for RascacielosStartView {
         fn constructed(&self) {
             self.parent_constructed();
             self.very_hard_check.set_active(true);
         }
     }
 
-    impl WidgetImpl for SudokuStartView {}
-    impl BinImpl for SudokuStartView {}
+    impl WidgetImpl for RascacielosStartView {}
+    impl BinImpl for RascacielosStartView {}
 }
 
 glib::wrapper! {
-    pub struct SudokuStartView(ObjectSubclass<imp::SudokuStartView>)
+    pub struct RascacielosStartView(ObjectSubclass<imp::RascacielosStartView>)
         @extends gtk::Widget, adw::Bin,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl SudokuStartView {
-    pub fn init(&self, backend: &SudokuBackend) {
+impl RascacielosStartView {
+    pub fn init(&self, backend: &RascacielosBackend) {
         self.imp().init(backend);
     }
 

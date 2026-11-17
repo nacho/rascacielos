@@ -93,23 +93,23 @@ fn open_every_dialog() {
 #[test]
 #[ignore = "needs a display"]
 fn print_to_pdf() {
-    use crate::lib::board::SudokuBoard;
+    use crate::lib::board::RascacielosBoard;
     use crate::lib::enums::DifficultyCategory;
-    use crate::lib::game::SudokuGame;
-    use crate::printer::SudokuPrinter;
+    use crate::lib::game::RascacielosGame;
+    use crate::printer::RascacielosPrinter;
 
     gtk::init().unwrap();
     for size in [4, 7] {
         for per_page in [1, 4] {
-            let boards = SudokuGame::generate(size, DifficultyCategory::Hard, 4)
+            let boards = RascacielosGame::generate(size, DifficultyCategory::Hard, 4)
                 .into_iter()
                 .map(|(puzzle, solution)| {
-                    SudokuBoard::from_generated(puzzle, &solution, DifficultyCategory::Hard)
+                    RascacielosBoard::from_generated(puzzle, &solution, DifficultyCategory::Hard)
                 })
                 .collect();
             let path =
                 std::env::temp_dir().join(format!("rascacielos-{size}x{size}-{per_page}.pdf"));
-            let printer = SudokuPrinter::new(boards, per_page);
+            let printer = RascacielosPrinter::new(boards, per_page);
             assert_eq!(
                 printer.export_pdf(path.to_str().unwrap()),
                 gtk::PrintOperationResult::Apply

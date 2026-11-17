@@ -2,7 +2,7 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.0"/>
-  <object class="AdwShortcutsDialog" id="SudokuShortcutsDialog">
+  <object class="AdwShortcutsDialog" id="RascacielosShortcutsDialog">
     <child>
       <object class="AdwShortcutsSection">
         <property name="title" translatable="yes" context="Shortcuts Window">Game</property>

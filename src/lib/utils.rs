@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use std::cell::Cell;
@@ -106,7 +107,7 @@ macro_rules! connect_cb_action_with_arg {
 ///
 /// `clone()` must not access the `Cell` the value is stored in.
 pub unsafe trait CloneFromCell: Clone {}
-unsafe impl CloneFromCell for picker_popover::SudokuPickerPopover {}
+unsafe impl CloneFromCell for picker_popover::RascacielosPickerPopover {}
 unsafe impl<T: CloneFromCell> CloneFromCell for Option<T> {}
 /// Get a clone of the `Cell` that contains a copy of the original value.
 ///

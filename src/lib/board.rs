@@ -32,14 +32,14 @@ use crate::lib::puzzle::{
 };
 use crate::lib::solver;
 
-//You should never be interacting with SudokuBoard directly
-//everything goes through SudokuGame and SudokuBackend
+//You should never be interacting with RascacielosBoard directly
+//everything goes through RascacielosGame and RascacielosBackend
 //
 //Values and earmarks are 0-based: index h holds the building of height h + 1.
 #[derive(Clone, Debug)]
-pub struct SudokuBoard {
+pub struct RascacielosBoard {
     puzzle: Puzzle,
-    pub cells: Vec<Vec<SudokuBoardCell>>,
+    pub cells: Vec<Vec<RascacielosBoardCell>>,
     pub total_fixed: usize,
     total_earmarks: Cell<usize>,
     pub total_filled: Cell<usize>,
@@ -57,7 +57,7 @@ pub struct SudokuBoard {
 }
 
 #[derive(Default, Clone, Debug)]
-pub struct SudokuBoardCell {
+pub struct RascacielosBoardCell {
     pub value: Cell<Option<usize>>,
     pub earmarks: Vec<Cell<bool>>,
 
@@ -67,14 +67,14 @@ pub struct SudokuBoardCell {
     pub aligned_coords: Vec<Coord>,
 }
 
-impl SudokuBoard {
+impl RascacielosBoard {
     /// An empty board for `puzzle`, with its given cells filled and fixed.
     pub fn new(puzzle: Puzzle) -> Self {
         let n = puzzle.size();
         let cells = (0..n)
             .map(|row| {
                 (0..n)
-                    .map(|col| SudokuBoardCell {
+                    .map(|col| RascacielosBoardCell {
                         earmarks: vec![Cell::new(false); n],
                         aligned_coords: (0..n)
                             .map(|c| Coord { row, col: c })
@@ -164,7 +164,7 @@ impl SudokuBoard {
         self.total_filled.get() == self.total_fixed && self.total_earmarks.get() == 0
     }
 
-    pub fn cell(&self, pos: Coord) -> &SudokuBoardCell {
+    pub fn cell(&self, pos: Coord) -> &RascacielosBoardCell {
         &self.cells[pos.row][pos.col]
     }
 
@@ -298,12 +298,12 @@ impl SudokuBoard {
     }
 
     pub fn to_json(&self, elapsed_time: f64) -> String {
-        let json_board = JsonBoard::from_sudoku_board(self, elapsed_time);
+        let json_board = JsonBoard::from_board(self, elapsed_time);
         serde_json::to_string_pretty(&json_board).unwrap()
     }
 
-    pub fn from_json(path: &str) -> Result<Self, SudokuError> {
-        use SudokuError::{self as e};
+    pub fn from_json(path: &str) -> Result<Self, RascacielosError> {
+        use RascacielosError::{self as e};
         let file = std::fs::read_to_string(path)?;
         let b: JsonBoard = serde_json::from_str(file.as_str())?;
         e::true_or_error(b.version == JSON_VERSION)?;
@@ -351,7 +351,7 @@ impl SudokuBoard {
     }
 
     /// Parses the text format of `Puzzle::to_text`.
-    pub fn from_string(s: &str) -> Result<Self, SudokuError> {
+    pub fn from_string(s: &str) -> Result<Self, RascacielosError> {
         Ok(Self::new(Puzzle::from_text(s)?))
     }
 
@@ -376,7 +376,7 @@ impl SudokuBoard {
             .to_share_code(self.difficulty_category.to_tier())
     }
 
-    pub fn from_ascii(s: &str) -> Result<SudokuBoard, SudokuError> {
+    pub fn from_ascii(s: &str) -> Result<RascacielosBoard, RascacielosError> {
         let (puzzle, _) = Puzzle::from_share_code(s)?;
         Ok(Self::new(puzzle))
     }
@@ -419,7 +419,7 @@ struct JsonCell {
 }
 
 impl JsonBoard {
-    fn from_sudoku_board(board: &SudokuBoard, elapsed_time: f64) -> JsonBoard {
+    fn from_board(board: &RascacielosBoard, elapsed_time: f64) -> JsonBoard {
         let n = board.size();
         let mut cells: Vec<_> = Vec::with_capacity(n * n);
         for row in 0..n {
@@ -453,7 +453,7 @@ impl JsonBoard {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum SudokuError {
+pub enum RascacielosError {
     FileNotFound,
     InvalidPuzzle,
     MultipleSolutions,
@@ -461,45 +461,45 @@ pub enum SudokuError {
     InvalidSharedPuzzle,
 }
 
-impl fmt::Display for SudokuError {
+impl fmt::Display for RascacielosError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SudokuError::FileNotFound => write!(f, "Save Not Found"),
-            SudokuError::InvalidPuzzle => write!(f, "Invalid Puzzle"),
-            SudokuError::InvalidSharedPuzzle => write!(f, "Invalid Shared Puzzle Format"),
-            SudokuError::MultipleSolutions => write!(f, "Invalid Puzzle: Multiple solutions"),
-            SudokuError::InvalidSaveData => write!(f, "Invalid Saved Puzzle"),
+            RascacielosError::FileNotFound => write!(f, "Save Not Found"),
+            RascacielosError::InvalidPuzzle => write!(f, "Invalid Puzzle"),
+            RascacielosError::InvalidSharedPuzzle => write!(f, "Invalid Shared Puzzle Format"),
+            RascacielosError::MultipleSolutions => write!(f, "Invalid Puzzle: Multiple solutions"),
+            RascacielosError::InvalidSaveData => write!(f, "Invalid Saved Puzzle"),
         }
     }
 }
 
-impl SudokuError {
-    pub fn true_or_error(var: bool) -> Result<bool, SudokuError> {
+impl RascacielosError {
+    pub fn true_or_error(var: bool) -> Result<bool, RascacielosError> {
         if var {
             Ok(var)
         } else {
-            Err(SudokuError::InvalidSaveData)
+            Err(RascacielosError::InvalidSaveData)
         }
     }
 }
 
-impl From<std::io::Error> for SudokuError {
+impl From<std::io::Error> for RascacielosError {
     fn from(_: std::io::Error) -> Self {
-        SudokuError::FileNotFound
+        RascacielosError::FileNotFound
     }
 }
 
-impl From<serde_json::Error> for SudokuError {
+impl From<serde_json::Error> for RascacielosError {
     fn from(_: serde_json::Error) -> Self {
-        SudokuError::InvalidSaveData
+        RascacielosError::InvalidSaveData
     }
 }
 
-impl From<PuzzleError> for SudokuError {
+impl From<PuzzleError> for RascacielosError {
     fn from(e: PuzzleError) -> Self {
         match e {
-            PuzzleError::ShareCode => SudokuError::InvalidSharedPuzzle,
-            _ => SudokuError::InvalidPuzzle,
+            PuzzleError::ShareCode => RascacielosError::InvalidSharedPuzzle,
+            _ => RascacielosError::InvalidPuzzle,
         }
     }
 }
@@ -515,11 +515,11 @@ mod tests {
         3, 4, 1, 2, //
     ];
 
-    fn board() -> SudokuBoard {
+    fn board() -> RascacielosBoard {
         let mut puzzle = Puzzle::from_solution(4, &SOLUTION).unwrap();
         puzzle.set_clue(Side::Top, 2, None);
         puzzle.set_given(0, 0, Some(1));
-        SudokuBoard::from_generated(puzzle, &SOLUTION, DifficultyCategory::Medium)
+        RascacielosBoard::from_generated(puzzle, &SOLUTION, DifficultyCategory::Medium)
     }
 
     fn pos(row: usize, col: usize) -> Coord {
@@ -541,7 +541,7 @@ mod tests {
     fn duplicates_break_rows_and_columns() {
         let board = board();
         board.insert(pos(0, 2), 0);
-        let broken = |b: &SudokuBoard| b.broken_coords.borrow().clone();
+        let broken = |b: &RascacielosBoard| b.broken_coords.borrow().clone();
         assert_eq!(broken(&board), HashSet::from([pos(0, 0), pos(0, 2)]));
         board.insert(pos(3, 2), 0);
         assert_eq!(
@@ -576,7 +576,7 @@ mod tests {
         // Swapping heights 1 and 3 in rows 0 and 3 keeps a Latin square but
         // breaks the clues.
         let puzzle = Puzzle::from_solution(4, &SOLUTION).unwrap();
-        let board = SudokuBoard::from_generated(puzzle, &SOLUTION, DifficultyCategory::Medium);
+        let board = RascacielosBoard::from_generated(puzzle, &SOLUTION, DifficultyCategory::Medium);
         let mut swapped = SOLUTION;
         for i in [0, 2, 12, 14] {
             swapped[i] = 4 - swapped[i];
@@ -630,7 +630,7 @@ mod tests {
         let path =
             std::env::temp_dir().join(format!("rascacielos-test-{}.json", std::process::id()));
         std::fs::write(&path, board.to_json(12.0)).unwrap();
-        let loaded = SudokuBoard::from_json(path.to_str().unwrap());
+        let loaded = RascacielosBoard::from_json(path.to_str().unwrap());
         std::fs::remove_file(&path).unwrap();
         let loaded = loaded.unwrap();
         assert_eq!(loaded.puzzle(), board.puzzle());
@@ -655,12 +655,12 @@ mod tests {
             good.replace("\"value\": 1,", "\"value\": 5,"),
         ] {
             std::fs::write(&path, bad).unwrap();
-            assert!(SudokuBoard::from_json(path.to_str().unwrap()).is_err());
+            assert!(RascacielosBoard::from_json(path.to_str().unwrap()).is_err());
         }
         std::fs::remove_file(&path).unwrap();
         assert_eq!(
-            SudokuBoard::from_json("/nonexistent/rascacielos").err(),
-            Some(SudokuError::FileNotFound)
+            RascacielosBoard::from_json("/nonexistent/rascacielos").err(),
+            Some(RascacielosError::FileNotFound)
         );
     }
 
@@ -670,12 +670,12 @@ mod tests {
         let code = board.fixed_to_ascii();
         assert!(code.starts_with("#R4m"));
         assert_eq!(
-            SudokuBoard::from_ascii(&code).unwrap().puzzle(),
+            RascacielosBoard::from_ascii(&code).unwrap().puzzle(),
             board.puzzle()
         );
         let text = board.fixed_to_string_pretty();
         assert_eq!(
-            SudokuBoard::from_string(&text).unwrap().puzzle(),
+            RascacielosBoard::from_string(&text).unwrap().puzzle(),
             board.puzzle()
         );
         assert!(!board.fixed_to_string().contains('#'));

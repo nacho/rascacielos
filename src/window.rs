@@ -1,21 +1,22 @@
 /* -*- Mode: rust; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
  * Copyright © 2026 Johan GAY
+ * Copyright © 2026 Ignacio Casal Quinteiro
  *
- * This file is part of GNOME Sudoku.
+ * This file is part of Rascacielos, based on GNOME Sudoku.
  *
- * GNOME Sudoku is free software: you can redistribute it and/or modify
+ * Rascacielos is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GNOME Sudoku is distributed in the hope that it will be useful,
+ * Rascacielos is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
+ * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
 use adw::StyleManager;
@@ -24,14 +25,14 @@ use adw::subclass::prelude::*;
 
 use crate::config;
 use crate::game;
-use crate::game_view::SudokuGameView;
-use crate::lib::backend::SudokuBackend;
+use crate::game_view::RascacielosGameView;
+use crate::lib::backend::RascacielosBackend;
 use crate::lib::enums::ZoomLevel;
 use crate::lib::utils::new_shortcut;
-use crate::start_view::SudokuStartView;
+use crate::start_view::RascacielosStartView;
 use crate::{
-    connect_cb_action, create_cb_entry, preferences_dialog::SudokuPreferencesDialog,
-    print_generator_dialog::SudokuPrintGeneratorDialog,
+    connect_cb_action, create_cb_entry, preferences_dialog::RascacielosPreferencesDialog,
+    print_generator_dialog::RascacielosPrintGeneratorDialog,
 };
 
 use gtk::gio;
@@ -51,9 +52,9 @@ mod imp {
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for SudokuWindow {
-        const NAME: &'static str = "SudokuWindow";
-        type Type = super::SudokuWindow;
+    impl ObjectSubclass for RascacielosWindow {
+        const NAME: &'static str = "RascacielosWindow";
+        type Type = super::RascacielosWindow;
         type ParentType = adw::ApplicationWindow;
 
         fn class_init(klass: &mut Self::Class) {
@@ -78,15 +79,15 @@ mod imp {
         }
 
         fn instance_init(obj: &InitializingObject<Self>) {
-            SudokuStartView::ensure_type();
-            SudokuGameView::ensure_type();
+            RascacielosStartView::ensure_type();
+            RascacielosGameView::ensure_type();
             obj.init_template();
         }
     }
 
     #[derive(CompositeTemplate)]
     #[template(resource = "/io/github/nacho/rascacielos/ui/window.ui")]
-    pub struct SudokuWindow {
+    pub struct RascacielosWindow {
         pub visible_dialogue_type: Cell<Option<Type>>,
         pub print_multiple_action: SimpleAction,
         pub new_game_action: SimpleAction,
@@ -95,18 +96,18 @@ mod imp {
         pub zoom_out_action: SimpleAction,
         pub accent_provider: CssProvider,
         pub style_manager: StyleManager,
-        pub backend: OnceCell<SudokuBackend>,
+        pub backend: OnceCell<RascacielosBackend>,
         #[template_child]
-        pub start_view: TemplateChild<SudokuStartView>,
+        pub start_view: TemplateChild<RascacielosStartView>,
         #[template_child]
-        pub game_view: TemplateChild<SudokuGameView>,
+        pub game_view: TemplateChild<RascacielosGameView>,
         #[template_child]
         pub view_stack: TemplateChild<adw::ViewStack>,
         #[template_child]
         pub settings: TemplateChild<gio::Settings>,
     }
 
-    impl ObjectImpl for SudokuWindow {
+    impl ObjectImpl for RascacielosWindow {
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -172,9 +173,9 @@ mod imp {
         }
     }
 
-    impl Default for SudokuWindow {
+    impl Default for RascacielosWindow {
         fn default() -> Self {
-            SudokuWindow {
+            RascacielosWindow {
                 style_manager: StyleManager::default(),
                 accent_provider: CssProvider::new(),
                 new_game_action: SimpleAction::new("new-game", None),
@@ -192,8 +193,8 @@ mod imp {
         }
     }
 
-    impl SudokuWindow {
-        pub fn init(&self, backend: &SudokuBackend) {
+    impl RascacielosWindow {
+        pub fn init(&self, backend: &RascacielosBackend) {
             self.backend
                 .set(backend.clone())
                 .expect("Window is already initialized");
@@ -210,7 +211,7 @@ mod imp {
                 glib::closure_local!(
                     #[weak(rename_to = win)]
                     self,
-                    move |_: SudokuBackend| {
+                    move |_: RascacielosBackend| {
                         if !win.game_view.initialized() {
                             win.game_view.init(win.backend());
                         }
@@ -276,19 +277,19 @@ mod imp {
         }
 
         fn preferences_dialog_cb(&self) {
-            let preferences_dialog = SudokuPreferencesDialog::new(self.backend());
+            let preferences_dialog = RascacielosPreferencesDialog::new(self.backend());
             preferences_dialog.present(Some(self.obj().as_ref()));
         }
 
         fn print_generator_dialog_cb(&self) {
-            let print_generator_dialog = SudokuPrintGeneratorDialog::new(self.backend());
+            let print_generator_dialog = RascacielosPrintGeneratorDialog::new(self.backend());
             print_generator_dialog.present(Some(self.obj().as_ref()));
         }
 
         fn shortcuts_dialog_cb(&self) {
             let shortcuts_dialog: adw::ShortcutsDialog =
                 gtk::Builder::from_resource("/io/github/nacho/rascacielos/ui/shortcuts-dialog.ui")
-                    .object("SudokuShortcutsDialog")
+                    .object("RascacielosShortcutsDialog")
                     .unwrap();
             shortcuts_dialog.present(Some(self.obj().as_ref()));
         }
@@ -317,7 +318,7 @@ mod imp {
             self.show_start_view();
         }
 
-        pub fn backend(&self) -> &SudokuBackend {
+        pub fn backend(&self) -> &RascacielosBackend {
             self.backend.get().unwrap()
         }
 
@@ -338,7 +339,7 @@ mod imp {
                     _ => "blue",
                 }
             };
-            let s = ":root {--sudoku-accent-color: var(--sudoku-accent-".to_string()
+            let s = ":root {--rascacielos-accent-color: var(--rascacielos-accent-".to_string()
                 + css_color
                 + ");}";
             self.accent_provider.load_from_string(&s);
@@ -437,21 +438,21 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for SudokuWindow {}
-    impl WindowImpl for SudokuWindow {}
-    impl ApplicationWindowImpl for SudokuWindow {}
-    impl AdwApplicationWindowImpl for SudokuWindow {}
+    impl WidgetImpl for RascacielosWindow {}
+    impl WindowImpl for RascacielosWindow {}
+    impl ApplicationWindowImpl for RascacielosWindow {}
+    impl AdwApplicationWindowImpl for RascacielosWindow {}
 }
 
 glib::wrapper! {
-    pub struct SudokuWindow(ObjectSubclass<imp::SudokuWindow>)
+    pub struct RascacielosWindow(ObjectSubclass<imp::RascacielosWindow>)
         @extends gtk::Widget, gtk::Window, gtk::ApplicationWindow, adw::ApplicationWindow,
         @implements gtk::Native, gio::ActionGroup, gio::ActionMap, gtk::Accessible,
                     gtk::Buildable, gtk::ConstraintTarget, gtk::Root, gtk::ShortcutManager;
 }
 
-impl SudokuWindow {
-    pub fn new<A: IsA<gtk::Application>>(app: &A, backend: &SudokuBackend) -> Self {
+impl RascacielosWindow {
+    pub fn new<A: IsA<gtk::Application>>(app: &A, backend: &RascacielosBackend) -> Self {
         let window: Self = glib::Object::builder()
             .property("application", app.clone().upcast())
             .build();
