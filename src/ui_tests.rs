@@ -20,12 +20,10 @@
 
 //! Smoke tests that start the application and open every window and
 //! dialog. They need a display and a session bus, so they are ignored by
-//! default. Run them headless with:
+//! default. Run them from a desktop session with:
 //!
 //! ```sh
-//! gtk4-broadwayd :5 &
-//! GDK_BACKEND=broadway BROADWAY_DISPLAY=:5 GSETTINGS_BACKEND=memory \
-//!     dbus-run-session -- cargo test -- --ignored --test-threads=1
+//! GSETTINGS_BACKEND=memory cargo test -- --ignored --test-threads=1
 //! ```
 
 use adw::prelude::*;

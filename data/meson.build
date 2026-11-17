@@ -47,15 +47,6 @@ if appstreamcli.found()
   )
 endif
 
-resource_conf = configuration_data()
-resource_conf.set('app-id', app_id)
-resource_conf.set('base-id-slashed', '/' + base_id.replace('.', '/'))
-resource_files = configure_file(
-  input: 'rascacielos.gresource.xml.in',
-  output: '@BASENAME@',
-  configuration: resource_conf
-)
-
 schema_file = '@0@.gschema.xml'.format(base_id)
 if profile == 'Devel'
   gnome.compile_schemas(depend_files: schema_file)

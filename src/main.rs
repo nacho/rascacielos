@@ -28,7 +28,9 @@ mod lib {
     pub mod board_generator;
 }
 
-mod config;
+mod config {
+    include!(concat!(env!("OUT_DIR"), "/config.rs"));
+}
 mod window;
 mod preferences_dialog;
 mod start_view;
@@ -157,10 +159,8 @@ impl RascacielosApplication {
 }
 
 fn register_resources() {
-    let resources = gio::Resource::from_data(&glib::Bytes::from_static(config::RASCACIELOS_RESOURCES))
+    gio::resources_register_include!("resources.gresource")
         .expect("failed to load resources");
-
-    gio::resources_register(&resources);
 }
 
 fn main() -> glib::ExitCode {

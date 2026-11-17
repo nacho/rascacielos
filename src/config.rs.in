@@ -18,18 +18,17 @@
  * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
  */
 
-pub const APP_ID: &str = option_env!("APP_ID").expect("Could not find APP_ID");
-pub const VERSION: &str = option_env!("VERSION").expect("Could not find VERSION");
-pub const GETTEXT_PACKAGE: &str = option_env!("GETTEXT_PACKAGE").expect("Could not find GETTEXT_PACKAGE");
-pub const LOCALEDIR: &str = option_env!("LOCALEDIR").expect("Could not find LOCALEDIR");
+pub const APP_ID: &str = "@APP_ID@";
+pub const VERSION: &str = "@VERSION@";
+pub const GETTEXT_PACKAGE: &str = "@GETTEXT_PACKAGE@";
+pub const LOCALEDIR: &str = "@LOCALEDIR@";
 #[cfg(test)]
-pub const QQWING_HARD: &str = option_env!("QQWING_HARD").expect("Could not find QQWING");
+pub const QQWING_HARD: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/qqwing-intermediate");
 #[cfg(test)]
-pub const QQWING_VERY_HARD: &str = option_env!("QQWING_VERY_HARD").expect("Could not find QQWING");
+pub const QQWING_VERY_HARD: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/qqwing-expert");
 #[cfg(test)]
-pub const QQWING_EASY: &str = option_env!("QQWING_EASY").expect("Could not find QQWING");
+pub const QQWING_EASY: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/qqwing-simple");
 #[cfg(test)]
-pub const QQWING_MEDIUM: &str = option_env!("QQWING_MEDIUM").expect("Could not find QQWING");
-pub const RASCACIELOS_RESOURCES: &[u8] = include_bytes!(env!("RASCACIELOS_RESOURCES_FILE"));
+pub const QQWING_MEDIUM: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test/qqwing-easy");
 pub const SMALL_WINDOW_WIDTH: i32 = 360;
 pub const MEDIUM_WINDOW_WIDTH: i32 = 600;

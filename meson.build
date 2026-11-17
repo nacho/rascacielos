@@ -1,7 +1,7 @@
 project(
   'rascacielos',
   'rust',
-  license: 'GPL3+',
+  license: 'GPL-3.0-or-later',
   meson_version: '>= 1.4',
   version: '0.1.0'
 )
@@ -21,17 +21,55 @@ if profile == 'Devel'
   app_id += '.' + profile
 endif
 
-glib_version = '2.80.0'
-
-gio = dependency('gio-2.0', version: '>= @0@'.format(glib_version))
-glib = dependency('glib-2.0', version: '>= @0@'.format(glib_version))
-gtk = dependency('gtk4', version: '>= 4.19.3')
-adw = dependency('libadwaita-1', version: '>= 1.10')
+dependency('gio-2.0', version: '>= 2.80.0')
+dependency('gtk4', version: '>= 4.19.3')
+dependency('libadwaita-1', version: '>= 1.10')
 cargo = find_program('cargo')
+
+gettext_package = meson.project_name()
+
+cargo_options = ['--manifest-path', meson.project_source_root() / 'Cargo.toml']
+cargo_options += ['--target-dir', meson.project_build_root() / 'target']
+if profile == 'Devel'
+  rust_target = 'debug'
+else
+  cargo_options += ['--release']
+  rust_target = 'release'
+endif
+
+cargo_env = environment()
+cargo_env.set('APP_ID', app_id)
+cargo_env.set('VERSION', meson.project_version())
+cargo_env.set('GETTEXT_PACKAGE', gettext_package)
+cargo_env.set('LOCALEDIR', prefix / localedir)
+
+cargo_build = custom_target(
+  'cargo-build',
+  build_by_default: true,
+  build_always_stale: true,
+  output: meson.project_name(),
+  console: true,
+  install: true,
+  install_dir: bindir,
+  env: cargo_env,
+  command: [
+    'sh', '-c',
+    '"$0" build "$@" && cp "@0@" "@OUTPUT@"'.format(
+      meson.project_build_root() / 'target' / rust_target / meson.project_name()),
+    cargo, cargo_options,
+  ],
+)
+
+test(
+  'cargo-test',
+  cargo,
+  args: ['test', cargo_options],
+  env: cargo_env,
+  timeout: 600,
+)
 
 subdir('data')
 subdir('po')
-subdir('src')
 
 gnome.post_install(
   glib_compile_schemas: true,
