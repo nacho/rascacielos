@@ -28,11 +28,11 @@ use std::cell::{Cell, OnceCell};
 use std::{array::from_fn, sync::OnceLock};
 
 use crate::lib::backend::SudokuBackend;
+use crate::lib::enums::CompatValue;
 use crate::lib::enums::Coord;
 use crate::lib::game::SudokuGame;
-use crate::lib::enums::CompatValue;
-use crate::{build_picker, game};
 use crate::picker_popover::{PickerBase, PickerBaseImp};
+use crate::{build_picker, game};
 
 mod imp {
 
@@ -89,9 +89,9 @@ mod imp {
             self.parent_constructed();
 
             self.clear_button.connect_clicked(glib::clone!(
-                #[weak(rename_to = earmark_picker)] self,
-                move |_|
-                {
+                #[weak(rename_to = earmark_picker)]
+                self,
+                move |_| {
                     let pos = earmark_picker.current_position();
                     earmark_picker.backend().game_clear_cell(pos);
                     if !earmark_picker.lock_button.is_active() {
@@ -99,33 +99,32 @@ mod imp {
                     }
                 }
             ));
-            self.obj().attach (&self.clear_button, 0, 4, 2, 1);
+            self.obj().attach(&self.clear_button, 0, 4, 2, 1);
 
             self.lock_button.connect_toggled(glib::clone!(
-                #[weak(rename_to = earmark_picker)] self,
-                move |lock_button: &gtk::ToggleButton|
-                {
+                #[weak(rename_to = earmark_picker)]
+                self,
+                move |lock_button: &gtk::ToggleButton| {
                     use gettextrs::gettext;
                     if lock_button.is_active() {
                         lock_button.set_tooltip_text(Some(&gettext("Unlock")));
-                    }
-                    else {
+                    } else {
                         lock_button.set_tooltip_text(Some(&gettext("Lock")));
                         earmark_picker.finished();
                     }
                 }
             ));
-            self.obj().attach (&self.lock_button, 2, 4, 1, 1);
+            self.obj().attach(&self.lock_button, 2, 4, 1, 1);
 
-            for row_block in (0..3).rev(){
-                for col_block in 0..3  {
+            for row_block in (0..3).rev() {
+                for col_block in 0..3 {
                     let index = col_block + (2 - row_block) * 3;
                     let button = &self.earmark_buttons[index];
 
                     button.connect_clicked(glib::clone!(
-                        #[weak(rename_to = earmark_picker)] self,
-                        move |_|
-                        {
+                        #[weak(rename_to = earmark_picker)]
+                        self,
+                        move |_| {
                             let pos = earmark_picker.current_position();
                             earmark_picker.backend().game_toggle_earmark(pos, index);
                             if !earmark_picker.lock_button.is_active() {
@@ -134,44 +133,40 @@ mod imp {
                         }
                     ));
 
-                    self.obj().attach(button, col_block as i32, row_block as i32, 1, 1);
+                    self.obj()
+                        .attach(button, col_block as i32, row_block as i32, 1, 1);
                 }
             }
         }
 
         fn signals() -> &'static [Signal] {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
-            SIGNALS.get_or_init(|| {
-                vec![
-                    Signal::builder("finished")
-                        .build(),
-                ]
-            })
+            SIGNALS.get_or_init(|| vec![Signal::builder("finished").build()])
         }
     }
 
     impl SudokuEarmarkPicker {
-        pub fn current_position (&self) -> Coord {
+        pub fn current_position(&self) -> Coord {
             let row = self.cell.get().unwrap().row;
             let col = self.cell.get().unwrap().col;
-            Coord{row, col}
+            Coord { row, col }
         }
 
-        pub fn finished (&self) {
+        pub fn finished(&self) {
             self.obj().emit_by_name::<()>("finished", &[]);
         }
 
-        pub fn backend (&self) -> &SudokuBackend {
+        pub fn backend(&self) -> &SudokuBackend {
             self.backend.get().unwrap()
         }
 
-        pub fn set_buttons_sensitive (&self, enabled: bool) {
+        pub fn set_buttons_sensitive(&self, enabled: bool) {
             for button in &self.earmark_buttons {
                 button.set_sensitive(enabled);
             }
         }
 
-        pub fn update_buttons_active (&self, pos: Coord) {
+        pub fn update_buttons_active(&self, pos: Coord) {
             for i in 0..9 {
                 let has_earmark = self.backend().game_earmark(pos, i);
                 self.earmark_buttons[i].set_active(has_earmark);
@@ -180,21 +175,20 @@ mod imp {
     }
 
     impl PickerBaseImp for SudokuEarmarkPicker {
-        fn value_changed_cb (&self, new_val: CompatValue) {
+        fn value_changed_cb(&self, new_val: CompatValue) {
             let new_val: Option<usize> = new_val.into();
             self.clear_button.set_sensitive(new_val.is_some());
             self.set_buttons_sensitive(!new_val.is_some());
         }
 
-        fn earmark_changed_cb (&self, pos: Coord, num: usize, enabled: bool) {
+        fn earmark_changed_cb(&self, pos: Coord, num: usize, enabled: bool) {
             let has_earmarks = self.backend().game_has_earmarks(pos);
             self.clear_button.set_sensitive(has_earmarks);
             self.earmark_buttons[num].set_active(enabled);
         }
     }
     impl WidgetImpl for SudokuEarmarkPicker {}
-    impl GridImpl for SudokuEarmarkPicker {
-    }
+    impl GridImpl for SudokuEarmarkPicker {}
 }
 
 glib::wrapper! {
@@ -204,13 +198,16 @@ glib::wrapper! {
 }
 
 impl SudokuEarmarkPicker {
-    pub fn new_unitialized () -> Self {
+    pub fn new_unitialized() -> Self {
         let earmark_picker = build_picker!(Self);
         earmark_picker
     }
 
-    pub fn init (&self, backend: &SudokuBackend) {
-        self.imp().backend.set(backend.clone()).expect("Earmark Picker is already initialized");
+    pub fn init(&self, backend: &SudokuBackend) {
+        self.imp()
+            .backend
+            .set(backend.clone())
+            .expect("Earmark Picker is already initialized");
     }
 }
 
@@ -221,24 +218,32 @@ impl PickerBase for SudokuEarmarkPicker {
         let backend = imp.backend();
         let binding = backend.game();
         let game = binding.as_ref().unwrap();
-        let handle = game.connect_closure("value-changed", false, closure_local!{
-            #[weak(rename_to = earmark_picker)] imp,
-            move |_ : SudokuGame, _: i32, _: i32, _: CompatValue, new_val: CompatValue| {
-                earmark_picker.value_changed_cb (new_val);
-            }
-        });
+        let handle = game.connect_closure(
+            "value-changed",
+            false,
+            closure_local! {
+                #[weak(rename_to = earmark_picker)] imp,
+                move |_ : SudokuGame, _: i32, _: i32, _: CompatValue, new_val: CompatValue| {
+                    earmark_picker.value_changed_cb (new_val);
+                }
+            },
+        );
 
         imp.value_cb_handler.set(Some(handle));
-        let handle = game.connect_closure("earmark-changed", false, closure_local!{
-            #[weak(rename_to = earmark_picker)] imp,
-            move |_ : SudokuGame, row: i32, col: i32, num: i32, enabled: bool| {
-                earmark_picker.earmark_changed_cb (
-                    Coord {row: row as usize, col: col as usize},
-                    num as usize,
-                    enabled
-                );
-            }
-        });
+        let handle = game.connect_closure(
+            "earmark-changed",
+            false,
+            closure_local! {
+                #[weak(rename_to = earmark_picker)] imp,
+                move |_ : SudokuGame, row: i32, col: i32, num: i32, enabled: bool| {
+                    earmark_picker.earmark_changed_cb (
+                        Coord {row: row as usize, col: col as usize},
+                        num as usize,
+                        enabled
+                    );
+                }
+            },
+        );
         imp.earmark_cb_handler.set(Some(handle));
 
         let has_value = backend.game_value(pos).is_some();

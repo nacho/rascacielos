@@ -20,10 +20,10 @@
 
 use adw::subclass::prelude::*;
 
+use gtk::CompositeTemplate;
 use gtk::glib;
 use gtk::glib::Object;
 use gtk::glib::subclass::InitializingObject;
-use gtk::CompositeTemplate;
 use gtk::glib::{BindingFlags, object::ObjectExt};
 
 use crate::lib::backend::SudokuBackend;
@@ -51,57 +51,99 @@ mod imp {
     #[derive(Default, CompositeTemplate)]
     #[template(resource = "/io/github/nacho/rascacielos/ui/preferences-dialog.ui")]
     pub struct SudokuPreferencesDialog {
-            pub backend: OnceCell<SudokuBackend>,
-            #[template_child]
-            pub show_timer: TemplateChild<adw::SwitchRow>,
-            #[template_child]
-            pub autoclean_earmarks: TemplateChild<adw::SwitchRow>,
-            #[template_child]
-            pub number_picker_second_click: TemplateChild<adw::SwitchRow>,
-            #[template_child]
-            pub show_possibilities: TemplateChild<adw::SwitchRow>,
-            #[template_child]
-            pub earmark_warnings: TemplateChild<adw::SwitchRow>,
-            #[template_child]
-            pub solution_warnings: TemplateChild<adw::SwitchRow>,
-            #[template_child]
-            pub duplicate_warnings: TemplateChild<adw::SwitchRow>,
-            #[template_child]
-            pub highlight_numbers: TemplateChild<adw::SwitchRow>,
-            #[template_child]
-            pub highlight_block: TemplateChild<adw::SwitchRow>,
-            #[template_child]
-            pub highlight_row_column: TemplateChild<adw::SwitchRow>
+        pub backend: OnceCell<SudokuBackend>,
+        #[template_child]
+        pub show_timer: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub autoclean_earmarks: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub number_picker_second_click: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub show_possibilities: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub earmark_warnings: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub solution_warnings: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub duplicate_warnings: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub highlight_numbers: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub highlight_block: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub highlight_row_column: TemplateChild<adw::SwitchRow>,
     }
 
-    impl SudokuPreferencesDialog{
-        pub fn backend (&self) -> &SudokuBackend {
+    impl SudokuPreferencesDialog {
+        pub fn backend(&self) -> &SudokuBackend {
             self.backend.get().unwrap()
         }
 
-        pub fn init (&self, backend: &SudokuBackend) {
-            self.backend.set(backend.clone()).expect("PreferencesDialog is already initialized");
+        pub fn init(&self, backend: &SudokuBackend) {
+            self.backend
+                .set(backend.clone())
+                .expect("PreferencesDialog is already initialized");
 
-            self.backend().bind_property("pref-timer", &*self.show_timer, "active")
-                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL).build();
-            self.backend().bind_property("pref-autoclean-earmarks", &*self.autoclean_earmarks, "active")
-                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL).build();
-            self.backend().bind_property("pref-picker-second-click", &*self.number_picker_second_click, "active")
-                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL).build();
-            self.backend().bind_property("pref-show-all-possibilities", &*self.show_possibilities, "active")
-                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL).build();
-            self.backend().bind_property("pref-duplicate-warnings", &*self.duplicate_warnings, "active")
-                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL).build();
-            self.backend().bind_property("pref-solution-warnings", &*self.solution_warnings, "active")
-                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL).build();
-            self.backend().bind_property("pref-earmark-warnings", &*self.earmark_warnings, "active")
-                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL).build();
-            self.backend().bind_property("pref-highlight-row-column", &*self.highlight_row_column, "active")
-                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL).build();
-            self.backend().bind_property("pref-highlight-block", &*self.highlight_block, "active")
-                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL).build();
-            self.backend().bind_property("pref-highlight-numbers", &*self.highlight_numbers, "active")
-                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL).build();
+            self.backend()
+                .bind_property("pref-timer", &*self.show_timer, "active")
+                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL)
+                .build();
+            self.backend()
+                .bind_property(
+                    "pref-autoclean-earmarks",
+                    &*self.autoclean_earmarks,
+                    "active",
+                )
+                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL)
+                .build();
+            self.backend()
+                .bind_property(
+                    "pref-picker-second-click",
+                    &*self.number_picker_second_click,
+                    "active",
+                )
+                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL)
+                .build();
+            self.backend()
+                .bind_property(
+                    "pref-show-all-possibilities",
+                    &*self.show_possibilities,
+                    "active",
+                )
+                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL)
+                .build();
+            self.backend()
+                .bind_property(
+                    "pref-duplicate-warnings",
+                    &*self.duplicate_warnings,
+                    "active",
+                )
+                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL)
+                .build();
+            self.backend()
+                .bind_property("pref-solution-warnings", &*self.solution_warnings, "active")
+                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL)
+                .build();
+            self.backend()
+                .bind_property("pref-earmark-warnings", &*self.earmark_warnings, "active")
+                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL)
+                .build();
+            self.backend()
+                .bind_property(
+                    "pref-highlight-row-column",
+                    &*self.highlight_row_column,
+                    "active",
+                )
+                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL)
+                .build();
+            self.backend()
+                .bind_property("pref-highlight-block", &*self.highlight_block, "active")
+                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL)
+                .build();
+            self.backend()
+                .bind_property("pref-highlight-numbers", &*self.highlight_numbers, "active")
+                .flags(BindingFlags::SYNC_CREATE | BindingFlags::BIDIRECTIONAL)
+                .build();
         }
     }
 
@@ -118,9 +160,8 @@ glib::wrapper! {
 }
 
 impl SudokuPreferencesDialog {
-    pub fn new (backend: &SudokuBackend) -> Self {
-        let dialog: Self = Object::builder()
-            .build();
+    pub fn new(backend: &SudokuBackend) -> Self {
+        let dialog: Self = Object::builder().build();
 
         dialog.imp().init(backend);
         return dialog;

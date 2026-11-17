@@ -19,10 +19,10 @@
  */
 mod lib {
     pub mod backend;
+    pub mod board;
     pub mod data;
     pub mod enums;
     pub mod game;
-    pub mod board;
     #[macro_use]
     pub mod utils;
     pub mod board_generator;
@@ -31,34 +31,34 @@ mod lib {
 mod config {
     include!(concat!(env!("OUT_DIR"), "/config.rs"));
 }
-mod window;
-mod preferences_dialog;
-mod start_view;
-mod game_view;
-mod menu_button;
-mod grid_layout;
-mod grid;
 mod cell;
-mod printer;
-mod picker_popover;
-mod value_picker;
 mod earmark_picker;
+mod game_view;
+mod grid;
+mod grid_layout;
+mod menu_button;
+mod picker_popover;
+mod preferences_dialog;
 mod print_generator_dialog;
+mod printer;
+mod start_view;
 #[cfg(test)]
 mod ui_tests;
+mod value_picker;
+mod window;
 
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 
+use crate::lib::backend::SudokuBackend;
 use gettextrs::{LocaleCategory, setlocale};
 use gtk::gio;
 use gtk::gio::ApplicationFlags;
 use gtk::glib::{self, Char, OptionArg, OptionFlags};
-use crate::lib::backend::SudokuBackend;
 
 mod imp {
 
-use super::*;
+    use super::*;
 
     #[glib::object_subclass]
     impl ObjectSubclass for RascacielosApplication {
@@ -68,19 +68,21 @@ use super::*;
     }
 
     pub struct RascacielosApplication {
-        pub backend: SudokuBackend
+        pub backend: SudokuBackend,
     }
 
     impl Default for RascacielosApplication {
         fn default() -> Self {
-            Self { backend: SudokuBackend::new() }
+            Self {
+                backend: SudokuBackend::new(),
+            }
         }
     }
 
     impl ApplicationImpl for RascacielosApplication {
         fn startup(&self) {
             self.parent_startup();
-            self.setup_actions ();
+            self.setup_actions();
         }
 
         fn activate(&self) {
@@ -96,9 +98,12 @@ use super::*;
             self.parent_shutdown();
         }
 
-        fn handle_local_options(&self, options: &glib::VariantDict) -> std::ops::ControlFlow<glib::ExitCode> {
-             if options.contains("version") {
-                glib::g_print!( "rascacielos {}\n", config::VERSION);
+        fn handle_local_options(
+            &self,
+            options: &glib::VariantDict,
+        ) -> std::ops::ControlFlow<glib::ExitCode> {
+            if options.contains("version") {
+                glib::g_print!("rascacielos {}\n", config::VERSION);
                 return std::ops::ControlFlow::Break(glib::ExitCode::SUCCESS);
             }
 
@@ -107,14 +112,14 @@ use super::*;
     }
 
     impl RascacielosApplication {
-        fn setup_actions (&self) {
-            let actions = [
-                create_cb_entry!(self.obj(), "quit", quit),
-            ];
+        fn setup_actions(&self) {
+            let actions = [create_cb_entry!(self.obj(), "quit", quit)];
 
             self.obj().add_action_entries(actions);
-            self.obj().set_accels_for_action("app.quit", &["<Primary>Q"]);
-            self.obj().set_accels_for_action("app.preferences-dialog", &["<Primary>comma"]);
+            self.obj()
+                .set_accels_for_action("app.quit", &["<Primary>Q"]);
+            self.obj()
+                .set_accels_for_action("app.preferences-dialog", &["<Primary>comma"]);
         }
     }
 
@@ -138,36 +143,36 @@ glib::wrapper! {
 }
 
 impl RascacielosApplication {
-    pub fn new () -> Self {
-        let obj : RascacielosApplication = glib::Object::builder()
+    pub fn new() -> Self {
+        let obj: RascacielosApplication = glib::Object::builder()
             .property("application-id", config::APP_ID)
             .property("flags", ApplicationFlags::FLAGS_NONE)
             .property("resource-base-path", "/io/github/nacho/rascacielos")
             .build();
 
         use gettextrs::gettext;
-        obj.add_main_option("version",
+        obj.add_main_option(
+            "version",
             Char('v' as i8),
             OptionFlags::NONE,
             OptionArg::None,
             /* Help string for command line --version flag */
             &gettext("Show release version"),
-            None);
+            None,
+        );
 
         return obj;
     }
 }
 
 fn register_resources() {
-    gio::resources_register_include!("resources.gresource")
-        .expect("failed to load resources");
+    gio::resources_register_include!("resources.gresource").expect("failed to load resources");
 }
 
 fn main() -> glib::ExitCode {
     use config::*;
     setlocale(LocaleCategory::LcAll, "");
-    gettextrs::bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR)
-        .expect("Unable to bind the text domain");
+    gettextrs::bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR).expect("Unable to bind the text domain");
     gettextrs::bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8")
         .expect("Unable to bind the text domain codeset");
     gettextrs::textdomain(GETTEXT_PACKAGE).expect("Unable to switch to the text domain");

@@ -18,22 +18,22 @@
  * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use gtk::gio;
 use gtk::glib;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::gio;
 
+use glib::Properties;
+use glib::SourceId;
 use glib::ThreadPool;
 use glib::subclass::Signal;
-use glib::user_data_dir;
-use glib::Properties;
-use glib::timeout_add_seconds_local_once;
 use glib::timeout_add_local;
-use glib::SourceId;
+use glib::timeout_add_seconds_local_once;
+use glib::user_data_dir;
 
-use crate::lib::enums::Coord;
 use crate::lib::board::SudokuBoard;
 use crate::lib::board_generator::SudokuBoardGenerator;
+use crate::lib::enums::Coord;
 use crate::lib::enums::DifficultyCategory;
 use crate::lib::enums::ZoomLevel;
 use crate::lib::{board::SudokuError, data::SudokuData, game::SudokuGame};
@@ -46,7 +46,12 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Duration;
-use std::{cell::RefCell, fs::File, io::{ErrorKind, Write}, sync::OnceLock};
+use std::{
+    cell::RefCell,
+    fs::File,
+    io::{ErrorKind, Write},
+    sync::OnceLock,
+};
 
 mod imp {
     use super::*;
@@ -93,17 +98,19 @@ mod imp {
     }
 
     impl Default for SudokuBackend {
-        fn default () -> Self {
+        fn default() -> Self {
             let paths = SudokuPaths::default();
             let settings = gio::Settings::new("io.github.nacho.rascacielos");
             let sudoku_data = {
-                let start_button_selected = settings.get::<DifficultyCategory>("start-button-selected");
+                let start_button_selected =
+                    settings.get::<DifficultyCategory>("start-button-selected");
                 if let Ok(sudoku_data) = SudokuData::new_from_highscores(
-                    paths.data_file.clone(), &paths.highscores_file, start_button_selected)
-                {
+                    paths.data_file.clone(),
+                    &paths.highscores_file,
+                    start_button_selected,
+                ) {
                     sudoku_data
-                }
-                else {
+                } else {
                     SudokuData::new(paths.data_file.clone())
                 }
             };
@@ -142,21 +149,63 @@ mod imp {
     #[glib::derived_properties]
     impl ObjectImpl for SudokuBackend {
         fn constructed(&self) {
-            self.settings.bind("zoom-level", &*self.obj(), "pref_zoom").build();
-            self.settings.bind("show-timer", &*self.obj(), "pref_timer").build();
-            self.settings.bind("show-possibilities", &*self.obj(), "pref_show_all_possibilities").build();
-            self.settings.bind("autoclean-earmarks", &*self.obj(), "pref_autoclean_earmarks").build();
-            self.settings.bind("number-picker-second-click", &*self.obj(), "pref_picker_second_click").build();
-            self.settings.bind("duplicate-warnings", &*self.obj(), "pref_duplicate_warnings").build();
-            self.settings.bind("solution-warnings", &*self.obj(), "pref_solution_warnings").build();
-            self.settings.bind("earmark-warnings", &*self.obj(), "pref_earmark_warnings").build();
-            self.settings.bind("highlight-row-column", &*self.obj(), "pref_highlight_row_column").build();
-            self.settings.bind("highlight-block", &*self.obj(), "pref_highlight_block").build();
-            self.settings.bind("highlight-numbers", &*self.obj(), "pref_highlight_numbers").build();
+            self.settings
+                .bind("zoom-level", &*self.obj(), "pref_zoom")
+                .build();
+            self.settings
+                .bind("show-timer", &*self.obj(), "pref_timer")
+                .build();
+            self.settings
+                .bind(
+                    "show-possibilities",
+                    &*self.obj(),
+                    "pref_show_all_possibilities",
+                )
+                .build();
+            self.settings
+                .bind(
+                    "autoclean-earmarks",
+                    &*self.obj(),
+                    "pref_autoclean_earmarks",
+                )
+                .build();
+            self.settings
+                .bind(
+                    "number-picker-second-click",
+                    &*self.obj(),
+                    "pref_picker_second_click",
+                )
+                .build();
+            self.settings
+                .bind(
+                    "duplicate-warnings",
+                    &*self.obj(),
+                    "pref_duplicate_warnings",
+                )
+                .build();
+            self.settings
+                .bind("solution-warnings", &*self.obj(), "pref_solution_warnings")
+                .build();
+            self.settings
+                .bind("earmark-warnings", &*self.obj(), "pref_earmark_warnings")
+                .build();
+            self.settings
+                .bind(
+                    "highlight-row-column",
+                    &*self.obj(),
+                    "pref_highlight_row_column",
+                )
+                .build();
+            self.settings
+                .bind("highlight-block", &*self.obj(), "pref_highlight_block")
+                .build();
+            self.settings
+                .bind("highlight-numbers", &*self.obj(), "pref_highlight_numbers")
+                .build();
 
             self.add_preference_cbs();
             let save_path = &self.paths.active_save_file;
-            match SudokuGame::new_from_json(&save_path){
+            match SudokuGame::new_from_json(&save_path) {
                 Ok(game) => {
                     self.game.replace(Some(game));
                     self.obj().game_enable_all_possibilities();
@@ -172,123 +221,130 @@ mod imp {
 
         fn signals() -> &'static [Signal] {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
-            SIGNALS.get_or_init(|| {
-                vec![
-                    Signal::builder("game-changed")
-                        .build(),
-                ]
-            })
+            SIGNALS.get_or_init(|| vec![Signal::builder("game-changed").build()])
         }
 
-        fn dispose (&self) {
+        fn dispose(&self) {
             self.save_game(&self.paths.active_save_file);
 
             if !self.sdata.save() {
                 eprintln!("Error saving data file");
-            }
-            else {
+            } else {
                 println!("SAVED DATA");
             }
         }
     }
 
     impl SudokuBackend {
-        pub fn save_game (&self, path: &str) {
+        pub fn save_game(&self, path: &str) {
             let binding = self.game.borrow();
-            if let Some(game) = binding.as_ref() && !game.board().is_complete() && !game.board().is_empty(){
+            if let Some(game) = binding.as_ref()
+                && !game.board().is_complete()
+                && !game.board().is_empty()
+            {
                 let elapsed_time = {
                     if self.obj().pref_timer() {
                         game.total_time_played()
-                    }
-                    else {
+                    } else {
                         -1.0
                     }
                 };
 
                 Self::create_file_for_board(&path, game.board(), elapsed_time);
-            }
-            else {
+            } else {
                 self.delete_save();
             }
         }
 
-        pub fn delete_save (&self) {
+        pub fn delete_save(&self) {
             if let Err(e) = std::fs::remove_file(&self.paths.active_save_file)
-                && e.kind() != ErrorKind::NotFound {
-                    eprintln!("{}", e);
+                && e.kind() != ErrorKind::NotFound
+            {
+                eprintln!("{}", e);
             }
         }
 
-        pub fn game_changed (&self) {
+        pub fn game_changed(&self) {
             self.stop_autosave();
-            self.autosave_sourceid.set(Some(timeout_add_local(Duration::from_mins(5), glib::clone!(
-                #[weak(rename_to = backend)] self,
-                #[upgrade_or] glib::ControlFlow::Break,
-                move || {
-                    backend.save_game(&backend.paths.active_save_file);
-                    glib::ControlFlow::Continue
-                }
-            ))));
+            self.autosave_sourceid.set(Some(timeout_add_local(
+                Duration::from_mins(5),
+                glib::clone!(
+                    #[weak(rename_to = backend)]
+                    self,
+                    #[upgrade_or]
+                    glib::ControlFlow::Break,
+                    move || {
+                        backend.save_game(&backend.paths.active_save_file);
+                        glib::ControlFlow::Continue
+                    }
+                ),
+            )));
 
-            self.obj().emit_by_name::<()>(
-                "game-changed",
-                &[]
-            );
+            self.obj().emit_by_name::<()>("game-changed", &[]);
         }
 
-        pub fn stop_autosave (&self) {
+        pub fn stop_autosave(&self) {
             if let Some(autosave) = self.autosave_sourceid.take() {
                 SourceId::remove(autosave);
             }
         }
 
-        pub fn add_preference_cbs (&self) {
-            self.obj().connect_pref_show_all_possibilities_notify(glib::clone!(
-                move |backend: &crate::lib::backend::SudokuBackend|
-                if backend.pref_show_all_possibilities() {
-                    if let Some(game) = &*backend.imp().game.borrow() {
-                        game.enable_all_earmark_possibilities();
+        pub fn add_preference_cbs(&self) {
+            self.obj()
+                .connect_pref_show_all_possibilities_notify(glib::clone!(
+                    move |backend: &crate::lib::backend::SudokuBackend| if backend
+                        .pref_show_all_possibilities()
+                    {
+                        if let Some(game) = &*backend.imp().game.borrow() {
+                            game.enable_all_earmark_possibilities();
+                        }
                     }
-                }
-            ));
+                ));
 
-            self.obj().connect_keyboard_pressed_recently_notify(glib::clone!(
-                move |backend: &crate::lib::backend::SudokuBackend|
-                if backend.keyboard_pressed_recently() {
-                    if let Some(source_id) =  backend.imp().keyboard_pressed_sourceid.take(){
-                        SourceId::remove(source_id);
+            self.obj()
+                .connect_keyboard_pressed_recently_notify(glib::clone!(
+                    move |backend: &crate::lib::backend::SudokuBackend| if backend
+                        .keyboard_pressed_recently()
+                    {
+                        if let Some(source_id) = backend.imp().keyboard_pressed_sourceid.take() {
+                            SourceId::remove(source_id);
+                        }
+                        backend.imp().create_keyboard_pressed_timeout();
                     }
-                    backend.imp().create_keyboard_pressed_timeout();
-                }
-            ));
+                ));
         }
 
-        pub fn create_keyboard_pressed_timeout (&self) {
-            self.keyboard_pressed_sourceid.set(Some(timeout_add_seconds_local_once(5, glib::clone!(
-                #[weak(rename_to = backend)] self,
-                move || {
-                    backend.keyboard_pressed_sourceid.set(None);
-                    //this doesn't call the property notify
-                    backend.keyboard_pressed_recently.set(false)
-                }
-            ))));
+        pub fn create_keyboard_pressed_timeout(&self) {
+            self.keyboard_pressed_sourceid
+                .set(Some(timeout_add_seconds_local_once(
+                    5,
+                    glib::clone!(
+                        #[weak(rename_to = backend)]
+                        self,
+                        move || {
+                            backend.keyboard_pressed_sourceid.set(None);
+                            //this doesn't call the property notify
+                            backend.keyboard_pressed_recently.set(false)
+                        }
+                    ),
+                )));
         }
 
-        pub fn save_printed_board (&self, board: &SudokuBoard) {
+        pub fn save_printed_board(&self, board: &SudokuBoard) {
             let save_name = board.fixed_to_string() + ".save";
             let save_path = self.paths.printed_dir.join(save_name);
             let save_path = save_path.to_str().expect("Failed to convert path");
             Self::create_file_for_board(save_path, board, -1.0);
         }
 
-        pub fn archive_game (&self) {
+        pub fn archive_game(&self) {
             let binding = self.game.borrow();
             let game = binding.as_ref().unwrap();
             let board = game.board();
 
             let timer = match self.obj().pref_timer() {
                 true => game.total_time_played(),
-                false => -1.0
+                false => -1.0,
             };
             let save_name = board.fixed_to_string() + ".save";
             let save_path = self.paths.finished_dir.join(save_name);
@@ -296,17 +352,14 @@ mod imp {
             Self::create_file_for_board(save_path, board, timer);
         }
 
-        fn create_file_for_board (file_name: &str, board: &SudokuBoard, elapsed_time: f64) {
+        fn create_file_for_board(file_name: &str, board: &SudokuBoard, elapsed_time: f64) {
             let board = board.to_json(elapsed_time);
             match &mut File::create(file_name) {
-                Ok(file) => {
-                    match file.write_all(&board.into_bytes())
-                    {
-                        Ok(_) => println!("SAVED GAME"),
-                        Err(e) => eprintln!("Failed to save, {}", e.to_string())
-                    }
+                Ok(file) => match file.write_all(&board.into_bytes()) {
+                    Ok(_) => println!("SAVED GAME"),
+                    Err(e) => eprintln!("Failed to save, {}", e.to_string()),
                 },
-                Err(e) => eprintln!("Failed to open save file, {}", e.to_string())
+                Err(e) => eprintln!("Failed to open save file, {}", e.to_string()),
             }
         }
     }
@@ -316,32 +369,31 @@ mod imp {
 macro_rules! game {
     ($backend: expr) => {
         $backend.imp().game.borrow().as_ref().unwrap()
-    }
+    };
 }
 
 impl SudokuBackend {
     pub fn new() -> Self {
-        glib::Object::builder()
-            .build()
+        glib::Object::builder().build()
     }
 
-    pub fn game_completed (&self) -> bool {
+    pub fn game_completed(&self) -> bool {
         game!(self).board().is_complete()
     }
 
-    pub fn game (&self) -> Ref<'_, Option<SudokuGame>> {
+    pub fn game(&self) -> Ref<'_, Option<SudokuGame>> {
         self.imp().game.borrow()
     }
 
-    pub fn game_exists (&self) -> bool {
+    pub fn game_exists(&self) -> bool {
         self.imp().game.borrow().is_some()
     }
 
-    pub fn game_delete (&self) {
+    pub fn game_delete(&self) {
         self.imp().game.replace(None);
     }
 
-    pub fn game_clear_cell (&self, pos: Coord) {
+    pub fn game_clear_cell(&self, pos: Coord) {
         let binding = self.game();
         let game = binding.as_ref().unwrap();
         if game.board().is_fixed(pos) {
@@ -351,14 +403,13 @@ impl SudokuBackend {
         let old_val = self.game_value(pos);
 
         if old_val.is_some() {
-            game.remove (pos);
-        }
-        else if game.board().has_earmarks(pos){
-            game.disable_all_earmarks (pos);
+            game.remove(pos);
+        } else if game.board().has_earmarks(pos) {
+            game.disable_all_earmarks(pos);
         }
     }
 
-    pub fn game_set_value (&self, pos: Coord, new_val: usize) {
+    pub fn game_set_value(&self, pos: Coord, new_val: usize) {
         let binding = self.game();
         let game = binding.as_ref().unwrap();
         if game.board().is_fixed(pos) {
@@ -369,14 +420,13 @@ impl SudokuBackend {
         if old_val.is_none_or(|old_val| old_val != new_val) {
             if self.pref_autoclean_earmarks() {
                 game.insert_and_disable_aligned_earmarks(pos, new_val);
-            }
-            else {
+            } else {
                 game.insert(pos, new_val);
             }
         }
     }
 
-    pub fn game_toggle_earmark (&self, pos: Coord, num: usize) {
+    pub fn game_toggle_earmark(&self, pos: Coord, num: usize) {
         let binding = self.game();
         let game = binding.as_ref().unwrap();
         let cell = game.board().cell(pos);
@@ -384,96 +434,96 @@ impl SudokuBackend {
             let enabled = cell.earmarks[num].get();
             match enabled {
                 true => game.disable_earmark(pos, num),
-                false => game.enable_earmark(pos, num)
+                false => game.enable_earmark(pos, num),
             }
         }
     }
 
-    pub fn game_earmark_is_possible (&self, pos: Coord, num: usize) -> bool {
+    pub fn game_earmark_is_possible(&self, pos: Coord, num: usize) -> bool {
         game!(self).board().is_earmark_possible(pos, num)
     }
 
-    pub fn game_has_earmarks (&self, pos: Coord) -> bool {
+    pub fn game_has_earmarks(&self, pos: Coord) -> bool {
         game!(self).board().has_earmarks(pos)
     }
 
-    pub fn game_broken (&self, pos: Coord) -> bool {
+    pub fn game_broken(&self, pos: Coord) -> bool {
         game!(self).board().broken_coords.borrow().contains(&pos)
     }
 
-    pub fn game_difficulty (&self) -> DifficultyCategory {
+    pub fn game_difficulty(&self) -> DifficultyCategory {
         game!(self).board().difficulty_category
     }
 
-    pub fn game_is_empty (&self) -> bool {
+    pub fn game_is_empty(&self) -> bool {
         game!(self).board().is_empty()
     }
 
-    pub fn game_value (&self, pos: Coord) -> Option<usize> {
+    pub fn game_value(&self, pos: Coord) -> Option<usize> {
         game!(self).board().cell(pos).value.get()
     }
 
-    pub fn game_solution (&self, pos: Coord) -> usize {
+    pub fn game_solution(&self, pos: Coord) -> usize {
         game!(self).board().cell(pos).solution
     }
 
-    pub fn game_fixed (&self, pos: Coord) -> bool {
+    pub fn game_fixed(&self, pos: Coord) -> bool {
         game!(self).board().cell(pos).fixed
     }
 
-    pub fn game_earmarks (&self, pos: Coord) -> [Cell<bool>; 9] {
+    pub fn game_earmarks(&self, pos: Coord) -> [Cell<bool>; 9] {
         game!(self).board().cell(pos).earmarks.clone()
     }
 
-    pub fn game_earmark (&self, pos: Coord, num: usize) -> bool {
+    pub fn game_earmark(&self, pos: Coord, num: usize) -> bool {
         game!(self).board().cell(pos).earmarks[num].get()
     }
 
-    pub fn game_toggle_pause (&self) {
+    pub fn game_toggle_pause(&self) {
         game!(self).toggle_pause();
     }
 
-    pub fn game_paused (&self) -> bool {
+    pub fn game_paused(&self) -> bool {
         game!(self).imp().paused.get()
     }
 
-    pub fn game_start_clock (&self) {
+    pub fn game_start_clock(&self) {
         game!(self).start_clock();
     }
 
-    pub fn game_undo (&self) {
+    pub fn game_undo(&self) {
         game!(self).undo();
     }
 
-    pub fn game_redo (&self) {
+    pub fn game_redo(&self) {
         game!(self).redo();
     }
 
-    pub fn game_reset (&self) {
+    pub fn game_reset(&self) {
         game!(self).reset();
     }
 
-    pub fn game_play_order (&self) -> Vec<Coord>{
+    pub fn game_play_order(&self) -> Vec<Coord> {
         game!(self).play_order()
     }
 
-    pub fn game_time_played (&self) -> f64 {
+    pub fn game_time_played(&self) -> f64 {
         game!(self).total_time_played()
     }
 
-    pub fn game_stop_clock (&self) {
+    pub fn game_stop_clock(&self) {
         game!(self).stop_clock();
     }
 
-    pub fn game_can_redo (&self) -> bool {
+    pub fn game_can_redo(&self) -> bool {
         !game!(self).is_redostack_null()
     }
 
-    pub fn game_can_undo (&self) -> bool {
+    pub fn game_can_undo(&self) -> bool {
         !game!(self).is_redostack_null()
     }
 
-    pub fn game_enable_all_possibilities (&self) {
+    pub fn game_enable_all_possibilities(&self) {
         let binding = self.game();
         let game = binding.as_ref().unwrap();
         if self.pref_show_all_possibilities() && game.board().loaded_time == 0.0 {
@@ -481,32 +531,30 @@ impl SudokuBackend {
         }
     }
 
-    pub fn game_load (&self, path: &str) -> bool {
+    pub fn game_load(&self, path: &str) -> bool {
         let mut errors = Vec::new();
-        match SudokuGame::new_from_json(path){
+        match SudokuGame::new_from_json(path) {
             Ok(game) => {
                 self.imp().game.replace(Some(game));
                 self.imp().game_changed();
                 return true;
-            },
-            Err(e) => errors.push(e)
+            }
+            Err(e) => errors.push(e),
         }
-        match std::fs::File::open(path){
+        match std::fs::File::open(path) {
             Ok(mut file) => {
-                let mut buffer : [u8; 100] = from_fn(|_| 0);
+                let mut buffer: [u8; 100] = from_fn(|_| 0);
                 use std::io::Read;
                 let _ = file.read_exact(buffer.as_mut_slice());
                 match str::from_utf8(&buffer) {
-                    Ok(s) => 
-                        match SudokuGame::new_from_string(&s){
-                            Ok(game) => {
-                                self.imp().game.replace(Some(game));
-                                self.imp().game_changed();
-                                return true;
-                            },
-                            Err(e) => errors.push(e)
+                    Ok(s) => match SudokuGame::new_from_string(&s) {
+                        Ok(game) => {
+                            self.imp().game.replace(Some(game));
+                            self.imp().game_changed();
+                            return true;
                         }
-                    ,
+                        Err(e) => errors.push(e),
+                    },
                     Err(_) => errors.push(SudokuError::InvalidPuzzle),
                 }
             }
@@ -525,26 +573,33 @@ impl SudokuBackend {
         game!(self).board().fixed_to_ascii()
     }
 
-    pub fn game_highscore (&self) -> Option<f64> {
-        self.imp().sdata.highscores.borrow().get(&game!(self).difficulty()).cloned()
+    pub fn game_highscore(&self) -> Option<f64> {
+        self.imp()
+            .sdata
+            .highscores
+            .borrow()
+            .get(&game!(self).difficulty())
+            .cloned()
     }
 
-    pub fn game_save_as (&self, path: &str) {
+    pub fn game_save_as(&self, path: &str) {
         self.imp().save_game(path);
     }
 
-    pub fn game_save_completed (&self) {
+    pub fn game_save_completed(&self) {
         self.imp().delete_save();
         self.imp().archive_game();
         self.imp().stop_autosave();
     }
 
-    pub fn game_save_as_info (&self) -> (String, gio::File) {
-        (game!(self).board().fixed_to_string_short() + ".save",
-         gio::File::for_path(self.imp().paths.saved_dir.as_path()))
+    pub fn game_save_as_info(&self) -> (String, gio::File) {
+        (
+            game!(self).board().fixed_to_string_short() + ".save",
+            gio::File::for_path(self.imp().paths.saved_dir.as_path()),
+        )
     }
 
-    pub fn game_save_highscore (&self) -> bool {
+    pub fn game_save_highscore(&self) -> bool {
         let old_highscore = self.game_highscore();
         let new_highscore = game!(self).total_time_played();
         match old_highscore {
@@ -553,8 +608,7 @@ impl SudokuBackend {
                     let difficulty = game!(self).difficulty();
                     self.set_highscore(difficulty, new_highscore);
                     true
-                }
-                else {
+                } else {
                     false
                 }
             }
@@ -566,55 +620,56 @@ impl SudokuBackend {
         }
     }
 
-    pub fn set_print_options (&self,
+    pub fn set_print_options(
+        &self,
         number_of_puzzles: f64,
         number_of_puzzles_per_page: f64,
-        difficulty: DifficultyCategory)
-    {
+        difficulty: DifficultyCategory,
+    ) {
         let mut print_options = self.imp().sdata.print_data.borrow_mut();
         print_options.number_of_puzzles = number_of_puzzles;
         print_options.number_of_puzzles_per_page = number_of_puzzles_per_page;
         print_options.difficulty = difficulty;
     }
 
-    pub fn export_puzzle (&self, path: &str) {
-        match std::fs::File::create(&path){
+    pub fn export_puzzle(&self, path: &str) {
+        match std::fs::File::create(&path) {
             Ok(mut file) => {
                 let content = game!(self).board().fixed_to_string_pretty();
                 use std::io::Write;
                 file.write_all(&content.into_bytes()).expect("Error saving");
             }
-            Err(e) => eprintln!("Failed to create file:{}", e)
+            Err(e) => eprintln!("Failed to create file:{}", e),
         }
     }
 
-    pub fn print_options (&self) -> (f64, f64, DifficultyCategory){
+    pub fn print_options(&self) -> (f64, f64, DifficultyCategory) {
         let print_options = &self.imp().sdata.print_data.borrow();
         (
             print_options.number_of_puzzles,
             print_options.number_of_puzzles_per_page,
-            print_options.difficulty
+            print_options.difficulty,
         )
     }
 
-    pub fn game_generate (&self) {
+    pub fn game_generate(&self) {
         let difficulty = self.selected_difficulty();
         let game = SudokuGame::new_from_generator(difficulty);
         self.imp().game.replace(Some(game));
         self.imp().game_changed();
     }
 
-    pub fn check_clipboard (&self, s: &str) {
-        match SudokuGame::new_from_ascii(s){
+    pub fn check_clipboard(&self, s: &str) {
+        match SudokuGame::new_from_ascii(s) {
             Ok(game) => {
                 self.imp().tgame.replace(Some(game));
                 self.notify_tgame();
-            },
-            Err(e) => eprintln!("Failed to grab clipboard:{} ", e)
+            }
+            Err(e) => eprintln!("Failed to grab clipboard:{} ", e),
         }
     }
 
-    pub fn tgame_start (&self) {
+    pub fn tgame_start(&self) {
         if let Some(tgame) = self.imp().tgame.take() {
             self.imp().game.replace(Some(tgame));
             self.notify_tgame();
@@ -622,30 +677,40 @@ impl SudokuBackend {
         }
     }
 
-    pub fn generate_multiple_puzzles (difficulty: DifficultyCategory, number_of_puzzles: u8) -> Vec<SudokuBoard> {
+    pub fn generate_multiple_puzzles(
+        difficulty: DifficultyCategory,
+        number_of_puzzles: u8,
+    ) -> Vec<SudokuBoard> {
         let pool = ThreadPool::shared(Some(gtk::glib::num_processors())).unwrap();
         let boards: Arc<Mutex<Vec<SudokuBoard>>> = Arc::new(Mutex::new(Default::default()));
 
         for _i in 0..gtk::glib::num_processors() {
             let weak_boards = Arc::downgrade(&boards);
-            pool.push(move ||
+            pool.push(move || {
                 Self::generate_multiple_puzzles_helper(weak_boards, number_of_puzzles, difficulty)
-            ).unwrap();
+            })
+            .unwrap();
         }
 
         loop {
             std::thread::sleep(Duration::from_millis(5));
-            if let Ok(boards) = boards.lock() && boards.len() >= number_of_puzzles as usize {
+            if let Ok(boards) = boards.lock()
+                && boards.len() >= number_of_puzzles as usize
+            {
                 break;
             }
         }
         Arc::into_inner(boards).unwrap().into_inner().unwrap()
     }
 
-    fn generate_multiple_puzzles_helper (boards: std::sync::Weak<Mutex<Vec<SudokuBoard>>>, number_of_puzzles: u8, difficulty: DifficultyCategory) {
+    fn generate_multiple_puzzles_helper(
+        boards: std::sync::Weak<Mutex<Vec<SudokuBoard>>>,
+        number_of_puzzles: u8,
+        difficulty: DifficultyCategory,
+    ) {
         let mut boardg: SudokuBoardGenerator = Default::default();
         loop {
-            boardg.new_puzzle ();
+            boardg.new_puzzle();
             boardg.solve().unwrap();
             if boardg.difficulty() != difficulty {
                 continue;
@@ -654,44 +719,45 @@ impl SudokuBackend {
             let board = SudokuBoard::from_generated(
                 &boardg.get_puzzle(),
                 &boardg.get_solution(),
-                difficulty
+                difficulty,
             );
 
             if let Some(boards) = boards.upgrade() {
                 if let Ok(mut boards) = boards.lock() {
                     if boards.len() > number_of_puzzles as usize {
                         break;
-                    }
-                    else {
+                    } else {
                         boards.push(board);
                         if boards.len() > number_of_puzzles as usize {
                             break;
-                        }
-                        else {
+                        } else {
                             continue;
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 break;
             }
         }
     }
 
-    pub fn selected_difficulty (&self) -> DifficultyCategory {
+    pub fn selected_difficulty(&self) -> DifficultyCategory {
         self.imp().sdata.start_button_selected.get()
     }
 
-    fn set_highscore (&self, difficulty: DifficultyCategory, highscore: f64) {
-        self.imp().sdata.highscores.borrow_mut().insert(difficulty, highscore);
+    fn set_highscore(&self, difficulty: DifficultyCategory, highscore: f64) {
+        self.imp()
+            .sdata
+            .highscores
+            .borrow_mut()
+            .insert(difficulty, highscore);
     }
 
     pub fn set_selected_difficulty(&self, difficulty: DifficultyCategory) {
         self.imp().sdata.start_button_selected.set(difficulty);
     }
 
-    pub fn save_printed_board (&self, board: &SudokuBoard) {
+    pub fn save_printed_board(&self, board: &SudokuBoard) {
         self.imp().save_printed_board(board);
     }
 }
@@ -729,7 +795,7 @@ impl Default for SudokuPaths {
             printed_dir,
             finished_dir,
             saved_dir,
-        }
+        };
     }
 }
 
@@ -743,6 +809,8 @@ impl SudokuPaths {
     }
 
     fn convert_path(old: &PathBuf) -> String {
-        old.to_str().expect("Error setting up save paths").to_string()
+        old.to_str()
+            .expect("Error setting up save paths")
+            .to_string()
     }
 }

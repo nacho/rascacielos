@@ -24,9 +24,9 @@ use adw::subclass::prelude::*;
 use gtk::glib::{self, Object};
 use gtk::{Orientation, Widget};
 
-use crate::lib::backend::SudokuBackend;
 use crate::config;
 use crate::grid::SudokuGrid;
+use crate::lib::backend::SudokuBackend;
 
 use std::cell::OnceCell;
 
@@ -60,18 +60,20 @@ mod imp {
     }
 
     impl SudokuGridLayout {
-        fn calc_align (&self, size: i32) -> i32 {
+        fn calc_align(&self, size: i32) -> i32 {
             if size > config::MEDIUM_WINDOW_WIDTH {
                 self.margin_default_size
-            }
-            else {
+            } else {
                 let factor = SudokuGridLayout::normalize(
-                    size, config::SMALL_WINDOW_WIDTH, config::MEDIUM_WINDOW_WIDTH);
+                    size,
+                    config::SMALL_WINDOW_WIDTH,
+                    config::MEDIUM_WINDOW_WIDTH,
+                );
                 self.margin_small_size + (self.margin_size_diff as f64 * factor) as i32
             }
         }
 
-        fn normalize (mut val: i32, min: i32, max: i32) -> f64 {
+        fn normalize(mut val: i32, min: i32, max: i32) -> f64 {
             val = val.clamp(min, max);
             (val - min) as f64 / (max - min) as f64
         }
@@ -88,13 +90,7 @@ mod imp {
     }
 
     impl LayoutManagerImpl for SudokuGridLayout {
-        fn measure(
-            &self,
-            widget: &Widget,
-            _: Orientation,
-            _: i32,
-        ) -> (i32, i32, i32, i32)
-        {
+        fn measure(&self, widget: &Widget, _: Orientation, _: i32) -> (i32, i32, i32, i32) {
             let minimum: i32;
             let natural: i32;
             let minimum_baseline = -1i32;
@@ -103,10 +99,9 @@ mod imp {
             if widget.is_visible() {
                 let measure_width = child.measure(Orientation::Horizontal, -1);
                 let measure_height = child.measure(Orientation::Vertical, -1);
-                minimum = i32::max (measure_width.0, measure_height.0);
-                natural = i32::max (measure_width.1, measure_height.1);
-            }
-            else {
+                minimum = i32::max(measure_width.0, measure_height.0);
+                natural = i32::max(measure_width.1, measure_height.1);
+            } else {
                 minimum = 0;
                 natural = 0;
             }
@@ -145,11 +140,9 @@ glib::wrapper! {
         @extends gtk::LayoutManager;
 }
 
-
 impl SudokuGridLayout {
-    pub fn new () -> Self {
-        let grid_layout: Self = Object::builder()
-            .build();
+    pub fn new() -> Self {
+        let grid_layout: Self = Object::builder().build();
 
         return grid_layout;
     }

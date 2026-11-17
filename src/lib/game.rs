@@ -19,18 +19,18 @@
  */
 
 use fastrand::Rng;
-use gtk::glib::{self, ThreadPool};
 use gtk::glib::SourceId;
+use gtk::glib::{self, ThreadPool};
 use gtk::glib::{Properties, subclass::Signal};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 
+use crate::lib::board::SudokuBoard;
 use crate::lib::board::SudokuError;
 use crate::lib::board_generator::SudokuBoardGenerator;
-use crate::lib::board::SudokuBoard;
-use crate::lib::enums::DifficultyCategory;
 use crate::lib::enums::CompatValue;
 use crate::lib::enums::Coord;
+use crate::lib::enums::DifficultyCategory;
 
 use std::cell::{Cell, OnceCell};
 use std::collections::HashSet;
@@ -40,7 +40,7 @@ use std::{cell::RefCell, sync::OnceLock};
 
 mod imp {
 
-use super::*;
+    use super::*;
 
     #[derive(Properties, Default)]
     #[properties(wrapper_type = super::SudokuGame)]
@@ -56,31 +56,41 @@ use super::*;
     }
 
     impl SudokuGame {
-        pub fn add_value_step (
+        pub fn add_value_step(
             &self,
             item: &mut StackItem,
             pos: Coord,
             old_val: Option<usize>,
-            new_val: Option<usize>
+            new_val: Option<usize>,
         ) {
-            let value_step = ValueChange { pos, old_val, new_val };
+            let value_step = ValueChange {
+                pos,
+                old_val,
+                new_val,
+            };
             item.value_changes.push(value_step);
 
             self.obj().board().set_value(pos, new_val);
             self.value_changed(pos, CompatValue::from(old_val), CompatValue::from(new_val));
         }
 
-        pub fn add_earmark_step (&self, item: &mut StackItem, pos: Coord, num: usize, enabled: bool) {
+        pub fn add_earmark_step(
+            &self,
+            item: &mut StackItem,
+            pos: Coord,
+            num: usize,
+            enabled: bool,
+        ) {
             let earmark_step = EarmarkChange { pos, num, enabled };
             item.earmark_changes.push(earmark_step);
             match enabled {
                 true => self.obj().board().enable_earmark(pos, num),
-                false => self.obj().board().disable_earmark(pos, num)
+                false => self.obj().board().disable_earmark(pos, num),
             }
             self.earmark_changed(pos, num, enabled);
         }
 
-        pub fn disable_all_earmarks_helper (&self, pos: Coord, item: &mut StackItem) {
+        pub fn disable_all_earmarks_helper(&self, pos: Coord, item: &mut StackItem) {
             for num in 0..9 {
                 if self.obj().board().is_earmark_enabled(pos, num) {
                     self.add_earmark_step(&mut *item, pos, num, false);
@@ -88,14 +98,14 @@ use super::*;
             }
         }
 
-        pub fn value_changed (&self, pos: Coord, old_val: CompatValue, new_val: CompatValue) {
+        pub fn value_changed(&self, pos: Coord, old_val: CompatValue, new_val: CompatValue) {
             self.obj().emit_by_name::<()>(
                 "value-changed",
-                &[&(pos.row as i32), &(pos.col as i32), &old_val.0, &new_val.0]
+                &[&(pos.row as i32), &(pos.col as i32), &old_val.0, &new_val.0],
             );
         }
 
-        pub fn completed (&self) {
+        pub fn completed(&self) {
             self.obj().emit_by_name::<()>("completed", &[]);
         }
 
@@ -103,33 +113,43 @@ use super::*;
             self.obj().emit_by_name::<()>("paused", &[&paused]);
         }
 
-        pub fn earmark_changed (&self, pos: Coord, num: usize, enabled: bool) {
+        pub fn earmark_changed(&self, pos: Coord, num: usize, enabled: bool) {
             self.obj().emit_by_name::<()>(
                 "earmark-changed",
-                &[&(pos.row as i32), &(pos.col as i32), &(num as i32), &enabled]
+                &[
+                    &(pos.row as i32),
+                    &(pos.col as i32),
+                    &(num as i32),
+                    &enabled,
+                ],
             );
         }
 
         //clears all redo actions
-        pub fn truncate_stack (&self) {
+        pub fn truncate_stack(&self) {
             if let Some(stack_head_index) = self.stack_head_index.get() {
                 self.stack.borrow_mut().truncate(stack_head_index + 1);
-            }
-            else {
+            } else {
                 self.stack.borrow_mut().clear();
             }
             self.stack_head_index.set(Some(self.stack.borrow().len()));
         }
 
-        pub fn start_clock_tick (&self) {
-            self.timer_source_id.set(Some(glib::timeout_add_seconds_local(1, glib::clone!(
-                #[weak(rename_to = obj)] self.obj(),
-                #[upgrade_or] glib::ControlFlow::Break,
-                move || {
-                    obj.emit_by_name::<()>("tick", &[]);
-                    glib::ControlFlow::Continue
-                }
-            ))));
+        pub fn start_clock_tick(&self) {
+            self.timer_source_id
+                .set(Some(glib::timeout_add_seconds_local(
+                    1,
+                    glib::clone!(
+                        #[weak(rename_to = obj)]
+                        self.obj(),
+                        #[upgrade_or]
+                        glib::ControlFlow::Break,
+                        move || {
+                            obj.emit_by_name::<()>("tick", &[]);
+                            glib::ControlFlow::Continue
+                        }
+                    ),
+                )));
         }
     }
 
@@ -148,27 +168,20 @@ use super::*;
                     Signal::builder("action-completed")
                         .param_types([StackAction::static_type()])
                         .build(),
-
-                    Signal::builder("tick")
-                        .build(),
-
-                    Signal::builder("completed")
-                        .build(),
-
+                    Signal::builder("tick").build(),
+                    Signal::builder("completed").build(),
                     Signal::builder("paused")
                         .param_types([bool::static_type()])
                         .build(),
-
                     //pos, value, enabled
                     Signal::builder("earmark-changed")
                         .param_types([
                             i32::static_type(),
                             i32::static_type(),
                             i32::static_type(),
-                            bool::static_type()
+                            bool::static_type(),
                         ])
                         .build(),
-
                     //pos, old_val, new_val
                     Signal::builder("value-changed")
                         .param_types([
@@ -181,24 +194,23 @@ use super::*;
                 ]
             })
         }
-        fn constructed(&self) {
-        }
+        fn constructed(&self) {}
     }
 
     impl StackAction {
-        pub fn is_single_value_change (&self) -> bool {
+        pub fn is_single_value_change(&self) -> bool {
             use StackAction::*;
             match self {
                 Insert | Remove | InsertAndDisableAlignedEarmarks => return true,
-                _ => return false
+                _ => return false,
             }
         }
 
-        pub fn is_single_earmarks_change (&self) -> bool {
+        pub fn is_single_earmarks_change(&self) -> bool {
             use StackAction::*;
             match self {
                 EnableEarmark | DisableEarmark | DisableAllEarmarks => return true,
-                _ => return false
+                _ => return false,
             }
         }
     }
@@ -226,55 +238,55 @@ glib::wrapper! {
 }
 
 impl SudokuGame {
-    pub fn new_from_fn <F: Fn(&str) -> Result<SudokuBoard, SudokuError>>
-        (func: F, path: &str)  -> Result<Self, SudokuError> {
-
+    pub fn new_from_fn<F: Fn(&str) -> Result<SudokuBoard, SudokuError>>(
+        func: F,
+        path: &str,
+    ) -> Result<Self, SudokuError> {
         let game: Self = glib::Object::new();
         let mut board = func(path)?;
-        if let Some(error) = SudokuGame::solve(&mut board){
+        if let Some(error) = SudokuGame::solve(&mut board) {
             return Err(error);
         }
         game.imp().board.set(board).unwrap();
-        game.start_clock ();
+        game.start_clock();
         Ok(game)
     }
 
-    pub fn new_from_json (path: &str) -> Result<Self, SudokuError> {
+    pub fn new_from_json(path: &str) -> Result<Self, SudokuError> {
         Self::new_from_fn(SudokuBoard::from_json, path)
     }
 
-    pub fn new_from_string (s: &str) -> Result<Self, SudokuError> {
+    pub fn new_from_string(s: &str) -> Result<Self, SudokuError> {
         Self::new_from_fn(SudokuBoard::from_string, s)
     }
 
-    pub fn new_from_ascii (s: &str) -> Result<Self, SudokuError> {
+    pub fn new_from_ascii(s: &str) -> Result<Self, SudokuError> {
         Self::new_from_fn(SudokuBoard::from_ascii, s)
     }
 
-    pub fn new_from_generator (difficulty: DifficultyCategory) -> Self {
+    pub fn new_from_generator(difficulty: DifficultyCategory) -> Self {
         let pool = ThreadPool::shared(Some(gtk::glib::num_processors())).unwrap();
         let generator: Arc<OnceLock<SudokuBoardGenerator>> = Arc::new(OnceLock::new());
         let time = SystemTime::now();
 
         for _i in 0..gtk::glib::num_processors() {
             let weak_generator = Arc::downgrade(&generator);
-            pool.push(move ||{
+            pool.push(move || {
                 let mut boardg: SudokuBoardGenerator = Default::default();
                 loop {
-                    boardg.new_puzzle ();
+                    boardg.new_puzzle();
                     boardg.solve().unwrap();
                     if let Some(generator) = weak_generator.upgrade() {
                         if boardg.difficulty() == difficulty {
                             generator.get_or_init(|| boardg);
                             break;
                         }
-                    }
-                    else {
+                    } else {
                         break;
                     }
-
                 }
-            }).unwrap();
+            })
+            .unwrap();
         }
 
         let mut count = 0;
@@ -287,19 +299,25 @@ impl SudokuGame {
         }
 
         let generator = Arc::into_inner(generator).unwrap().into_inner().unwrap();
-        let board = SudokuBoard::from_generated(&generator.get_puzzle(), &generator.get_solution(), difficulty);
+        let board = SudokuBoard::from_generated(
+            &generator.get_puzzle(),
+            &generator.get_solution(),
+            difficulty,
+        );
         let game: Self = glib::Object::new();
         game.imp().board.set(board).unwrap();
-        game.start_clock ();
+        game.start_clock();
 
         let new_time = SystemTime::now();
-        println!("Multithreaded generator initialized game in {}ms",
-            new_time.duration_since(time).unwrap().as_millis());
+        println!(
+            "Multithreaded generator initialized game in {}ms",
+            new_time.duration_since(time).unwrap().as_millis()
+        );
 
         game
     }
 
-    pub fn solve (board: &mut SudokuBoard) -> Option<SudokuError> {
+    pub fn solve(board: &mut SudokuBoard) -> Option<SudokuError> {
         let fixed_cells = board.fixed_cells();
 
         let mut board_generator = SudokuBoardGenerator::default();
@@ -315,27 +333,26 @@ impl SudokuGame {
                 }
                 board.difficulty_category = board_generator.difficulty();
                 None
-            },
-            Err(_e) => Some(SudokuError::MultipleSolutions)
+            }
+            Err(_e) => Some(SudokuError::MultipleSolutions),
         }
     }
 
-    pub fn board (&self) -> &SudokuBoard {
+    pub fn board(&self) -> &SudokuBoard {
         self.imp().board.get().unwrap()
     }
 
-    pub fn toggle_pause (&self) {
+    pub fn toggle_pause(&self) {
         let paused = self.imp().paused.get();
         if paused {
             self.start_clock();
-        }
-        else {
+        } else {
             self.stop_clock();
         }
         self.imp().paused(!paused);
     }
 
-    pub fn start_clock (&self) {
+    pub fn start_clock(&self) {
         if self.imp().timer.get().is_none() {
             self.imp().timer.set(Some(SystemTime::now()));
             self.imp().start_clock_tick();
@@ -343,7 +360,7 @@ impl SudokuGame {
         }
     }
 
-    pub fn total_time_played (&self) -> f64 {
+    pub fn total_time_played(&self) -> f64 {
         let imp = self.imp();
         let mut accumulated_time = imp.stored_time.get();
         if let Some(timer) = imp.timer.get() {
@@ -355,44 +372,45 @@ impl SudokuGame {
         accumulated_time
     }
 
-    pub fn stop_clock (&self) {
-        if let Some(timer) = self.imp().timer.get(){
+    pub fn stop_clock(&self) {
+        if let Some(timer) = self.imp().timer.get() {
             if let Some(source_id) = self.imp().timer_source_id.take() {
                 SourceId::remove(source_id);
             }
             if let Ok(elapsed_time) = timer.elapsed() {
-                self.imp().stored_time.update(|x| x + elapsed_time.as_secs_f64());
+                self.imp()
+                    .stored_time
+                    .update(|x| x + elapsed_time.as_secs_f64());
                 self.imp().timer.set(None);
                 self.imp().paused.set(true);
             }
         }
     }
 
-    pub fn difficulty (&self) -> DifficultyCategory {
+    pub fn difficulty(&self) -> DifficultyCategory {
         self.board().difficulty_category
     }
 
-    pub fn is_undostack_null (&self) -> bool {
+    pub fn is_undostack_null(&self) -> bool {
         self.imp().stack_head_index.get().is_none()
     }
 
-    pub fn is_redostack_null (&self) -> bool {
+    pub fn is_redostack_null(&self) -> bool {
         if let Some(stack_head_index) = self.imp().stack_head_index.get() {
             stack_head_index == self.imp().stack.borrow().len() - 1
-        }
-        else {
+        } else {
             self.imp().stack.borrow().len() == 0
         }
     }
 
-    pub fn enable_earmark (&self, pos: Coord, num: usize) {
+    pub fn enable_earmark(&self, pos: Coord, num: usize) {
         let imp = self.imp();
         let mut item = new_action!(self, StackAction::EnableEarmark);
         imp.add_earmark_step(&mut item, pos, num, true);
         finish_action!(self, item);
     }
 
-    pub fn enable_all_earmark_possibilities (&self) {
+    pub fn enable_all_earmark_possibilities(&self) {
         let imp = self.imp();
         let stack_head_index_copy = self.imp().stack_head_index.get();
 
@@ -417,20 +435,19 @@ impl SudokuGame {
 
         if item.earmark_changes.len() > 0 {
             finish_action!(self, item);
-        }
-        else {
+        } else {
             self.imp().stack_head_index.set(stack_head_index_copy);
         }
     }
 
-    pub fn disable_earmark (&self, pos: Coord, num: usize) {
+    pub fn disable_earmark(&self, pos: Coord, num: usize) {
         let imp = self.imp();
         let mut item = new_action!(self, StackAction::DisableEarmark);
         imp.add_earmark_step(&mut item, pos, num, false);
         finish_action!(self, item);
     }
 
-    pub fn disable_all_earmarks (&self, pos: Coord) {
+    pub fn disable_all_earmarks(&self, pos: Coord) {
         let imp = self.imp();
         let mut item = new_action!(self, StackAction::DisableAllEarmarks);
 
@@ -439,7 +456,7 @@ impl SudokuGame {
         finish_action!(self, item);
     }
 
-    pub fn insert_and_disable_aligned_earmarks (&self, pos: Coord, new_val: usize) {
+    pub fn insert_and_disable_aligned_earmarks(&self, pos: Coord, new_val: usize) {
         let imp = self.imp();
         let old_val = self.board().cell(pos).value.get();
 
@@ -468,7 +485,7 @@ impl SudokuGame {
         }
     }
 
-    pub fn insert (&self, pos: Coord, new_val: usize) {
+    pub fn insert(&self, pos: Coord, new_val: usize) {
         let imp = self.imp();
         let old_val = self.board().cell(pos).value.get();
 
@@ -487,7 +504,7 @@ impl SudokuGame {
         }
     }
 
-    pub fn remove (&self, pos: Coord) {
+    pub fn remove(&self, pos: Coord) {
         let imp = self.imp();
         let old_val = self.board().cell(pos).value.get();
 
@@ -497,7 +514,7 @@ impl SudokuGame {
         finish_action!(self, item);
     }
 
-    pub fn reset (&self) {
+    pub fn reset(&self) {
         let imp = self.imp();
         let mut item = new_action!(self, StackAction::Reset);
 
@@ -511,8 +528,7 @@ impl SudokuGame {
 
                 if let Some(value) = cell.value.get() {
                     imp.add_value_step(&mut item, pos, Some(value), None);
-                }
-                else if self.board().has_earmarks(pos) {
+                } else if self.board().has_earmarks(pos) {
                     imp.disable_all_earmarks_helper(pos, &mut item);
                 }
             }
@@ -521,11 +537,11 @@ impl SudokuGame {
         finish_action!(self, item);
     }
 
-    pub fn current_action (&self) -> StackAction {
+    pub fn current_action(&self) -> StackAction {
         self.imp().current_action.get().unwrap()
     }
 
-    fn unique (v: Vec<Coord>) -> Vec<Coord>{
+    fn unique(v: Vec<Coord>) -> Vec<Coord> {
         let mut ret = Vec::new();
         let mut hashset = HashSet::<Coord>::new();
         for coord in v {
@@ -536,9 +552,9 @@ impl SudokuGame {
         ret
     }
 
-    pub fn play_order (&self) -> Vec<Coord> {
+    pub fn play_order(&self) -> Vec<Coord> {
         let stack = self.imp().stack.borrow();
-        let mut play_order : Vec<Coord> = Default::default();
+        let mut play_order: Vec<Coord> = Default::default();
         for item in stack.iter() {
             for value_change in &item.value_changes {
                 play_order.push(value_change.pos);
@@ -568,22 +584,25 @@ impl SudokuGame {
         play_order
     }
 
-    pub fn undo (&self) {
+    pub fn undo(&self) {
         let stack_head_index = self.imp().stack_head_index.get().unwrap();
         let changes = &self.imp().stack.borrow()[stack_head_index];
         let imp = self.imp();
         imp.current_action.set(Some(changes.action_type));
 
-        for vc in changes.value_changes.iter(){
-            self.board().set_value (vc.pos, vc.old_val);
-            imp.value_changed(vc.pos, CompatValue::from(vc.new_val), CompatValue::from(vc.old_val));
+        for vc in changes.value_changes.iter() {
+            self.board().set_value(vc.pos, vc.old_val);
+            imp.value_changed(
+                vc.pos,
+                CompatValue::from(vc.new_val),
+                CompatValue::from(vc.old_val),
+            );
         }
 
         for ec in changes.earmark_changes.iter() {
             if ec.enabled {
                 self.board().disable_earmark(ec.pos, ec.num);
-            }
-            else {
+            } else {
                 self.board().enable_earmark(ec.pos, ec.num);
             }
             imp.earmark_changed(ec.pos, ec.num, !ec.enabled);
@@ -591,8 +610,7 @@ impl SudokuGame {
 
         if stack_head_index == 0 {
             imp.stack_head_index.set(None);
-        }
-        else {
+        } else {
             imp.stack_head_index.set(Some(stack_head_index - 1));
         }
 
@@ -600,12 +618,11 @@ impl SudokuGame {
         self.emit_by_name::<()>("action-completed", &[&changes.action_type]);
     }
 
-    pub fn redo (&self) {
+    pub fn redo(&self) {
         let index_to_redo = {
             if let Some(stack_head_index) = self.imp().stack_head_index.get() {
                 stack_head_index + 1
-            }
-            else {
+            } else {
                 0
             }
         };
@@ -613,16 +630,19 @@ impl SudokuGame {
         let changes = &imp.stack.borrow()[index_to_redo];
         imp.current_action.set(Some(changes.action_type));
 
-        for vc in changes.value_changes.iter(){
-            self.board().set_value (vc.pos, vc.new_val);
-            imp.value_changed(vc.pos, CompatValue::from(vc.old_val), CompatValue::from(vc.new_val));
+        for vc in changes.value_changes.iter() {
+            self.board().set_value(vc.pos, vc.new_val);
+            imp.value_changed(
+                vc.pos,
+                CompatValue::from(vc.old_val),
+                CompatValue::from(vc.new_val),
+            );
         }
 
         for ec in changes.earmark_changes.iter() {
             if ec.enabled {
                 self.board().enable_earmark(ec.pos, ec.num);
-            }
-            else {
+            } else {
                 self.board().disable_earmark(ec.pos, ec.num);
             }
             imp.earmark_changed(ec.pos, ec.num, ec.enabled);
@@ -634,7 +654,7 @@ impl SudokuGame {
     }
 
     //for testing purposes
-    pub fn _auto_complete (&self) {
+    pub fn _auto_complete(&self) {
         for row in 0..9 {
             for col in 0..9 {
                 let cell = &self.board().cells[row][col];
@@ -649,7 +669,8 @@ impl SudokuGame {
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, glib::Enum)]
 #[enum_type(name = "StackAction")]
 pub enum StackAction {
-    #[default] None,
+    #[default]
+    None,
     Insert,
     Remove,
     EnableEarmark,
@@ -657,36 +678,36 @@ pub enum StackAction {
     DisableAllEarmarks,
     InsertAndDisableAlignedEarmarks,
     EnableAllEarmarkPossibilities,
-    Reset
+    Reset,
 }
 
 #[derive(Clone, Copy)]
 struct EarmarkChange {
     pos: Coord,
     num: usize,
-    enabled: bool
+    enabled: bool,
 }
 
 #[derive(Clone, Copy)]
 struct ValueChange {
     pos: Coord,
     old_val: Option<usize>,
-    new_val: Option<usize>
+    new_val: Option<usize>,
 }
 
 #[derive(Clone)]
 pub struct StackItem {
     value_changes: Vec<ValueChange>,
     earmark_changes: Vec<EarmarkChange>,
-    action_type: StackAction
+    action_type: StackAction,
 }
 
 impl StackItem {
-    fn new (action_type: StackAction) -> Self {
+    fn new(action_type: StackAction) -> Self {
         return Self {
             value_changes: Default::default(),
             earmark_changes: Default::default(),
-            action_type: action_type
+            action_type: action_type,
         };
     }
 }

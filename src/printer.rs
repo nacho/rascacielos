@@ -18,11 +18,11 @@
  * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use gtk::cairo;
 use gtk::glib;
+use gtk::pango;
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::cairo;
-use gtk::pango;
 use gtk::{PrintContext, PrintOperationResult, TextDirection};
 
 use adw::prelude::{AdwDialogExt, AlertDialogExt};
@@ -43,8 +43,10 @@ mod imp {
     }
 
     impl SudokuPrinter {
-        pub fn print_sudoku (&self, window: &gtk::Window) -> PrintOperationResult {
-            let result = self.print_operation.run(gtk::PrintOperationAction::PrintDialog, Some(window));
+        pub fn print_sudoku(&self, window: &gtk::Window) -> PrintOperationResult {
+            let result = self
+                .print_operation
+                .run(gtk::PrintOperationAction::PrintDialog, Some(window));
             use gettextrs::gettext;
             match result {
                 Ok(print_op) => print_op,
@@ -59,7 +61,7 @@ mod imp {
             }
         }
 
-        pub fn draw_page_cb (&self, context: &PrintContext, page_nr: i32) {
+        pub fn draw_page_cb(&self, context: &PrintContext, page_nr: i32) {
             let cc = context.cairo_context();
             let width = context.width();
             let height = context.height();
@@ -69,7 +71,8 @@ mod imp {
 
             let label_extents = cc.text_extents("Ww").expect("Cairo Error");
 
-            let result = self.fit_squares_in_rectangle(width, height, label_extents.height(), self.margin);
+            let result =
+                self.fit_squares_in_rectangle(width, height, label_extents.height(), self.margin);
             let best_square_size = result.0;
             let n_across = result.1;
             let n_down = result.2;
@@ -83,18 +86,24 @@ mod imp {
 
             for sudoku in sudokus_on_page {
                 let left = margin_x + (index % n_across) as f64 * (best_square_size + margin_x);
-                let top = margin_y + label_extents.height() + (index / n_across) as f64 
-                    * (best_square_size + margin_y + label_extents.height());
+                let top = margin_y
+                    + label_extents.height()
+                    + (index / n_across) as f64
+                        * (best_square_size + margin_y + label_extents.height());
                 let label = sudoku.difficulty_category.to_string();
                 let layout = pangocairo::functions::create_layout(&cc);
-                layout.set_font_description(Some(&pango::FontDescription::from_string("Sans Bold 9")));
+                layout.set_font_description(Some(&pango::FontDescription::from_string(
+                    "Sans Bold 9",
+                )));
                 layout.set_text(&label);
 
                 let layout_size = layout.size();
                 let layout_width = layout_size.0 / pango::SCALE;
                 let layout_height = layout_size.1 / pango::SCALE;
-                cc.move_to(left + (best_square_size - layout_width as f64) / 2.0,
-                    top - layout_height as f64);
+                cc.move_to(
+                    left + (best_square_size - layout_width as f64) / 2.0,
+                    top - layout_height as f64,
+                );
                 cc.set_source_rgb(0.0, 0.0, 0.0);
                 pangocairo::functions::show_layout(&cc, &layout);
 
@@ -103,9 +112,13 @@ mod imp {
             }
         }
 
-        fn fit_squares_in_rectangle (&self, width: f64, height: f64, label_height: f64, margin: i32)
-            -> (f64, i32, i32)
-        {
+        fn fit_squares_in_rectangle(
+            &self,
+            width: f64,
+            height: f64,
+            label_height: f64,
+            margin: i32,
+        ) -> (f64, i32, i32) {
             let n = self.sudokus_per_page.get().unwrap();
             let mut across = 1;
             let mut down = n.clone();
@@ -120,7 +133,8 @@ mod imp {
                 let mut across_size = width - ((n_across + 1) * margin) as f64;
                 across_size /= n_across as f64;
 
-                let mut down_size = height - ((n_down + 1) * margin) as f64 - n_down as f64 * label_height;
+                let mut down_size =
+                    height - ((n_down + 1) * margin) as f64 - n_down as f64 * label_height;
                 down_size /= n_down as f64;
 
                 let square_size = f64::min(across_size, down_size);
@@ -128,19 +142,22 @@ mod imp {
                     best_square_size = square_size;
                     across = n_across;
                     down = n_down;
-
                 }
 
                 n_across += 1;
             }
 
-
             (best_square_size, across, down)
         }
 
-        fn draw_sudoku (&self, cc: &cairo::Context, board: &SudokuBoard,
-            size: f64, offset_x: f64, offset_y: f64)
-        {
+        fn draw_sudoku(
+            &self,
+            cc: &cairo::Context,
+            board: &SudokuBoard,
+            size: f64,
+            offset_x: f64,
+            offset_y: f64,
+        ) {
             let pencil_grey = [0.3, 0.3, 0.3];
             let background_color = [1.0, 1.0, 1.0];
             let border_color = [1.0, 1.0, 1.0];
@@ -152,10 +169,10 @@ mod imp {
             let thick = thin * 5.0;
             let border = thick;
             let white_space = size
-                -(2.0 * border) as f64
-                -(2.0 * thick) 
-                -((per_block - 1) as f64 * thick)
-                -((per_block * 2) as f64 * thin);
+                - (2.0 * border) as f64
+                - (2.0 * thick)
+                - ((per_block - 1) as f64 * thick)
+                - ((per_block * 2) as f64 * thin);
 
             let square_size = white_space / sudoku_size as f64;
 
@@ -173,10 +190,19 @@ mod imp {
             //Outer border
             cc.set_line_join(cairo::LineJoin::Round);
             cc.set_line_width(border);
-            cc.rectangle(outer[0] + border / 2.0, outer[2] + border / 2.0, size - border, size - border);
+            cc.rectangle(
+                outer[0] + border / 2.0,
+                outer[2] + border / 2.0,
+                size - border,
+                size - border,
+            );
 
             //Inner background
-            cc.set_source_rgb(background_color[0], background_color[1], background_color[2]);
+            cc.set_source_rgb(
+                background_color[0],
+                background_color[1],
+                background_color[2],
+            );
             cc.fill_preserve().expect("Printer Error");
 
             //Border box
@@ -190,7 +216,7 @@ mod imp {
                 outer[0] + border + thick / 2.0,
                 outer[2] + border + thick / 2.0,
                 size - border * 2.0 - thick,
-                size - border * 2.0 - thick
+                size - border * 2.0 - thick,
             );
             cc.set_source_rgb(line_color[0], line_color[1], line_color[2]);
             cc.stroke().expect("Printer Error");
@@ -199,13 +225,12 @@ mod imp {
             let mut position = border + thick;
             pos[0] = position + square_size / 2.0;
             let mut last_line = 0.0;
-            for n in 1..= sudoku_size {
-                if  n % per_block == 0 {
+            for n in 1..=sudoku_size {
+                if n % per_block == 0 {
                     cc.set_line_width(thick);
                     position += square_size + last_line / 2.0 + thick / 2.0;
                     last_line = thick;
-                }
-                else {
+                } else {
                     cc.set_line_width(thin);
                     position += square_size + last_line / 2.0 + thin / 2.0;
                     last_line = thin;
@@ -220,28 +245,25 @@ mod imp {
             }
 
             cc.set_font_size(font_size as f64);
-            let sudoku: [[usize; 9]; 9] = from_fn(|row| from_fn(|col|
-                board.cells[row][col].value.get().map_or_else(|| 0, |m| m + 1)
-            ));
+            let sudoku: [[usize; 9]; 9] = from_fn(|row| {
+                from_fn(|col| {
+                    board.cells[row][col]
+                        .value
+                        .get()
+                        .map_or_else(|| 0, |m| m + 1)
+                })
+            });
             let invert = gtk::Widget::default_direction() == TextDirection::Rtl;
             for x in 0..sudoku_size {
-                let real_x = {
-                    if invert {
-                        sudoku_size - x - 1
-                    }
-                    else {
-                        x
-                    }
-                };
+                let real_x = { if invert { sudoku_size - x - 1 } else { x } };
                 for y in 0..sudoku_size {
                     cc.move_to(pos[x] + offset_x, pos[y] + offset_y);
                     if sudoku[y][real_x] != 0 {
-                        let letter = sudoku[y][real_x].to_string ();
+                        let letter = sudoku[y][real_x].to_string();
                         if board.cells[y][real_x].fixed {
                             cc.select_font_face("Sans", cairo::FontSlant::Normal, font_weight);
                             cc.set_source_rgb(0.0, 0.0, 0.0);
-                        }
-                        else {
+                        } else {
                             cc.select_font_face("Sans", cairo::FontSlant::Italic, font_weight);
                             cc.set_source_rgb(pencil_grey[0], pencil_grey[1], pencil_grey[2]);
                         }
@@ -257,7 +279,6 @@ mod imp {
         }
     }
 
-
     #[glib::object_subclass]
     impl ObjectSubclass for SudokuPrinter {
         const NAME: &'static str = "SudokuPrinter";
@@ -269,7 +290,8 @@ mod imp {
             self.parent_constructed();
 
             self.print_operation.connect_begin_print(glib::clone!(
-                #[weak(rename_to = printer)] self,
+                #[weak(rename_to = printer)]
+                self,
                 move |_, _| {
                     let sudokus = printer.sudokus_count.get().unwrap();
                     let spp = printer.sudokus_per_page.get().unwrap();
@@ -282,9 +304,9 @@ mod imp {
             ));
 
             self.print_operation.connect_draw_page(glib::clone!(
-                #[weak(rename_to = printer)] self,
-                move |_, context, page_nr|
-                printer.draw_page_cb(context, page_nr)
+                #[weak(rename_to = printer)]
+                self,
+                move |_, context, page_nr| printer.draw_page_cb(context, page_nr)
             ));
         }
     }
@@ -296,7 +318,7 @@ mod imp {
                 sudokus_count: Default::default(),
                 print_operation: Default::default(),
                 boards: Default::default(),
-                sudokus_per_page: Default::default()
+                sudokus_per_page: Default::default(),
             }
         }
     }
@@ -307,10 +329,18 @@ glib::wrapper! {
 }
 
 impl SudokuPrinter {
-    pub fn new (boards: Vec<SudokuBoard>, sudokus_per_page: i32) -> Self {
+    pub fn new(boards: Vec<SudokuBoard>, sudokus_per_page: i32) -> Self {
         let printer: Self = glib::Object::builder().build();
-        printer.imp().sudokus_count.set(boards.len() as i32).unwrap();
-        printer.imp().sudokus_per_page.set(sudokus_per_page).unwrap();
+        printer
+            .imp()
+            .sudokus_count
+            .set(boards.len() as i32)
+            .unwrap();
+        printer
+            .imp()
+            .sudokus_per_page
+            .set(sudokus_per_page)
+            .unwrap();
         printer.imp().boards.set(boards).unwrap();
         printer
     }

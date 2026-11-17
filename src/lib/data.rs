@@ -18,7 +18,12 @@
  * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
  */
 
-use std::{cell::{Cell, RefCell}, collections::HashMap, fs::{File, remove_file}, io::Write};
+use std::{
+    cell::{Cell, RefCell},
+    collections::HashMap,
+    fs::{File, remove_file},
+    io::Write,
+};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -55,63 +60,60 @@ impl Default for PrintData {
 }
 
 impl SudokuData {
-    pub fn new (path: String) -> Self {
-        if let Ok(str) = std::fs::read_to_string(&path) &&
-            let Ok(mut data) = Self::load(&str)
+    pub fn new(path: String) -> Self {
+        if let Ok(str) = std::fs::read_to_string(&path)
+            && let Ok(mut data) = Self::load(&str)
         {
             data.data_file = path;
-            return data
-        }
-        else {
+            return data;
+        } else {
             Self {
                 highscores: Default::default(),
                 data_file: path,
                 print_data: Default::default(),
-                start_button_selected: Cell::new(DifficultyCategory::Easy)
+                start_button_selected: Cell::new(DifficultyCategory::Easy),
             }
         }
     }
 
     //implemeted in v52, remove it in v55
-    pub fn new_from_highscores (
+    pub fn new_from_highscores(
         data_path: String,
         highscores_path: &String,
-        start_button_selected: DifficultyCategory
-    ) -> Result<Self, SudokuError>
-    {
+        start_button_selected: DifficultyCategory,
+    ) -> Result<Self, SudokuError> {
         let str = std::fs::read_to_string(highscores_path)?;
         let highscores = Self::legacy_load(&str)?;
         let data = Self {
             highscores: RefCell::new(highscores),
             data_file: data_path,
             print_data: Default::default(),
-            start_button_selected: Cell::new(start_button_selected)
+            start_button_selected: Cell::new(start_button_selected),
         };
-        if !(data.save() && remove_file(highscores_path).is_ok()){
+        if !(data.save() && remove_file(highscores_path).is_ok()) {
             eprintln!("Error deleting legacy highscore file");
         }
         Ok(data)
     }
 
-    fn load (str: &String) -> Result<Self, SudokuError> {
+    fn load(str: &String) -> Result<Self, SudokuError> {
         let data: Self = serde_json::from_str(str)?;
         Ok(data)
     }
 
-    pub fn save (&self) -> bool {
+    pub fn save(&self) -> bool {
         if let Ok(mut file) = File::create(&self.data_file) {
             let str = serde_json::to_string_pretty(&self).unwrap();
             file.write_all(&str.into_bytes()).expect("Error saving");
             return true;
-        }
-        else {
+        } else {
             println!("ERROR OPENING FILE");
             return false;
         }
     }
 
     //implemeted in v52, remove it in v55
-    fn legacy_load (str: &String) -> Result<HashMap<DifficultyCategory, f64>, SudokuError> {
+    fn legacy_load(str: &String) -> Result<HashMap<DifficultyCategory, f64>, SudokuError> {
         let h: Value = serde_json::from_str(str)?;
         use DifficultyCategory::*;
         let mut highscores: HashMap<DifficultyCategory, f64> = HashMap::new();

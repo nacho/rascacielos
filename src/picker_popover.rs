@@ -25,11 +25,11 @@ use gtk::glib;
 use gtk::glib::closure_local;
 
 use crate::cell::SudokuCell;
-use crate::lib::enums::CompatValue;
 use crate::lib::backend::SudokuBackend;
+use crate::lib::enums::CompatValue;
 use crate::lib::enums::Coord;
 
-use std::{cell::{Cell, OnceCell}};
+use std::cell::{Cell, OnceCell};
 
 use crate::{earmark_picker::SudokuEarmarkPicker, value_picker::SudokuValuePicker};
 
@@ -49,25 +49,33 @@ mod imp {
         pub picker_stack: gtk::Stack,
         pub value_picker: SudokuValuePicker,
         pub earmark_picker: SudokuEarmarkPicker,
-        pub state: Cell<Option<PopoverPickerState>>
+        pub state: Cell<Option<PopoverPickerState>>,
     }
 
     impl ObjectImpl for SudokuNumberPicker {
         fn constructed(&self) {
             self.parent_constructed();
             self.picker_stack.add_child(&self.value_picker);
-            self.value_picker.connect_closure("finished", false, closure_local!(
-                #[weak(rename_to = picker_popover)] self.obj(),
-                move |_ : SudokuValuePicker|
-                picker_popover.popdown()
-            ));
+            self.value_picker.connect_closure(
+                "finished",
+                false,
+                closure_local!(
+                    #[weak(rename_to = picker_popover)]
+                    self.obj(),
+                    move |_: SudokuValuePicker| picker_popover.popdown()
+                ),
+            );
 
             self.picker_stack.add_child(&self.earmark_picker);
-            self.earmark_picker.connect_closure("finished", false, closure_local!(
-                #[weak(rename_to = picker_popover)] self.obj(),
-                move |_ : SudokuEarmarkPicker|
-                picker_popover.popdown()
-            ));
+            self.earmark_picker.connect_closure(
+                "finished",
+                false,
+                closure_local!(
+                    #[weak(rename_to = picker_popover)]
+                    self.obj(),
+                    move |_: SudokuEarmarkPicker| picker_popover.popdown()
+                ),
+            );
             self.obj().set_child(Some(&self.picker_stack));
         }
     }
@@ -84,7 +92,7 @@ mod imp {
                 picker_stack: stack,
                 value_picker: SudokuValuePicker::new_unitialized(),
                 earmark_picker: SudokuEarmarkPicker::new_unitialized(),
-                state: Default::default()
+                state: Default::default(),
             }
         }
     }
@@ -95,14 +103,18 @@ mod imp {
             self.parent_closed();
             if let Some(state) = self.state.get() {
                 if state == PopoverPickerState::ValuePicker {
-                    self.value_picker.disconnect_picker ();
-                }
-                else {
-                    self.earmark_picker.disconnect_picker ();
+                    self.value_picker.disconnect_picker();
+                } else {
+                    self.earmark_picker.disconnect_picker();
                 }
                 self.state.set(None);
             }
-            let cell = self.obj().parent().unwrap().downcast::<SudokuCell>().unwrap();
+            let cell = self
+                .obj()
+                .parent()
+                .unwrap()
+                .downcast::<SudokuCell>()
+                .unwrap();
             cell.drop_picker();
             self.obj().unparent();
         }
@@ -116,8 +128,8 @@ glib::wrapper! {
 }
 
 impl SudokuPickerPopover {
-    pub fn new_unitialized () -> Self {
-        let picker_popover : Self = glib::Object::builder()
+    pub fn new_unitialized() -> Self {
+        let picker_popover: Self = glib::Object::builder()
             .property("autohide", false)
             .property("can-focus", false)
             .build();
@@ -125,8 +137,11 @@ impl SudokuPickerPopover {
         picker_popover
     }
 
-    pub fn init (&self, backend: &SudokuBackend) {
-        self.imp().backend.set(backend.clone()).expect("Picker Popover is already initialized");
+    pub fn init(&self, backend: &SudokuBackend) {
+        self.imp()
+            .backend
+            .set(backend.clone())
+            .expect("Picker Popover is already initialized");
         self.imp().value_picker.init(backend);
         self.imp().earmark_picker.init(backend);
     }
@@ -140,7 +155,7 @@ impl SudokuPickerPopover {
         }
     } */
 
-    pub fn show_value_picker (&self, cell: &SudokuCell) {
+    pub fn show_value_picker(&self, cell: &SudokuCell) {
         let imp = self.imp();
 
         if let Some(state) = imp.state.get() {
@@ -151,28 +166,28 @@ impl SudokuPickerPopover {
                 }
 
                 PopoverPickerState::EarmarkPicker => {
-                    self.imp().earmark_picker.disconnect_picker ();
+                    self.imp().earmark_picker.disconnect_picker();
                     if imp.backend.get().unwrap().earmark_mode() {
-                        imp.picker_stack.set_transition_type(gtk::StackTransitionType::SlideLeft);
+                        imp.picker_stack
+                            .set_transition_type(gtk::StackTransitionType::SlideLeft);
+                    } else {
+                        imp.picker_stack
+                            .set_transition_type(gtk::StackTransitionType::SlideRight);
                     }
-                    else {
-                        imp.picker_stack.set_transition_type(gtk::StackTransitionType::SlideRight);
-                    }
-                    imp.picker_stack.set_visible_child (&imp.value_picker);
+                    imp.picker_stack.set_visible_child(&imp.value_picker);
                 }
             }
-        }
-        else {
+        } else {
             self.set_parent(cell);
-            imp.picker_stack.set_visible_child (&imp.value_picker);
+            imp.picker_stack.set_visible_child(&imp.value_picker);
             self.popup();
         }
 
-        imp.value_picker.connect_picker (cell.pos());
+        imp.value_picker.connect_picker(cell.pos());
         imp.state.set(Some(PopoverPickerState::ValuePicker));
     }
 
-    pub fn show_earmark_picker (&self, cell: &SudokuCell) {
+    pub fn show_earmark_picker(&self, cell: &SudokuCell) {
         let imp = self.imp();
 
         if let Some(state) = imp.state.get() {
@@ -183,42 +198,42 @@ impl SudokuPickerPopover {
                 }
 
                 PopoverPickerState::ValuePicker => {
-                    self.imp().value_picker.disconnect_picker ();
+                    self.imp().value_picker.disconnect_picker();
                     if imp.backend.get().unwrap().earmark_mode() {
-                        imp.picker_stack.set_transition_type(gtk::StackTransitionType::SlideRight);
+                        imp.picker_stack
+                            .set_transition_type(gtk::StackTransitionType::SlideRight);
+                    } else {
+                        imp.picker_stack
+                            .set_transition_type(gtk::StackTransitionType::SlideLeft);
                     }
-                    else {
-                        imp.picker_stack.set_transition_type(gtk::StackTransitionType::SlideLeft);
-                    }
-                    imp.picker_stack.set_visible_child (&imp.earmark_picker);
+                    imp.picker_stack.set_visible_child(&imp.earmark_picker);
                 }
             }
-        }
-        else {
+        } else {
             self.set_parent(cell);
-            imp.picker_stack.set_visible_child (&imp.earmark_picker);
+            imp.picker_stack.set_visible_child(&imp.earmark_picker);
             self.popup();
         }
 
-        imp.earmark_picker.connect_picker (cell.pos());
+        imp.earmark_picker.connect_picker(cell.pos());
         imp.state.set(Some(PopoverPickerState::EarmarkPicker));
     }
 }
 
 #[macro_export]
 macro_rules! build_picker {
-    ($obj: ty) =>  {
+    ($obj: ty) => {
         glib::Object::builder::<$obj>()
             .property("css-name", "sudoku-picker")
             .property("row-spacing", 3)
             .property("column-spacing", 3)
             .build()
-    }
+    };
 }
 
 pub trait PickerBaseImp {
-    fn value_changed_cb (&self, new_val: CompatValue);
-    fn earmark_changed_cb (&self, pos: Coord, num: usize, enabled: bool);
+    fn value_changed_cb(&self, new_val: CompatValue);
+    fn earmark_changed_cb(&self, pos: Coord, num: usize, enabled: bool);
 }
 
 pub trait PickerBase {
@@ -229,5 +244,5 @@ pub trait PickerBase {
 #[derive(Clone, Copy, PartialEq)]
 pub enum PopoverPickerState {
     ValuePicker,
-    EarmarkPicker
+    EarmarkPicker,
 }

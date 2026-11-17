@@ -20,12 +20,14 @@
 
 //this file was ported over from QQwing https://github.com/stephenostermiller/qqwing
 
-use std::{array::{self, from_fn}, collections::HashSet};
-
+use std::{
+    array::{self, from_fn},
+    collections::HashSet,
+};
 
 use crate::lib::{enums::Coord, enums::DifficultyCategory};
-#[derive (Clone, Debug)]
-pub struct SudokuBoardGenerator{
+#[derive(Clone, Debug)]
+pub struct SudokuBoardGenerator {
     cells: [[SudokuGeneratorCell; 9]; 9],
     rng: fastrand::Rng,
 
@@ -35,10 +37,10 @@ pub struct SudokuBoardGenerator{
 
     random_possibility_array: [usize; 9],
 
-    pub counts: Counts
+    pub counts: Counts,
 }
 
-#[derive (Clone, Default, Copy, PartialEq, Debug)]
+#[derive(Clone, Default, Copy, PartialEq, Debug)]
 pub struct SudokuGeneratorCell {
     //the given values go unchanged while solving
     pub value: Option<usize>,
@@ -46,35 +48,35 @@ pub struct SudokuGeneratorCell {
     //Some() = round at which the possibility was disqualified
     pub impossibilities: [Option<usize>; 9],
     //these do not include the cell itself unlike in SudokuBoard
-    pub aligned_coords: [Coord; 20]
+    pub aligned_coords: [Coord; 20],
 }
 
 pub struct GeneratorStackAction {
     pos: Coord,
     action: GeneratorAction,
-    round: usize
+    round: usize,
 }
 
 impl SudokuGeneratorCell {
-    fn local_reset (&mut self) {
+    fn local_reset(&mut self) {
         self.solution = Default::default();
         self.impossibilities = Default::default();
     }
 
-    fn reset (&mut self) {
+    fn reset(&mut self) {
         self.solution = Default::default();
         self.impossibilities = Default::default();
         self.value = Default::default();
     }
 }
 
-#[derive (Default, Clone, Copy, PartialEq, Debug)]
+#[derive(Default, Clone, Copy, PartialEq, Debug)]
 pub struct Solution {
     pub value: usize,
     pub round: usize,
 }
 
-#[derive (Default, Clone, Copy, Debug)]
+#[derive(Default, Clone, Copy, Debug)]
 pub struct Counts {
     //keep track of the solve types for the difficulty
     singles: u8,
@@ -97,12 +99,13 @@ pub struct Counts {
 impl Default for SudokuBoardGenerator {
     fn default() -> Self {
         let random_possibility_array = from_fn(|i| i as usize);
-        let positions = from_fn(|i| {
-            Coord { row: i % 9, col: i / 9 }
+        let positions = from_fn(|i| Coord {
+            row: i % 9,
+            col: i / 9,
         });
         let positions_random = positions.clone();
 
-        let mut cells : [[SudokuGeneratorCell; 9]; 9] = Default::default();
+        let mut cells: [[SudokuGeneratorCell; 9]; 9] = Default::default();
 
         //8 in the block + 6 vertically + 6 horizontally so 20 aligned coordinates for each cell
         for pos in positions {
@@ -123,7 +126,10 @@ impl Default for SudokuBoardGenerator {
                 }
             }
 
-            set.remove(&Coord{row: pos.row, col: pos.col});
+            set.remove(&Coord {
+                row: pos.row,
+                col: pos.col,
+            });
 
             for cell in set.iter().enumerate() {
                 cells[pos.row][pos.col].aligned_coords[cell.0] = *cell.1;
@@ -167,7 +173,11 @@ macro_rules! return_if_only_num {
     ($s: ident, $pos: expr, $action:expr, $round: expr, $num:expr) => {
         if let Some(pos) = $pos {
             $s.mark(pos.row, pos.col, $round, $num);
-            return Some(GeneratorStackAction { pos, action: $action, round:$round});
+            return Some(GeneratorStackAction {
+                pos,
+                action: $action,
+                round: $round,
+            });
         }
     };
 }
@@ -208,12 +218,13 @@ impl SudokuBoardGenerator {
         &mut self.cells[pos.row][pos.col]
     }
 
-    pub fn shuffle_arrays (&mut self) {
+    pub fn shuffle_arrays(&mut self) {
         self.rng.shuffle(self.positions_random.as_mut_slice());
-        self.rng.shuffle(self.random_possibility_array.as_mut_slice());
+        self.rng
+            .shuffle(self.random_possibility_array.as_mut_slice());
     }
 
-    pub fn set_puzzle (&mut self, puzzle: [[Option<usize>; 9]; 9]) -> bool {
+    pub fn set_puzzle(&mut self, puzzle: [[Option<usize>; 9]; 9]) -> bool {
         self.reset();
         for row in 0..9 {
             for col in 0..9 {
@@ -224,7 +235,7 @@ impl SudokuBoardGenerator {
     }
 
     #[cfg(test)]
-    pub fn set_puzzle_qqwing (&mut self, puzzle: &str) -> bool {
+    pub fn set_puzzle_qqwing(&mut self, puzzle: &str) -> bool {
         self.reset();
         let mut row = 0;
         let mut col = 0;
@@ -235,8 +246,7 @@ impl SudokuBoardGenerator {
 
             if let Some(value) = c.to_digit(10) {
                 self.cells[row][col].value = Some(value as usize - 1);
-            }
-            else if c != '.' {
+            } else if c != '.' {
                 panic!("Error setting qqwing puzzle");
             }
 
@@ -244,11 +254,10 @@ impl SudokuBoardGenerator {
                 if row == 8 {
                     break;
                 }
-                row+=1;
+                row += 1;
                 col = 0;
-            }
-            else {
-                col+=1;
+            } else {
+                col += 1;
             }
         }
         return self.local_reset();
@@ -269,8 +278,7 @@ impl SudokuBoardGenerator {
                     if cell.impossibilities[value].is_some() {
                         self.reset();
                         return false;
-                    }
-                    else {
+                    } else {
                         self.mark(row, col, 0, value);
                     }
                 }
@@ -281,14 +289,14 @@ impl SudokuBoardGenerator {
         return true;
     }
 
-    fn reset (&mut self) {
+    fn reset(&mut self) {
         for pos in self.positions {
             self.cell_mut(pos).reset();
         }
         self.counts = Default::default();
     }
 
-    pub fn solve (&mut self) -> Result<[[usize; 9]; 9], ()> {
+    pub fn solve(&mut self) -> Result<[[usize; 9]; 9], ()> {
         if !self.local_reset() {
             panic!("solve error");
         }
@@ -296,13 +304,12 @@ impl SudokuBoardGenerator {
         //round 0 are givens
         if self.solver(1) {
             Ok(self.get_solution())
-        }
-        else {
+        } else {
             Err(())
         }
     }
 
-    fn solver (&mut self, round: usize) -> bool {
+    fn solver(&mut self, round: usize) -> bool {
         if self.is_solved() {
             return true;
         }
@@ -310,12 +317,10 @@ impl SudokuBoardGenerator {
         if let Some(action) = self.single_solve_move(round) {
             if self.is_impossible() {
                 self.rollback_stack(action);
-            }
-            else if !self.solver(round + 1) {
+            } else if !self.solver(round + 1) {
                 self.rollback_stack(action);
                 return false;
-            }
-            else {
+            } else {
                 self.counts.add_action(action.action);
                 return true;
             }
@@ -330,15 +335,17 @@ impl SudokuBoardGenerator {
             }
 
             self.mark(pos.row, pos.col, round, value);
-            let action = GeneratorStackAction { pos, action: GeneratorAction::Guess, round };
+            let action = GeneratorStackAction {
+                pos,
+                action: GeneratorAction::Guess,
+                round,
+            };
 
             if self.is_impossible() {
                 self.rollback_stack(action);
-            }
-            else if !self.solver(round + 1) {
+            } else if !self.solver(round + 1) {
                 self.rollback_stack(action);
-            }
-            else {
+            } else {
                 self.counts.add_action(action.action);
                 return true;
             }
@@ -346,8 +353,7 @@ impl SudokuBoardGenerator {
         false
     }
 
-
-    fn check_unique_solution (&mut self) -> bool {
+    fn check_unique_solution(&mut self) -> bool {
         if !self.local_reset() {
             panic!("solve error");
         }
@@ -358,16 +364,15 @@ impl SudokuBoardGenerator {
         solutions == 1
     }
 
-    pub fn solve_unique (&mut self) -> Result<[[usize; 9]; 9], ()> {
+    pub fn solve_unique(&mut self) -> Result<[[usize; 9]; 9], ()> {
         if self.check_unique_solution() {
             return self.solve();
-        }
-        else {
+        } else {
             Err(())
         }
     }
 
-    fn solver_unique (&mut self, round: usize) -> u8 {
+    fn solver_unique(&mut self, round: usize) -> u8 {
         if self.is_solved() {
             return 1;
         }
@@ -394,12 +399,15 @@ impl SudokuBoardGenerator {
             }
 
             self.mark(pos.row, pos.col, round, value);
-            let action = GeneratorStackAction { pos, action: GeneratorAction::Guess, round };
+            let action = GeneratorStackAction {
+                pos,
+                action: GeneratorAction::Guess,
+                round,
+            };
 
             if self.is_impossible() {
                 self.rollback_stack(action);
-            }
-            else {
+            } else {
                 solutions += self.solver_unique(round + 1);
                 self.rollback_stack(action);
                 if solutions > 1 {
@@ -411,7 +419,7 @@ impl SudokuBoardGenerator {
     }
 
     //a grid is impossible whenever a single cell has no solution or possibility left
-    fn is_impossible (&self) -> bool {
+    fn is_impossible(&self) -> bool {
         for row in 0..9 {
             'a: for col in 0..9 {
                 let cell = self.cells[row][col];
@@ -431,29 +439,29 @@ impl SudokuBoardGenerator {
         false
     }
 
-    pub fn difficulty (&self) -> DifficultyCategory {
+    pub fn difficulty(&self) -> DifficultyCategory {
         use DifficultyCategory::*;
         if self.counts.guesses > 0 {
-            return VeryHard
+            return VeryHard;
         }
 
         if self.counts.naked_pairs() > 0 {
             return Hard;
         }
 
-        if self.counts.hidden_pairs()> 0  {
+        if self.counts.hidden_pairs() > 0 {
             return Hard;
         }
 
-        if self.counts.pointing_pairs()> 0  {
+        if self.counts.pointing_pairs() > 0 {
             return Hard;
         }
 
-        if self.counts.block_reductions()> 0  {
+        if self.counts.block_reductions() > 0 {
             return Hard;
         }
 
-        if self.counts.hidden_pairs()> 0  {
+        if self.counts.hidden_pairs() > 0 {
             return Hard;
         }
 
@@ -462,13 +470,13 @@ impl SudokuBoardGenerator {
         }
 
         if self.counts.singles > 0 {
-            return Easy
+            return Easy;
         }
 
         panic!("unreachable difficulty");
     }
 
-    fn count_possibilities_limited (&self, pos: Coord, limit: usize) -> bool {
+    fn count_possibilities_limited(&self, pos: Coord, limit: usize) -> bool {
         let mut count = 0;
         for impossibility in self.cell(pos).impossibilities {
             if impossibility.is_some() {
@@ -484,7 +492,7 @@ impl SudokuBoardGenerator {
         count == limit
     }
 
-    fn solve_only_possibility_for_cell (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn solve_only_possibility_for_cell(&mut self, round: usize) -> Option<GeneratorStackAction> {
         for row in 0..9 {
             'a: for col in 0..9 {
                 let cell = self.cells[row][col];
@@ -506,8 +514,11 @@ impl SudokuBoardGenerator {
 
                 if let Some(value) = value {
                     self.mark(row, col, round, value);
-                    return Some(GeneratorStackAction{ pos: Coord{ row, col },
-                        action: GeneratorAction::Single, round });
+                    return Some(GeneratorStackAction {
+                        pos: Coord { row, col },
+                        action: GeneratorAction::Single,
+                        round,
+                    });
                 }
             }
         }
@@ -515,7 +526,7 @@ impl SudokuBoardGenerator {
     }
 
     //fill cell with the value if it's the number's only possibility in the row
-    fn solve_only_value_in_row (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn solve_only_value_in_row(&mut self, round: usize) -> Option<GeneratorStackAction> {
         for num in 0..9 {
             'a: for row in 0..9 {
                 let mut pos = None;
@@ -529,7 +540,7 @@ impl SudokuBoardGenerator {
         None
     }
 
-    fn solve_only_value_in_col (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn solve_only_value_in_col(&mut self, round: usize) -> Option<GeneratorStackAction> {
         for col in 0..9 {
             'a: for num in 0..9 {
                 let mut pos = None;
@@ -543,7 +554,7 @@ impl SudokuBoardGenerator {
         None
     }
 
-    fn solve_only_value_in_block (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn solve_only_value_in_block(&mut self, round: usize) -> Option<GeneratorStackAction> {
         for row_block in 0..3 {
             for col_block in 0..3 {
                 'a: for num in 0..9 {
@@ -562,7 +573,7 @@ impl SudokuBoardGenerator {
     }
 
     //if we have a naked pair, remove possibilities for the pair in its aligned coordinates
-    fn solve_naked_pairs (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn solve_naked_pairs(&mut self, round: usize) -> Option<GeneratorStackAction> {
         for row in 0..9 {
             for col in 0..9 {
                 let pos = Coord { row, col };
@@ -585,7 +596,7 @@ impl SudokuBoardGenerator {
     }
 
     //pairs are identical possibilities that are present in exactly two cells in the same row / column / block
-    fn solve_pairs_in_row (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn solve_pairs_in_row(&mut self, round: usize) -> Option<GeneratorStackAction> {
         for num0 in 0..9 {
             'a: for row in 0..9 {
                 let mut pair0 = (None, None);
@@ -595,7 +606,7 @@ impl SudokuBoardGenerator {
                 }
                 let pair0 = unwrap_pair!(pair0, 'a);
 
-                'b: for num1 in num0+1..9  {
+                'b: for num1 in num0 + 1..9 {
                     let mut pair1 = (None, None);
                     for col in 0..9 {
                         let impossibility = self.cells[row][col].impossibilities[num1];
@@ -603,16 +614,20 @@ impl SudokuBoardGenerator {
                     }
                     let pair1 = unwrap_pair!(pair1, 'b);
 
-                    if (pair0.0.col != pair1.0.col || pair0.1.col != pair1.1.col) &&
-                       (pair0.1.col != pair1.1.col || pair0.1.col != pair1.0.col){
+                    if (pair0.0.col != pair1.0.col || pair0.1.col != pair1.1.col)
+                        && (pair0.1.col != pair1.1.col || pair0.1.col != pair1.0.col)
+                    {
                         continue;
                     }
 
                     if let Some(action) = self.nakify_pair(
-                            num0, num1,
-                            pair0.0, pair1.1,
-                            round, GeneratorAction::HiddenPairRow
-                        ){
+                        num0,
+                        num1,
+                        pair0.0,
+                        pair1.1,
+                        round,
+                        GeneratorAction::HiddenPairRow,
+                    ) {
                         return Some(action);
                     }
                 }
@@ -621,7 +636,7 @@ impl SudokuBoardGenerator {
         None
     }
 
-    fn solve_pairs_in_col (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn solve_pairs_in_col(&mut self, round: usize) -> Option<GeneratorStackAction> {
         for num0 in 0..9 {
             'a: for col in 0..9 {
                 let mut pair0 = (None, None);
@@ -631,7 +646,7 @@ impl SudokuBoardGenerator {
                 }
                 let pair0 = unwrap_pair!(pair0, 'a);
 
-                'b: for num1 in num0+1..9  {
+                'b: for num1 in num0 + 1..9 {
                     let mut pair1 = (None, None);
                     for row in 0..9 {
                         let impossibility = self.cells[row][col].impossibilities[num1];
@@ -639,16 +654,20 @@ impl SudokuBoardGenerator {
                     }
                     let pair1 = unwrap_pair!(pair1, 'b);
 
-                    if (pair0.0.row != pair1.0.row || pair0.1.row != pair1.1.row) &&
-                       (pair0.1.row != pair1.1.row || pair0.1.row != pair1.0.row) {
+                    if (pair0.0.row != pair1.0.row || pair0.1.row != pair1.1.row)
+                        && (pair0.1.row != pair1.1.row || pair0.1.row != pair1.0.row)
+                    {
                         continue;
                     }
 
                     if let Some(action) = self.nakify_pair(
-                            num0, num1,
-                            pair0.0, pair1.1,
-                            round, GeneratorAction::HiddenPairCol
-                        ){
+                        num0,
+                        num1,
+                        pair0.0,
+                        pair1.1,
+                        round,
+                        GeneratorAction::HiddenPairCol,
+                    ) {
                         return Some(action);
                     }
                 }
@@ -657,10 +676,10 @@ impl SudokuBoardGenerator {
         None
     }
 
-    fn solve_pairs_in_block (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn solve_pairs_in_block(&mut self, round: usize) -> Option<GeneratorStackAction> {
         for num0 in 0..9 {
             for row_block in 0..3 {
-                'a: for col_block in 0..3  {
+                'a: for col_block in 0..3 {
                     let mut pair0 = (None, None);
                     for i in 0..9 {
                         let row = row_block * 3 + i / 3;
@@ -670,7 +689,7 @@ impl SudokuBoardGenerator {
                     }
                     let pair0 = unwrap_pair!(pair0, 'a);
 
-                    'b: for num1 in num0+1..9  {
+                    'b: for num1 in num0 + 1..9 {
                         let mut pair1 = (None, None);
                         for i in 0..9 {
                             let row = row_block * 3 + i / 3;
@@ -680,17 +699,20 @@ impl SudokuBoardGenerator {
                         }
                         let pair1 = unwrap_pair!(pair1, 'b);
 
-                        if (pair0.0 != pair1.0 || pair0.1 != pair1.1) &&
-                           (pair0.0 != pair1.1 || pair0.1 != pair1.0) {
+                        if (pair0.0 != pair1.0 || pair0.1 != pair1.1)
+                            && (pair0.0 != pair1.1 || pair0.1 != pair1.0)
+                        {
                             continue;
                         }
 
                         if let Some(action) = self.nakify_pair(
-                                num0, num1,
-                                pair0.0, pair1.1,
-                                round,
-                                GeneratorAction::HiddenPairBlock
-                            ){
+                            num0,
+                            num1,
+                            pair0.0,
+                            pair1.1,
+                            round,
+                            GeneratorAction::HiddenPairBlock,
+                        ) {
                             return Some(action);
                         }
                     }
@@ -702,29 +724,30 @@ impl SudokuBoardGenerator {
 
     //2-3 horizontally aligned, equal possibilities in the same block which are exclusive in the block
     //disqualifies the same possibility in the rest of the row
-    fn solve_pointing_row (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn solve_pointing_row(&mut self, round: usize) -> Option<GeneratorStackAction> {
         for row_block in 0..3 {
             for col_block in 0..3 {
                 'a: for num in 0..9 {
                     let mut row = None;
                     let mut count = 0;
                     for i in 0..9 {
-                        let pos = Coord { row: row_block * 3 + i / 3, col: col_block * 3 + i % 3 };
+                        let pos = Coord {
+                            row: row_block * 3 + i / 3,
+                            col: col_block * 3 + i % 3,
+                        };
                         if self.cell(pos).impossibilities[num].is_some() {
                             continue;
                         }
 
                         if let Some(row) = row {
                             if row == pos.row {
-                                count+=1;
-                            }
-                            else {
+                                count += 1;
+                            } else {
                                 continue 'a;
                             }
-                        }
-                        else {
+                        } else {
                             row = Some(pos.row);
-                            count+=1;
+                            count += 1;
                         }
                     }
 
@@ -748,9 +771,12 @@ impl SudokuBoardGenerator {
 
                         if did_something {
                             return Some(GeneratorStackAction {
-                                pos: Coord { row, col: col_start },
+                                pos: Coord {
+                                    row,
+                                    col: col_start,
+                                },
                                 action: GeneratorAction::PointingPairTripleRow,
-                                round
+                                round,
                             });
                         }
                     }
@@ -760,26 +786,27 @@ impl SudokuBoardGenerator {
         None
     }
 
-    fn solve_pointing_col (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn solve_pointing_col(&mut self, round: usize) -> Option<GeneratorStackAction> {
         for row_block in 0..3 {
             for col_block in 0..3 {
                 'a: for num in 0..9 {
                     let mut col = None;
                     let mut count = 0;
                     for i in 0..9 {
-                        let pos = Coord { row: row_block * 3 + i / 3, col: col_block * 3 + i % 3 };
-                        if self.cell(pos).impossibilities[num].is_none(){
+                        let pos = Coord {
+                            row: row_block * 3 + i / 3,
+                            col: col_block * 3 + i % 3,
+                        };
+                        if self.cell(pos).impossibilities[num].is_none() {
                             if let Some(col) = col {
                                 if col == pos.col {
-                                    count+=1;
-                                }
-                                else {
+                                    count += 1;
+                                } else {
                                     continue 'a;
                                 }
-                            }
-                            else {
+                            } else {
                                 col = Some(pos.col);
-                                count+=1;
+                                count += 1;
                             }
                         }
                     }
@@ -803,9 +830,12 @@ impl SudokuBoardGenerator {
 
                         if did_something {
                             return Some(GeneratorStackAction {
-                                pos: Coord { row: row_start, col },
+                                pos: Coord {
+                                    row: row_start,
+                                    col,
+                                },
                                 action: GeneratorAction::PointingPairTripleCol,
-                                round
+                                round,
                             });
                         }
                     }
@@ -818,7 +848,7 @@ impl SudokuBoardGenerator {
 
     //2-3 horizontally aligned, equal possibilities in the same block which are exclusive in the row
     //disqualifies the same possibility in the rest of the block: reverse pointing row
-    fn solve_row_block_reduction (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn solve_row_block_reduction(&mut self, round: usize) -> Option<GeneratorStackAction> {
         for row in 0..9 {
             'a: for num in 0..9 {
                 let mut count = 0;
@@ -831,15 +861,13 @@ impl SudokuBoardGenerator {
 
                     if let Some(col_block) = col_block {
                         if col_block == col / 3 {
-                            count+=1;
-                        }
-                        else {
+                            count += 1;
+                        } else {
                             continue 'a;
                         }
-                    }
-                    else {
+                    } else {
                         col_block = Some(col / 3);
-                        count+=1;
+                        count += 1;
                     }
                 }
 
@@ -865,9 +893,12 @@ impl SudokuBoardGenerator {
 
                     if did_something {
                         return Some(GeneratorStackAction {
-                            pos: Coord { row: row_start, col: col_start },
+                            pos: Coord {
+                                row: row_start,
+                                col: col_start,
+                            },
                             action: GeneratorAction::RowBlockReduction,
-                            round
+                            round,
                         });
                     }
                 }
@@ -876,7 +907,7 @@ impl SudokuBoardGenerator {
         None
     }
 
-    fn solve_col_block_reduction (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn solve_col_block_reduction(&mut self, round: usize) -> Option<GeneratorStackAction> {
         for col in 0..9 {
             'a: for num in 0..9 {
                 let mut count = 0;
@@ -889,15 +920,13 @@ impl SudokuBoardGenerator {
 
                     if let Some(row_block) = row_block {
                         if row_block == row / 3 {
-                            count+=1;
-                        }
-                        else {
+                            count += 1;
+                        } else {
                             continue 'a;
                         }
-                    }
-                    else {
+                    } else {
                         row_block = Some(row / 3);
-                        count+=1;
+                        count += 1;
                     }
                 }
 
@@ -923,9 +952,12 @@ impl SudokuBoardGenerator {
 
                     if did_something {
                         return Some(GeneratorStackAction {
-                            pos: Coord { row: row_start, col: col_start },
+                            pos: Coord {
+                                row: row_start,
+                                col: col_start,
+                            },
                             action: GeneratorAction::ColBlockReduction,
-                            round
+                            round,
                         });
                     }
                 }
@@ -934,22 +966,24 @@ impl SudokuBoardGenerator {
         None
     }
 
-    fn calc_random_symmetry (&mut self) -> Symmetry {
-        match self.rng.u8(0..4){
+    fn calc_random_symmetry(&mut self) -> Symmetry {
+        match self.rng.u8(0..4) {
             0 => Symmetry::Rotate90,
             1 => Symmetry::Rotate180,
             2 => Symmetry::Mirror,
             3 => Symmetry::Flip,
-            _ => unreachable!("error")
+            _ => unreachable!("error"),
         }
     }
 
-    fn nakify_pair (
+    fn nakify_pair(
         &mut self,
-        num0: usize, num1: usize,
-        pos0: Coord, pos1: Coord,
+        num0: usize,
+        num1: usize,
+        pos0: Coord,
+        pos1: Coord,
         round: usize,
-        action: GeneratorAction
+        action: GeneratorAction,
     ) -> Option<GeneratorStackAction> {
         let coords = [pos0, pos1];
         for pos in coords {
@@ -974,21 +1008,25 @@ impl SudokuBoardGenerator {
         None
     }
 
-    fn check_if_naked_pair (&self, pos0: Coord, pos1: Coord) -> bool {
+    fn check_if_naked_pair(&self, pos0: Coord, pos1: Coord) -> bool {
         for num in 0..9 {
-            if self.cell(pos0).impossibilities[num].is_none() != self.cell(pos1).impossibilities[num].is_none() {
+            if self.cell(pos0).impossibilities[num].is_none()
+                != self.cell(pos1).impossibilities[num].is_none()
+            {
                 return false;
             }
         }
         true
     }
 
-    fn is_same_block (pos0: Coord, pos1: Coord) -> bool {
+    fn is_same_block(pos0: Coord, pos1: Coord) -> bool {
         pos0.row / 3 == pos1.row / 3 && pos0.col / 3 == pos1.col / 3
     }
 
     #[cfg(test)]
-    pub fn generate_board (difficulty: DifficultyCategory) -> ([[Option<usize>; 9]; 9], [[usize; 9]; 9]) {
+    pub fn generate_board(
+        difficulty: DifficultyCategory,
+    ) -> ([[Option<usize>; 9]; 9], [[usize; 9]; 9]) {
         let mut generator = SudokuBoardGenerator::default();
         loop {
             generator.new_puzzle();
@@ -1000,7 +1038,7 @@ impl SudokuBoardGenerator {
         (generator.get_puzzle(), generator.get_solution())
     }
 
-    pub fn new_puzzle (&mut self){
+    pub fn new_puzzle(&mut self) {
         self.reset();
         let symmetry = self.calc_random_symmetry();
 
@@ -1020,13 +1058,37 @@ impl SudokuBoardGenerator {
 
                 match symmetry {
                     Symmetry::Rotate90 => {
-                        syms[0] = Some(Coord { row: 8 - pos.row, col: 8 - pos.col} );
-                        syms[1] = Some(Coord { row: 8 - pos.col, col: pos.row} );
-                        syms[2] = Some(Coord { row: pos.col, col: 8 -  pos.row} );
+                        syms[0] = Some(Coord {
+                            row: 8 - pos.row,
+                            col: 8 - pos.col,
+                        });
+                        syms[1] = Some(Coord {
+                            row: 8 - pos.col,
+                            col: pos.row,
+                        });
+                        syms[2] = Some(Coord {
+                            row: pos.col,
+                            col: 8 - pos.row,
+                        });
                     }
-                    Symmetry::Rotate180 => syms[0] = Some(Coord { row: 8 - pos.row, col: 8 - pos.col} ),
-                    Symmetry::Mirror => syms[0] = Some(Coord { row: pos.row, col: 8 - pos.col }),
-                    Symmetry::Flip => syms[0] = Some(Coord { row: 8 - pos.row, col: pos.col} )
+                    Symmetry::Rotate180 => {
+                        syms[0] = Some(Coord {
+                            row: 8 - pos.row,
+                            col: 8 - pos.col,
+                        })
+                    }
+                    Symmetry::Mirror => {
+                        syms[0] = Some(Coord {
+                            row: pos.row,
+                            col: 8 - pos.col,
+                        })
+                    }
+                    Symmetry::Flip => {
+                        syms[0] = Some(Coord {
+                            row: 8 - pos.row,
+                            col: pos.col,
+                        })
+                    }
                 }
 
                 //erase the backed up old value
@@ -1034,7 +1096,9 @@ impl SudokuBoardGenerator {
 
                 let mut sym_values: [Option<_>; 3] = Default::default();
                 for i in 0..syms.len() {
-                    if let Some(sym) = syms[i] && let Some(value) = self.cell(sym).value {
+                    if let Some(sym) = syms[i]
+                        && let Some(value) = self.cell(sym).value
+                    {
                         sym_values[i] = Some(value);
                         self.cell_mut(sym).value = None;
                     }
@@ -1047,7 +1111,9 @@ impl SudokuBoardGenerator {
                 //rollback
                 self.cell_mut(pos).value = Some(value);
                 for i in 0..syms.len() {
-                    if let Some(sym) = syms[i] && let Some(value) = sym_values[i] {
+                    if let Some(sym) = syms[i]
+                        && let Some(value) = sym_values[i]
+                    {
                         self.cell_mut(sym).value = Some(value);
                     }
                 }
@@ -1055,7 +1121,7 @@ impl SudokuBoardGenerator {
         }
     }
 
-    fn get_pair_possibility (&self, cell: &SudokuGeneratorCell) -> [usize; 2] {
+    fn get_pair_possibility(&self, cell: &SudokuGeneratorCell) -> [usize; 2] {
         let mut ret: [Option<usize>; 2] = Default::default();
         for num in 0..9 {
             if cell.impossibilities[num].is_some() {
@@ -1064,8 +1130,7 @@ impl SudokuBoardGenerator {
 
             if ret[0].is_none() {
                 ret[0] = Some(num);
-            }
-            else {
+            } else {
                 ret[1] = Some(num);
                 break;
             }
@@ -1074,15 +1139,17 @@ impl SudokuBoardGenerator {
         [ret[0].unwrap(), ret[1].unwrap()]
     }
 
-    fn clear_pair (
-        &mut self, round: usize,
+    fn clear_pair(
+        &mut self,
+        round: usize,
         pos0: Coord,
-        pos1: Coord
-    )
-    -> Option<GeneratorStackAction> {
+        pos1: Coord,
+    ) -> Option<GeneratorStackAction> {
         let possibilities = self.get_pair_possibility(&self.cell(pos0));
-        let row0 = pos0.row; let col0 = pos0.col;
-        let row1 = pos1.row; let col1 = pos1.col;
+        let row0 = pos0.row;
+        let col0 = pos0.col;
+        let row1 = pos1.row;
+        let col1 = pos1.col;
 
         if Self::is_same_block(pos0, pos1) {
             let mut did_something = false;
@@ -1090,28 +1157,28 @@ impl SudokuBoardGenerator {
             let col_block_start = col0 / 3 * 3;
             for row in row_block_start..row_block_start + 3 {
                 for col in col_block_start..col_block_start + 3 {
-                    if (col == col0 && row == row0) ||
-                       (col == col1 && row == row1) {
-                            continue;
+                    if (col == col0 && row == row0) || (col == col1 && row == row1) {
+                        continue;
                     }
 
                     for num in possibilities {
-                        if self.cells[row][col].impossibilities[num].is_none () {
+                        if self.cells[row][col].impossibilities[num].is_none() {
                             self.cells[row][col].impossibilities[num] = Some(round);
                             did_something = true;
                         }
                     }
                 }
-
             }
 
             if did_something {
-                return Some(
-                    GeneratorStackAction {
-                        pos: Coord { row: row_block_start, col: col_block_start },
-                        action: GeneratorAction::NakedPairBlock,
-                        round
-                    });
+                return Some(GeneratorStackAction {
+                    pos: Coord {
+                        row: row_block_start,
+                        col: col_block_start,
+                    },
+                    action: GeneratorAction::NakedPairBlock,
+                    round,
+                });
             }
         }
 
@@ -1124,7 +1191,7 @@ impl SudokuBoardGenerator {
                 }
 
                 for num in possibilities {
-                    if self.cells[row][col].impossibilities[num].is_none () {
+                    if self.cells[row][col].impossibilities[num].is_none() {
                         self.cells[row][col].impossibilities[num] = Some(round);
                         did_something = true;
                     }
@@ -1133,13 +1200,15 @@ impl SudokuBoardGenerator {
 
             if did_something {
                 return Some(GeneratorStackAction {
-                    pos: Coord { row: usize::MAX, col },
+                    pos: Coord {
+                        row: usize::MAX,
+                        col,
+                    },
                     action: GeneratorAction::NakedPairCol,
-                    round
+                    round,
                 });
             }
-        }
-        else if row0 == row1 {
+        } else if row0 == row1 {
             let mut did_something = false;
             let row = row0;
             for col in 0..9 {
@@ -1148,7 +1217,7 @@ impl SudokuBoardGenerator {
                 }
 
                 for num in possibilities {
-                    if self.cells[row][col].impossibilities[num].is_none () {
+                    if self.cells[row][col].impossibilities[num].is_none() {
                         self.cells[row][col].impossibilities[num] = Some(round);
                         did_something = true;
                     }
@@ -1157,17 +1226,20 @@ impl SudokuBoardGenerator {
 
             if did_something {
                 return Some(GeneratorStackAction {
-                    pos: Coord { row, col: usize::MAX },
+                    pos: Coord {
+                        row,
+                        col: usize::MAX,
+                    },
                     action: GeneratorAction::NakedPairRow,
-                    round
+                    round,
                 });
-           }
+            }
         }
 
         None
     }
 
-    fn single_solve_move (&mut self, round: usize) -> Option<GeneratorStackAction> {
+    fn single_solve_move(&mut self, round: usize) -> Option<GeneratorStackAction> {
         propagate!(self.solve_only_possibility_for_cell(round));
         propagate!(self.solve_only_value_in_row(round));
         propagate!(self.solve_only_value_in_col(round));
@@ -1183,7 +1255,7 @@ impl SudokuBoardGenerator {
         None
     }
 
-    pub fn is_solved (&self) -> bool {
+    pub fn is_solved(&self) -> bool {
         for row in self.cells {
             for cell in row {
                 if cell.solution.is_none() {
@@ -1195,7 +1267,7 @@ impl SudokuBoardGenerator {
     }
 
     //Remove aligned possibilities for value
-    fn mark (&mut self, row: usize, col: usize, round: usize, value: usize) {
+    fn mark(&mut self, row: usize, col: usize, round: usize, value: usize) {
         let cell = &mut self.cells[row][col];
         if cell.solution.is_some() {
             panic!("Marking position that already has been marked.")
@@ -1205,7 +1277,7 @@ impl SudokuBoardGenerator {
             panic!("Marking impossible position.")
         }
 
-        cell.solution = Some(Solution{value, round});
+        cell.solution = Some(Solution { value, round });
 
         //mark the cell itself as no longer possible
         for impossibility in &mut cell.impossibilities {
@@ -1223,23 +1295,15 @@ impl SudokuBoardGenerator {
         }
     }
 
-    pub fn get_solution (&self) -> [[usize; 9]; 9]{
-        array::from_fn(|row|
-            array::from_fn(|col|
-                self.cells[row][col].solution.unwrap().value
-            )
-        )
+    pub fn get_solution(&self) -> [[usize; 9]; 9] {
+        array::from_fn(|row| array::from_fn(|col| self.cells[row][col].solution.unwrap().value))
     }
 
-    pub fn get_puzzle (&self) -> [[Option<usize>; 9]; 9]{
-        array::from_fn(|row|
-            array::from_fn(|col|
-                self.cells[row][col].value
-            )
-        )
+    pub fn get_puzzle(&self) -> [[Option<usize>; 9]; 9] {
+        array::from_fn(|row| array::from_fn(|col| self.cells[row][col].value))
     }
 
-    fn find_cell_with_fewest_possibilities (&self) -> Coord {
+    fn find_cell_with_fewest_possibilities(&self) -> Coord {
         let mut min_possibilities = usize::MAX;
         let mut best_position: Coord = Default::default();
         for row in 0..9 {
@@ -1266,7 +1330,7 @@ impl SudokuBoardGenerator {
                     min_possibilities = count;
                     best_position = Coord { row, col };
                     if min_possibilities == 1 {
-                        return best_position
+                        return best_position;
                     }
                 }
             }
@@ -1275,38 +1339,43 @@ impl SudokuBoardGenerator {
         best_position
     }
 
-    fn rollback_cell (&mut self, pos: Coord, round: usize) {
+    fn rollback_cell(&mut self, pos: Coord, round: usize) {
         let cell = self.cell_mut(pos);
         cell.solution = None;
         for impossibility in &mut cell.impossibilities {
-            if let Some(impos_round) = impossibility && *impos_round == round {
+            if let Some(impos_round) = impossibility
+                && *impos_round == round
+            {
                 *impossibility = None;
             }
         }
     }
 
-    fn rollback_pos (&mut self, pos: Coord, round: usize) {
+    fn rollback_pos(&mut self, pos: Coord, round: usize) {
         let cell = self.cell_mut(pos);
         for impossibility in &mut cell.impossibilities {
-            if let Some(impos_round) = impossibility && *impos_round == round {
+            if let Some(impos_round) = impossibility
+                && *impos_round == round
+            {
                 *impossibility = None;
             }
         }
     }
 
-    fn rollback_aligned (&mut self, pos: Coord, round: usize) {
+    fn rollback_aligned(&mut self, pos: Coord, round: usize) {
         self.rollback_cell(pos, round);
 
         for aligned in self.cell(pos).aligned_coords {
             for num in 0..9 {
                 let impossibility = &mut self.cell_mut(aligned).impossibilities[num];
-                if let Some(impos_round) = *impossibility && impos_round == round {
+                if let Some(impos_round) = *impossibility
+                    && impos_round == round
+                {
                     *impossibility = None;
                 }
             }
         }
     }
-
 
     fn rollback_stack(&mut self, stack: GeneratorStackAction) {
         let pos = stack.pos;
@@ -1315,36 +1384,39 @@ impl SudokuBoardGenerator {
         use GeneratorAction::*;
         match stack.action {
             //these call the mark function which affects the entire board
-            Guess | Single | HiddenSingleCol | HiddenSingleBlock | HiddenSingleRow
-                => self.rollback_aligned(pos, round),
+            Guess | Single | HiddenSingleCol | HiddenSingleBlock | HiddenSingleRow => {
+                self.rollback_aligned(pos, round)
+            }
             //these are a bit wasteful as they rollback extra cells
-            PointingPairTripleRow | NakedPairRow =>
+            PointingPairTripleRow | NakedPairRow => {
                 for col in 0..9 {
-                    let pos = Coord{row: pos.row, col};
+                    let pos = Coord { row: pos.row, col };
                     self.rollback_pos(pos, round);
-                },
-            PointingPairTripleCol | NakedPairCol =>
+                }
+            }
+            PointingPairTripleCol | NakedPairCol => {
                 for row in 0..9 {
-                    let pos = Coord{row, col: pos.col};
+                    let pos = Coord { row, col: pos.col };
                     self.rollback_pos(pos, round);
-                },
+                }
+            }
             RowBlockReduction | ColBlockReduction | NakedPairBlock => {
                 let row_start = pos.row / 3 * 3;
                 let col_start = pos.col / 3 * 3;
-                for row in row_start..row_start + 3  {
+                for row in row_start..row_start + 3 {
                     for col in col_start..col_start + 3 {
-                        let pos = Coord{row, col};
+                        let pos = Coord { row, col };
                         self.rollback_pos(pos, round);
                     }
                 }
-            },
+            }
             _ => self.rollback_cell(pos, round),
         }
     }
 }
 
 impl Counts {
-    pub fn add_action (&mut self, action: GeneratorAction) {
+    pub fn add_action(&mut self, action: GeneratorAction) {
         use GeneratorAction::*;
         match action {
             Single => self.singles += 1,
@@ -1365,32 +1437,32 @@ impl Counts {
         };
     }
 
-    pub fn hidden_singles (&self) -> u8 {
+    pub fn hidden_singles(&self) -> u8 {
         self.hidden_singles_row + self.hidden_singles_col + self.hidden_singles_block
     }
 
-    pub fn naked_pairs (&self) -> u8 {
+    pub fn naked_pairs(&self) -> u8 {
         self.naked_pairs_row + self.naked_pairs_col + self.naked_pairs_block
     }
 
-    pub fn hidden_pairs (&self) -> u8 {
+    pub fn hidden_pairs(&self) -> u8 {
         self.hidden_pairs_row + self.hidden_pairs_col + self.hidden_pairs_block
     }
 
-    pub fn block_reductions (&self) -> u8 {
+    pub fn block_reductions(&self) -> u8 {
         self.row_block_reductions + self.col_block_reductions
     }
 
-    pub fn pointing_pairs (&self) -> u8 {
+    pub fn pointing_pairs(&self) -> u8 {
         self.pointing_pairs_triple_row + self.pointing_pairs_triple_col
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::time::SystemTime;
     use super::*;
-    #[derive (Default, Clone, Copy)]
+    use std::time::SystemTime;
+    #[derive(Default, Clone, Copy)]
     pub struct TestCounts {
         //keep track of the solve types for the difficulty
         singles: usize,
@@ -1429,7 +1501,7 @@ mod tests {
             self.hidden_pairs_block += counts.hidden_pairs_block as usize;
         }
 
-        fn print_all (&self) {
+        fn print_all(&self) {
             println!("Single: {}", self.singles);
             println!("HiddenSingleRow: {}", self.hidden_singles_row);
             println!("HiddenSingleCol: {}", self.hidden_singles_col);
@@ -1449,9 +1521,9 @@ mod tests {
     }
 
     #[test]
-    fn test_solver () {
+    fn test_solver() {
         let mut boardg = SudokuBoardGenerator::default();
-        let mut counts : TestCounts = Default::default();
+        let mut counts: TestCounts = Default::default();
         let mut count_easy = 0;
         let mut count_medium = 0;
         let mut count_hard = 0;
@@ -1460,11 +1532,11 @@ mod tests {
             boardg.new_puzzle();
             boardg.solve().unwrap();
             match boardg.difficulty() {
-                DifficultyCategory::Easy => count_easy+=1,
-                DifficultyCategory::Medium => count_medium+=1,
-                DifficultyCategory::Hard => count_hard+=1,
-                DifficultyCategory::VeryHard => count_very_hard+=1,
-                _ => panic!("unreachable difficulty")
+                DifficultyCategory::Easy => count_easy += 1,
+                DifficultyCategory::Medium => count_medium += 1,
+                DifficultyCategory::Hard => count_hard += 1,
+                DifficultyCategory::VeryHard => count_very_hard += 1,
+                _ => panic!("unreachable difficulty"),
             }
             counts.add_count(&boardg.counts);
         }
@@ -1477,7 +1549,7 @@ mod tests {
         counts.print_all();
     }
     #[test]
-    pub fn test_generate_puzzle () {
+    pub fn test_generate_puzzle() {
         use DifficultyCategory::*;
         let difficulties = [Easy, Medium, Hard, VeryHard];
         for i in 0..5 {
@@ -1485,30 +1557,42 @@ mod tests {
                 let time = SystemTime::now();
                 SudokuBoardGenerator::generate_board(difficulty);
                 let new_time = SystemTime::now();
-                println!("{} Puzzle generated in {}ms",
-                    difficulty.to_string(), new_time.duration_since(time).unwrap().as_millis());
+                println!(
+                    "{} Puzzle generated in {}ms",
+                    difficulty.to_string(),
+                    new_time.duration_since(time).unwrap().as_millis()
+                );
             }
         }
     }
 
     use crate::config;
     #[test]
-    pub fn test_qqwing_backwards_compatibility () {
+    pub fn test_qqwing_backwards_compatibility() {
         use DifficultyCategory::*;
         let arr = [
             (std::fs::read_to_string(config::QQWING_EASY).unwrap(), Easy),
-            (std::fs::read_to_string(config::QQWING_MEDIUM).unwrap(), Medium),
+            (
+                std::fs::read_to_string(config::QQWING_MEDIUM).unwrap(),
+                Medium,
+            ),
             (std::fs::read_to_string(config::QQWING_HARD).unwrap(), Hard),
-            (std::fs::read_to_string(config::QQWING_VERY_HARD).unwrap(), VeryHard)
+            (
+                std::fs::read_to_string(config::QQWING_VERY_HARD).unwrap(),
+                VeryHard,
+            ),
         ];
 
-        let mut boardg : SudokuBoardGenerator = Default::default();
+        let mut boardg: SudokuBoardGenerator = Default::default();
         for file in arr {
             for line in file.0.lines().enumerate() {
                 if line.0 <= 10000 {
                     boardg.set_puzzle_qqwing(line.1);
                     if boardg.solve_unique().is_err() || boardg.difficulty() != file.1 {
-                        panic!("QQWING backwards compatibility test failed, puzzle:{}", line.1);
+                        panic!(
+                            "QQWING backwards compatibility test failed, puzzle:{}",
+                            line.1
+                        );
                     }
                 }
             }
@@ -1541,5 +1625,5 @@ pub enum GeneratorAction {
     ColBlockReduction,
     HiddenPairRow,
     HiddenPairCol,
-    HiddenPairBlock
+    HiddenPairBlock,
 }

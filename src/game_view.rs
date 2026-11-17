@@ -18,23 +18,27 @@
  * along with GNOME Sudoku. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 
-use gtk::glib;
-use gtk::gdk::{BUTTON_PRIMARY, BUTTON_SECONDARY};
-use gtk::glib::subclass::InitializingObject;
 use gtk::CompositeTemplate;
-use gtk::{DialogError, EventSequenceState, FileDialog, GestureClick, gio::{self, Cancellable, SimpleAction, SimpleActionGroup}, glib::closure_local, pango::{AttrList, AttrSize}};
+use gtk::gdk::{BUTTON_PRIMARY, BUTTON_SECONDARY};
+use gtk::glib;
+use gtk::glib::subclass::InitializingObject;
+use gtk::{
+    DialogError, EventSequenceState, FileDialog, GestureClick,
+    gio::{self, Cancellable, SimpleAction, SimpleActionGroup},
+    glib::closure_local,
+    pango::{AttrList, AttrSize},
+};
 
-use crate::grid_layout::SudokuGridLayout;
-use crate::menu_button::SudokuMenuButton;
 use crate::grid::SudokuGrid;
-use crate::lib::utils::new_shortcut;
+use crate::grid_layout::SudokuGridLayout;
 use crate::lib::backend::SudokuBackend;
 use crate::lib::enums::DifficultyCategory;
-use crate::lib::game::{SudokuGame, StackAction};
+use crate::lib::game::{StackAction, SudokuGame};
+use crate::lib::utils::new_shortcut;
+use crate::menu_button::SudokuMenuButton;
 use crate::{connect_cb_pref, create_cb_entry};
 
 use std::cell::OnceCell;
@@ -42,9 +46,9 @@ use std::cell::OnceCell;
 mod imp {
     use std::cell::Cell;
 
-use gtk::{CssProvider, ReducedMotion};
+    use gtk::{CssProvider, ReducedMotion};
 
-use super::*;
+    use super::*;
 
     #[glib::object_subclass]
     impl ObjectSubclass for SudokuGameView {
@@ -54,14 +58,14 @@ use super::*;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            new_shortcut (klass, "game-view.earmark-mode", "e");
-            new_shortcut (klass, "game-view.toggle-pause", "p");
-            new_shortcut (klass, "game-view.reset-board", "<Primary>r");
-            new_shortcut (klass, "game-view.undo", "u|<Primary>z");
-            new_shortcut (klass, "game-view.redo", "r|<Primary><Shift>z");
-            new_shortcut (klass, "game-view.save-game-as", "<Primary>s");
-            new_shortcut (klass, "game-view.share-puzzle", "<Primary>c");
-            new_shortcut (klass, "game-view.export-puzzle", "<Primary>e");
+            new_shortcut(klass, "game-view.earmark-mode", "e");
+            new_shortcut(klass, "game-view.toggle-pause", "p");
+            new_shortcut(klass, "game-view.reset-board", "<Primary>r");
+            new_shortcut(klass, "game-view.undo", "u|<Primary>z");
+            new_shortcut(klass, "game-view.redo", "r|<Primary><Shift>z");
+            new_shortcut(klass, "game-view.save-game-as", "<Primary>s");
+            new_shortcut(klass, "game-view.share-puzzle", "<Primary>c");
+            new_shortcut(klass, "game-view.export-puzzle", "<Primary>e");
         }
 
         fn instance_init(obj: &InitializingObject<Self>) {
@@ -155,16 +159,19 @@ use super::*;
                 clock_stack: Default::default(),
                 clock_medal: Default::default(),
                 clock_image: Default::default(),
-                paused_label: Default::default()
+                paused_label: Default::default(),
             }
         }
     }
 
     impl SudokuGameView {
-        pub fn init (&self, backend: &SudokuBackend) {
-            let window : gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
-            self.backend.set(backend.clone()).expect("Game View is already initialized");
-            self.obj().set_size_request (window.width_request(), window.height_request());
+        pub fn init(&self, backend: &SudokuBackend) {
+            let window: gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
+            self.backend
+                .set(backend.clone())
+                .expect("Game View is already initialized");
+            self.obj()
+                .set_size_request(window.width_request(), window.height_request());
             connect_cb_pref!(self, connect_pref_timer_notify, show_timer_cb);
             self.setup_actions();
 
@@ -172,9 +179,13 @@ use super::*;
             backwards_controller.set_button(8);
             backwards_controller.set_propagation_limit(gtk::PropagationLimit::None);
             backwards_controller.connect_pressed(glib::clone!(
-                #[weak(rename_to = game_view)] self,
+                #[weak(rename_to = game_view)]
+                self,
                 move |gesture: &GestureClick, _, _, _| {
-                    game_view.obj().activate_action("game-view.undo", None).unwrap();
+                    game_view
+                        .obj()
+                        .activate_action("game-view.undo", None)
+                        .unwrap();
                     gesture.set_state(EventSequenceState::Claimed);
                 }
             ));
@@ -185,9 +196,13 @@ use super::*;
             forwards_controller.set_button(9);
             forwards_controller.set_propagation_limit(gtk::PropagationLimit::None);
             forwards_controller.connect_pressed(glib::clone!(
-                #[weak(rename_to = game_view)] self,
+                #[weak(rename_to = game_view)]
+                self,
                 move |gesture: &GestureClick, _, _, _| {
-                    game_view.obj().activate_action("game-view.redo", None).unwrap();
+                    game_view
+                        .obj()
+                        .activate_action("game-view.redo", None)
+                        .unwrap();
                     gesture.set_state(EventSequenceState::Claimed);
                 }
             ));
@@ -196,14 +211,15 @@ use super::*;
             let button_controller = GestureClick::new();
             button_controller.set_button(0);
             button_controller.connect_released(glib::clone!(
-                #[weak(rename_to = game_view)] self,
+                #[weak(rename_to = game_view)]
+                self,
                 move |gesture: &GestureClick, _, _, _| {
                     let current_button = gesture.current_button();
                     if current_button != BUTTON_PRIMARY && current_button != BUTTON_SECONDARY {
                         return;
                     }
 
-                    if !game_view.backend().game_paused(){
+                    if !game_view.backend().game_paused() {
                         game_view.grid.unselect();
                     }
                     gesture.set_state(gtk::EventSequenceState::Claimed);
@@ -214,39 +230,49 @@ use super::*;
             self.initialize_clock_label();
             self.initialize_buttons();
 
-            self.windowtitle.set_subtitle(&self.backend().game_difficulty().to_translated_string());
+            self.windowtitle
+                .set_subtitle(&self.backend().game_difficulty().to_translated_string());
 
-            backend.connect_closure("game-changed", false, glib::closure_local!(
-                #[weak(rename_to = game_view)] self,
-                move |backend: SudokuBackend| {
-                    game_view.add_game_hooks();
-                    game_view.initialize_buttons();
-                    game_view.initialize_clock_label();
-                    game_view.toggle_pause_action.set_enabled(true);
-                    game_view.windowtitle.set_subtitle(&backend.game_difficulty().to_translated_string());
-                }
-            ));
+            backend.connect_closure(
+                "game-changed",
+                false,
+                glib::closure_local!(
+                    #[weak(rename_to = game_view)]
+                    self,
+                    move |backend: SudokuBackend| {
+                        game_view.add_game_hooks();
+                        game_view.initialize_buttons();
+                        game_view.initialize_clock_label();
+                        game_view.toggle_pause_action.set_enabled(true);
+                        game_view
+                            .windowtitle
+                            .set_subtitle(&backend.game_difficulty().to_translated_string());
+                    }
+                ),
+            );
 
             self.ui_breakpoint.connect_apply(glib::clone!(
-                #[weak(rename_to = game_view)] self,
+                #[weak(rename_to = game_view)]
+                self,
                 move |_| {
                     game_view.set_vertical_ui();
                 }
             ));
 
             self.ui_breakpoint.connect_unapply(glib::clone!(
-                #[weak(rename_to = game_view)] self,
+                #[weak(rename_to = game_view)]
+                self,
                 move |_| {
                     game_view.set_wide_ui();
                 }
             ));
 
-            self.add_game_hooks ();
+            self.add_game_hooks();
 
             self.grid.init(backend);
         }
 
-        pub fn initialize_clock_label (&self){
+        pub fn initialize_clock_label(&self) {
             if !self.backend().pref_timer() {
                 return;
             }
@@ -256,31 +282,28 @@ use super::*;
             let backend = self.backend();
             if let Some(highscore) = backend.game_highscore() {
                 let highscore = highscore as i64;
-                let highscore_string = "🥇".to_string()
-                    + &self.create_timer_string (highscore);
-                self.clock_box.set_tooltip_markup(Some(format!(
-                    "<span font_features='tnum=1'>{}</span>",
-                    highscore_string).as_str()));
+                let highscore_string = "🥇".to_string() + &self.create_timer_string(highscore);
+                self.clock_box.set_tooltip_markup(Some(
+                    format!("<span font_features='tnum=1'>{}</span>", highscore_string).as_str(),
+                ));
 
                 if elapsed_time > highscore {
                     self.clock_label.set_css_classes(&["numeric"]);
-                }
-                else if elapsed_time > highscore - 60 {
+                } else if elapsed_time > highscore - 60 {
                     self.clock_label.set_css_classes(&["numeric", "warning"]);
-                }
-                else {
+                } else {
                     self.clock_label.set_css_classes(&["numeric", "success"]);
                 }
-            }
-            else {
+            } else {
                 self.clock_label.set_css_classes(&["numeric"]);
                 self.clock_box.set_tooltip_text(None);
             }
 
-            self.clock_label.set_label(self.create_timer_string(elapsed_time).as_str());
+            self.clock_label
+                .set_label(self.create_timer_string(elapsed_time).as_str());
         }
 
-        pub fn setup_actions (&self) {
+        pub fn setup_actions(&self) {
             let action_group = SimpleActionGroup::new();
             let actions = [
                 create_cb_entry!(self, "earmark-mode", earmark_mode_cb),
@@ -292,7 +315,8 @@ use super::*;
             action_group.add_action_entries(actions);
 
             self.toggle_pause_action.connect_activate(glib::clone!(
-                #[weak(rename_to = game_view)] self,
+                #[weak(rename_to = game_view)]
+                self,
                 move |_, _| {
                     let backend = game_view.backend();
                     backend.game_toggle_pause();
@@ -301,7 +325,8 @@ use super::*;
             action_group.add_action(&self.toggle_pause_action);
 
             self.reset_board_action.connect_activate(glib::clone!(
-                #[weak(rename_to = game_view)] self,
+                #[weak(rename_to = game_view)]
+                self,
                 move |_, _| {
                     game_view.backend().game_reset();
                 }
@@ -309,7 +334,8 @@ use super::*;
             action_group.add_action(&self.reset_board_action);
 
             self.undo_action.connect_activate(glib::clone!(
-                #[weak(rename_to = game_view)] self,
+                #[weak(rename_to = game_view)]
+                self,
                 move |_, _| {
                     game_view.backend().game_undo();
                 }
@@ -317,21 +343,23 @@ use super::*;
             action_group.add_action(&self.undo_action);
 
             self.redo_action.connect_activate(glib::clone!(
-                #[weak(rename_to = game_view)] self,
+                #[weak(rename_to = game_view)]
+                self,
                 move |_, _| {
                     game_view.backend().game_redo();
                 }
             ));
             action_group.add_action(&self.redo_action);
 
-            self.obj().insert_action_group("game-view", Some(&action_group));
+            self.obj()
+                .insert_action_group("game-view", Some(&action_group));
         }
 
-        pub fn backend (&self) -> &SudokuBackend {
+        pub fn backend(&self) -> &SudokuBackend {
             self.backend.get().unwrap()
         }
 
-        fn set_wide_ui (&self) {
+        fn set_wide_ui(&self) {
             self.unparent_buttons();
             self.is_vertical.set(false);
             self.update_buttons_visibility();
@@ -342,7 +370,7 @@ use super::*;
             self.top_headerbar.pack_end(&*self.clock_box);
         }
 
-        fn set_vertical_ui (&self) {
+        fn set_vertical_ui(&self) {
             self.unparent_buttons();
             self.is_vertical.set(true);
             self.update_buttons_visibility();
@@ -353,7 +381,7 @@ use super::*;
             self.top_headerbar.pack_start(&*self.clock_box);
         }
 
-        fn unparent_buttons (&self) {
+        fn unparent_buttons(&self) {
             self.play_pause_stack.unparent();
             self.earmark_mode_button.unparent();
             self.undo_button.unparent();
@@ -361,28 +389,31 @@ use super::*;
             self.clock_box.unparent();
         }
 
-        fn update_buttons_visibility (&self) {
+        fn update_buttons_visibility(&self) {
             let show_timer = self.backend().pref_timer();
-            self.clock_box.set_visible(show_timer && (!self.width_is_small.get() || self.is_vertical.get()));
-            self.redo_button.set_visible(!show_timer || !self.width_is_small.get() || self.is_vertical.get());
+            self.clock_box
+                .set_visible(show_timer && (!self.width_is_small.get() || self.is_vertical.get()));
+            self.redo_button
+                .set_visible(!show_timer || !self.width_is_small.get() || self.is_vertical.get());
         }
 
-        pub fn initialize_buttons (&self) {
+        pub fn initialize_buttons(&self) {
             let backend = self.backend();
             self.clock_box.set_visible(backend.pref_timer());
             self.play_pause_stack.set_visible(backend.pref_timer());
-            self.undo_action.set_enabled (backend.game_can_undo());
-            self.redo_action.set_enabled (backend.game_can_redo());
-            self.reset_board_action.set_enabled (!backend.game_is_empty());
+            self.undo_action.set_enabled(backend.game_can_undo());
+            self.redo_action.set_enabled(backend.game_can_redo());
+            self.reset_board_action
+                .set_enabled(!backend.game_is_empty());
         }
 
-        fn earmark_mode_cb (&self) {
+        fn earmark_mode_cb(&self) {
             let earmark_mode = self.backend().earmark_mode();
             self.backend().set_earmark_mode(!earmark_mode);
             self.earmark_mode_button.set_active(!earmark_mode);
         }
 
-        fn share_puzzle_cb (&self) {
+        fn share_puzzle_cb(&self) {
             let clipboard = self.obj().clipboard();
             clipboard.set_text(&self.backend().game_ascii());
             use gettextrs::gettext;
@@ -391,77 +422,88 @@ use super::*;
             self.toast_overlay.add_toast(toast);
         }
 
-        fn save_game_as_cb (&self) {
+        fn save_game_as_cb(&self) {
             let file_dialog = FileDialog::new();
             let info = self.backend().game_save_as_info();
             file_dialog.set_initial_name(Some(&info.0));
             file_dialog.set_initial_folder(Some(&info.1));
 
-            let window : gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
-            file_dialog.save(Some(&window), None::<&Cancellable>, glib::clone!(
-                #[weak(rename_to = game_view)] self,
-                move |result: Result<gio::File, glib::Error>| {
-                    match result {
-                        Ok(file) => {
-                            let path = file.path().unwrap();
-                            let path = path.to_str().unwrap();
-                            game_view.backend().game_save_as(path);
-                        },
-                        Err(e) => {
-                            if e.matches(DialogError::Failed) {
-                                eprintln!("{}", e.message())
+            let window: gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
+            file_dialog.save(
+                Some(&window),
+                None::<&Cancellable>,
+                glib::clone!(
+                    #[weak(rename_to = game_view)]
+                    self,
+                    move |result: Result<gio::File, glib::Error>| {
+                        match result {
+                            Ok(file) => {
+                                let path = file.path().unwrap();
+                                let path = path.to_str().unwrap();
+                                game_view.backend().game_save_as(path);
+                            }
+                            Err(e) => {
+                                if e.matches(DialogError::Failed) {
+                                    eprintln!("{}", e.message())
+                                }
                             }
                         }
                     }
-                }
-            ));
+                ),
+            );
         }
 
-        fn export_puzzle_cb (&self) {
+        fn export_puzzle_cb(&self) {
             let file_dialog = FileDialog::new();
             use gettextrs::pgettext;
             file_dialog.set_initial_name(Some(&pgettext(
                 ".skp is a file extension",
-                "Sudoku puzzle.skp")
-            ));
-            let window : gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
-            file_dialog.save(Some(&window), None::<&Cancellable>, glib::clone!(
-                #[weak(rename_to = game_view)] self,
-                move |result: Result<gio::File, glib::Error>| {
-                    match result {
-                        Ok(file) => {
-                            let path = file.path().unwrap();
-                            let path = path.to_str().unwrap();
-                            game_view.backend().export_puzzle(path);
-                        },
-                        Err(e) => {
-                            if e.matches(DialogError::Failed) {
-                                eprintln!("{}", e.message())
+                "Sudoku puzzle.skp",
+            )));
+            let window: gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
+            file_dialog.save(
+                Some(&window),
+                None::<&Cancellable>,
+                glib::clone!(
+                    #[weak(rename_to = game_view)]
+                    self,
+                    move |result: Result<gio::File, glib::Error>| {
+                        match result {
+                            Ok(file) => {
+                                let path = file.path().unwrap();
+                                let path = path.to_str().unwrap();
+                                game_view.backend().export_puzzle(path);
+                            }
+                            Err(e) => {
+                                if e.matches(DialogError::Failed) {
+                                    eprintln!("{}", e.message())
+                                }
                             }
                         }
                     }
-                }
-            ));
+                ),
+            );
         }
 
-        fn game_completed_cb (&self) {
+        fn game_completed_cb(&self) {
             // game.board.completed.disconnect (board_completed_cb);
-            self.backend().game_save_completed ();
+            self.backend().game_save_completed();
             self.backend().game_stop_clock();
-            let highscore_changed = self.backend().game_save_highscore ();
+            let highscore_changed = self.backend().game_save_highscore();
             if highscore_changed {
-                self.clock_stack.set_visible_child (&*self.clock_medal);
+                self.clock_stack.set_visible_child(&*self.clock_medal);
             }
 
             self.grid.unselect();
             self.grid.set_can_focus(false);
             self.grid.set_can_target(false);
 
-            let reduced_motion = gtk::Settings::default().unwrap().gtk_interface_reduced_motion();
+            let reduced_motion = gtk::Settings::default()
+                .unwrap()
+                .gtk_interface_reduced_motion();
             if reduced_motion == ReducedMotion::Reduce {
                 self.present_completed_dialog();
-            }
-            else {
+            } else {
                 self.reset_board_action.set_enabled(false);
                 self.undo_action.set_enabled(false);
                 self.redo_action.set_enabled(false);
@@ -470,7 +512,7 @@ use super::*;
             }
         }
 
-        pub fn present_completed_dialog (&self ) {
+        pub fn present_completed_dialog(&self) {
             use gettextrs::gettext;
             let win_str = gettext("Puzzle Completed!");
             let dialog = adw::AlertDialog::new(Some(&win_str), None);
@@ -481,82 +523,107 @@ use super::*;
                 dialog.add_response("play-again", &gettext("_Play Again"));
                 dialog.set_response_appearance("play-again", adw::ResponseAppearance::Suggested);
                 dialog.set_default_response(Some("play-again"));
-            }
-            else {
+            } else {
                 dialog.add_response("play-again", &gettext("_Play Again"));
                 dialog.add_response("start-menu", &gettext("_New Game…"));
                 dialog.set_default_response(Some("start-menu"));
             }
 
-            dialog.connect_response(None, glib::clone!(
-                #[weak(rename_to = game_view)] self,
-                move |dialog, response| {
-                    match response {
-                        "start-menu" | "close" => game_view.obj().activate_action("app.new-game", None).unwrap(),
-                        "quit" => game_view.obj().activate_action("app.quit", None).unwrap(),
-                        "play-again" => game_view.obj().activate_action("app.start-generated-game", None).unwrap(),
-                        _ => println!("dialog answer {}", response)
+            dialog.connect_response(
+                None,
+                glib::clone!(
+                    #[weak(rename_to = game_view)]
+                    self,
+                    move |dialog, response| {
+                        match response {
+                            "start-menu" | "close" => game_view
+                                .obj()
+                                .activate_action("app.new-game", None)
+                                .unwrap(),
+                            "quit" => game_view.obj().activate_action("app.quit", None).unwrap(),
+                            "play-again" => game_view
+                                .obj()
+                                .activate_action("app.start-generated-game", None)
+                                .unwrap(),
+                            _ => println!("dialog answer {}", response),
+                        }
+                        dialog.close();
                     }
-                    dialog.close();
-                }
-            ));
+                ),
+            );
 
-            let window : gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
-            dialog.present (Some(&window));
+            let window: gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
+            dialog.present(Some(&window));
         }
 
-        pub fn add_game_hooks (&self) {
+        pub fn add_game_hooks(&self) {
             let binding = self.backend().game();
             let game = binding.as_ref().unwrap();
-            game.connect_closure("tick", false, closure_local!{
-                #[weak(rename_to = game_view)] self,
-                move |_ : glib::Object| {
-                    game_view.tick_cb();
-                }
-            });
+            game.connect_closure(
+                "tick",
+                false,
+                closure_local! {
+                    #[weak(rename_to = game_view)] self,
+                    move |_ : glib::Object| {
+                        game_view.tick_cb();
+                    }
+                },
+            );
 
-            game.connect_closure("paused", false, closure_local!{
-                #[weak(rename_to = game_view)] self,
-                move |_ : glib::Object, paused: bool| {
-                    game_view.paused_cb(paused);
-                }
-            });
+            game.connect_closure(
+                "paused",
+                false,
+                closure_local! {
+                    #[weak(rename_to = game_view)] self,
+                    move |_ : glib::Object, paused: bool| {
+                        game_view.paused_cb(paused);
+                    }
+                },
+            );
 
-            game.connect_closure("completed", false, closure_local!{
-                #[weak(rename_to = game_view)] self,
-                move |_ : glib::Object| {
-                    game_view.game_completed_cb();
-                }
-            });
+            game.connect_closure(
+                "completed",
+                false,
+                closure_local! {
+                    #[weak(rename_to = game_view)] self,
+                    move |_ : glib::Object| {
+                        game_view.game_completed_cb();
+                    }
+                },
+            );
 
-            game.connect_closure("action-completed", false, closure_local!{
-                #[weak(rename_to = game_view)] self,
-                move |game : SudokuGame, _: StackAction| {
-                    game_view.undo_action.set_enabled (!game.is_undostack_null ());
-                    game_view.redo_action.set_enabled (!game.is_redostack_null ());
-                    game_view.reset_board_action.set_enabled (!game.board().is_empty());
-                }
-            });
+            game.connect_closure(
+                "action-completed",
+                false,
+                closure_local! {
+                    #[weak(rename_to = game_view)] self,
+                    move |game : SudokuGame, _: StackAction| {
+                        game_view.undo_action.set_enabled (!game.is_undostack_null ());
+                        game_view.redo_action.set_enabled (!game.is_redostack_null ());
+                        game_view.reset_board_action.set_enabled (!game.board().is_empty());
+                    }
+                },
+            );
         }
 
-        fn tick_cb (&self) {
+        fn tick_cb(&self) {
             let elapsed_time = self.backend().game_time_played();
-            self.clock_label.set_label(&self.create_timer_string(elapsed_time as i64));
+            self.clock_label
+                .set_label(&self.create_timer_string(elapsed_time as i64));
         }
 
-        fn create_timer_string (&self, elapsed_time: i64) -> String {
+        fn create_timer_string(&self, elapsed_time: i64) -> String {
             let hours = elapsed_time / 3600;
             let minutes = (elapsed_time - hours * 3600) / 60;
             let seconds = elapsed_time - hours * 3600 - minutes * 60;
             if hours > 0 {
                 format!("{}:{:02}:{:02}", hours, minutes, seconds)
-            }
-            else {
+            } else {
                 format!("{:02}:{:02}", minutes, seconds)
             }
         }
 
-        pub fn paused_cb (&self, paused: bool) {
+        pub fn paused_cb(&self, paused: bool) {
             self.paused_label.set_visible(paused);
             if paused {
                 self.update_paused_label_size(self.obj().width(), self.obj().height());
@@ -564,26 +631,24 @@ use super::*;
                 self.grid_overlay.add_overlay(&*self.paused_label);
                 self.grid_overlay.add_css_class("paused");
                 self.reset_board_action.set_enabled(false);
-            }
-            else {
+            } else {
                 self.play_pause_stack.set_visible_child(&*self.pause_button);
                 self.grid_overlay.remove_overlay(&*self.paused_label);
                 self.grid_overlay.remove_css_class("paused");
-                self.reset_board_action.set_enabled(self.backend().game_is_empty());
+                self.reset_board_action
+                    .set_enabled(self.backend().game_is_empty());
             }
         }
 
-        pub fn update_paused_label_size (&self, width: i32, height: i32) {
+        pub fn update_paused_label_size(&self, width: i32, height: i32) {
             let smallest = i32::min(width, height);
             let attr_list = self.paused_label.attributes().unwrap_or(AttrList::new());
             let size = smallest as f64 * 0.125 * gtk::pango::SCALE as f64;
-            attr_list.change(
-                AttrSize::new_size_absolute(size as i32)
-            );
+            attr_list.change(AttrSize::new_size_absolute(size as i32));
             self.paused_label.set_attributes(Some(&attr_list));
         }
 
-        pub fn show_timer_cb (&self) {
+        pub fn show_timer_cb(&self) {
             let show_timer = self.backend().pref_timer();
             self.update_buttons_visibility();
             self.toggle_pause_action.set_enabled(show_timer);
@@ -602,13 +667,16 @@ use super::*;
             let grid_layout = SudokuGridLayout::new();
             self.grid_bin.set_layout_manager(Some(grid_layout));
 
-            self.menu_button.imp().main_menu.connect_closed(glib::clone!(
-                #[weak(rename_to = game_view)] self,
-                move |_|
-                {
-                    game_view.grab_focus();
-                }
-            ));
+            self.menu_button
+                .imp()
+                .main_menu
+                .connect_closed(glib::clone!(
+                    #[weak(rename_to = game_view)]
+                    self,
+                    move |_| {
+                        game_view.grab_focus();
+                    }
+                ));
         }
 
         fn dispose(&self) {
@@ -624,8 +692,7 @@ use super::*;
             if width < 600 && !self.width_is_small.get() {
                 self.width_is_small.set(true);
                 self.update_buttons_visibility();
-            }
-            else if width >= 600 && self.width_is_small.get() {
+            } else if width >= 600 && self.width_is_small.get() {
                 self.width_is_small.set(false);
                 self.update_buttons_visibility();
             }
@@ -648,19 +715,19 @@ glib::wrapper! {
 impl SudokuGameView {
     //this is separated as the backend is required for functionality and its reference can't be initialized
     //during gobject construction
-    pub fn init (&self, backend: &SudokuBackend) {
+    pub fn init(&self, backend: &SudokuBackend) {
         self.imp().init(backend);
     }
 
-    pub fn initialized (&self) -> bool {
+    pub fn initialized(&self) -> bool {
         self.imp().backend.get().is_some()
     }
 
-    pub fn cancel_completed_animation (&self) {
+    pub fn cancel_completed_animation(&self) {
         self.imp().grid.cancel_completed_animation();
     }
 
-    pub fn grid (&self) -> &SudokuGrid {
+    pub fn grid(&self) -> &SudokuGrid {
         &self.imp().grid
     }
 }

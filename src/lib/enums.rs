@@ -19,10 +19,10 @@
  */
 
 use gtk::glib::types::{StaticType, Type};
-use gtk::glib::value::{Value, FromValue, ToValue, GenericValueTypeChecker};
+use gtk::glib::value::{FromValue, GenericValueTypeChecker, ToValue, Value};
 use gtk::glib::variant::{FromVariant, StaticVariantType, ToVariant};
-use gtk::{self, DirectionType};
 use gtk::glib::{self, Variant, VariantTy};
+use gtk::{self, DirectionType};
 use serde::{Deserialize, Serialize};
 
 //must remain aligned with gschema
@@ -30,11 +30,12 @@ use serde::{Deserialize, Serialize};
 #[enum_type(name = "DifficultyCategory")]
 pub enum DifficultyCategory {
     Unknown = 0,
-    #[default] Easy = 1,
+    #[default]
+    Easy = 1,
     Medium = 2,
     Hard = 3,
     VeryHard = 4,
-    Custom = 5
+    Custom = 5,
 }
 
 #[derive(Default, PartialEq, Eq, Hash, Clone, Copy, Debug)]
@@ -44,38 +45,37 @@ pub struct Coord {
 }
 
 impl DifficultyCategory {
-    pub fn to_translated_string (&self) -> String
-    {
+    pub fn to_translated_string(&self) -> String {
         use DifficultyCategory::*;
         use gettextrs::gettext;
         match self {
             Easy => gettext("Easy Difficulty"),
-            Medium =>  gettext("Medium Difficulty"),
-            Hard =>  gettext("Hard Difficulty"),
-            VeryHard =>  gettext("Very Hard Difficulty"),
+            Medium => gettext("Medium Difficulty"),
+            Hard => gettext("Hard Difficulty"),
+            VeryHard => gettext("Very Hard Difficulty"),
             _ => {
                 eprintln!("Unknown difficulty, this is a bug - please report it");
                 "BUG - UNKNOWN DIFFICULTY".to_string()
-            },
+            }
         }
     }
 
-    pub fn to_string (&self) -> String {
+    pub fn to_string(&self) -> String {
         use DifficultyCategory::*;
         match self {
             Easy => "Easy Difficulty".to_string(),
-            Medium =>  "Medium Difficulty".to_string(),
-            Hard =>  "Hard Difficulty".to_string(),
-            VeryHard =>  "Very Hard Difficulty".to_string(),
-            Custom =>  "Custom Difficulty".to_string(),
+            Medium => "Medium Difficulty".to_string(),
+            Hard => "Hard Difficulty".to_string(),
+            VeryHard => "Very Hard Difficulty".to_string(),
+            Custom => "Custom Difficulty".to_string(),
             _ => {
                 eprintln!("Unknown difficulty, this is a bug - please report it");
                 "BUG - UNKNOWN DIFFICULTY".to_string()
-            },
+            }
         }
     }
 
-    pub fn from_string (s: &str) -> Self {
+    pub fn from_string(s: &str) -> Self {
         use DifficultyCategory::*;
         match s {
             "Easy Difficulty" => Easy,
@@ -94,16 +94,16 @@ impl DifficultyCategory {
 impl Serialize for DifficultyCategory {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer
+        S: serde::Serializer,
     {
         serializer.serialize_str(&self.to_string())
     }
 }
 
-impl <'de>Deserialize<'de> for DifficultyCategory {
+impl<'de> Deserialize<'de> for DifficultyCategory {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: serde::Deserializer<'de>
+        D: serde::Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         Ok(DifficultyCategory::from_string(&s))
@@ -120,7 +120,7 @@ impl From<i32> for DifficultyCategory {
             3 => Hard,
             4 => VeryHard,
             5 => Custom,
-            _ => Unknown
+            _ => Unknown,
         }
     }
 }
@@ -149,7 +149,7 @@ impl From<u32> for DifficultyCategory {
             3 => Hard,
             4 => VeryHard,
             5 => Custom,
-            _ => Unknown
+            _ => Unknown,
         }
     }
 }
@@ -180,7 +180,7 @@ impl FromVariant for DifficultyCategory {
             "hard" => Some(Hard),
             "very-hard" => Some(VeryHard),
             "custom" => Some(Custom),
-            _ => panic!()
+            _ => panic!(),
         }
     }
 }
@@ -212,7 +212,7 @@ impl FromVariant for SudokuDirection {
             3 => Some(Down),
             4 => Some(Left),
             5 => Some(Right),
-            _ => panic!()
+            _ => panic!(),
         }
     }
 }
@@ -232,7 +232,7 @@ impl ToVariant for SudokuDirection {
             Down => 3.to_variant(),
             Left => 4.to_variant(),
             Right => 5.to_variant(),
-            _ => panic!()
+            _ => panic!(),
         }
     }
 }
@@ -248,7 +248,7 @@ impl From<DirectionType> for SudokuDirection {
             d::Down => Down,
             d::Left => Left,
             d::Right => Right,
-            _ => panic!()
+            _ => panic!(),
         }
     }
 }
@@ -264,7 +264,7 @@ impl Into<DirectionType> for SudokuDirection {
             Down => d::Down,
             Left => d::Left,
             Right => d::Right,
-            _ => panic!()
+            _ => panic!(),
         }
     }
 }
@@ -272,76 +272,76 @@ impl Into<DirectionType> for SudokuDirection {
 //must remain aligned with gschema
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, glib::Enum)]
 #[enum_type(name = "ZoomLevel")]
-pub enum ZoomLevel
-{
+pub enum ZoomLevel {
     None = 0,
     Small = 1,
-    #[default] Medium = 2,
-    Large = 3
+    #[default]
+    Medium = 2,
+    Large = 3,
 }
 
-impl ZoomLevel{
-    pub fn is_fully_zoomed_out (&self) -> bool {
+impl ZoomLevel {
+    pub fn is_fully_zoomed_out(&self) -> bool {
         use ZoomLevel::*;
         match self {
             Small => true,
-            _ => false
+            _ => false,
         }
     }
 
-    pub fn is_fully_zoomed_in (&self) -> bool {
+    pub fn is_fully_zoomed_in(&self) -> bool {
         use ZoomLevel::*;
         match self {
             Large => true,
-            _ => false
+            _ => false,
         }
     }
 
-    pub fn zoom_in (&self) -> ZoomLevel {
+    pub fn zoom_in(&self) -> ZoomLevel {
         use ZoomLevel::*;
         match self {
             Small => Medium,
             Medium => Large,
             _ => {
-                eprintln! ("Zoom error");
+                eprintln!("Zoom error");
                 Medium
             }
         }
     }
 
-    pub fn zoom_out (&self) -> ZoomLevel {
+    pub fn zoom_out(&self) -> ZoomLevel {
         use ZoomLevel::*;
         match self {
             Large => Medium,
             Medium => Small,
             _ => {
-                eprintln! ("Zoom error");
+                eprintln!("Zoom error");
                 Medium
             }
         }
     }
 
-    pub fn to_value_multiplier (&self) -> f64 {
+    pub fn to_value_multiplier(&self) -> f64 {
         use ZoomLevel::*;
         match self {
             Small => 0.4,
             Medium => 0.5,
             Large => 0.6,
             _ => {
-                eprintln! ("Zoom error");
+                eprintln!("Zoom error");
                 0.5
             }
         }
     }
 
-    pub fn to_earmark_multiplier (&self) -> f64 {
+    pub fn to_earmark_multiplier(&self) -> f64 {
         use ZoomLevel::*;
         match self {
             Small => 0.25,
             Medium => 0.25,
             Large => 0.3,
             _ => {
-                eprintln! ("Zoom error");
+                eprintln!("Zoom error");
                 0.25
             }
         }
@@ -367,7 +367,7 @@ impl From<Option<usize>> for CompatValue {
     fn from(value: Option<usize>) -> Self {
         match value {
             None => Self(i32::MAX),
-            Some(val) => Self(val as i32)
+            Some(val) => Self(val as i32),
         }
     }
 }
@@ -376,7 +376,7 @@ impl Into<Option<usize>> for CompatValue {
     fn into(self) -> Option<usize> {
         match self.0 {
             i32::MAX => None,
-            _ => Some(self.0 as usize)
+            _ => Some(self.0 as usize),
         }
     }
 }
@@ -387,11 +387,10 @@ impl StaticType for CompatValue {
     }
 }
 
-unsafe impl <'a>FromValue<'a> for CompatValue {
+unsafe impl<'a> FromValue<'a> for CompatValue {
     type Checker = GenericValueTypeChecker<Self>;
     #[inline]
     unsafe fn from_value(value: &'a Value) -> Self {
         unsafe { Self(i32::from_value(value)) }
     }
 }
-

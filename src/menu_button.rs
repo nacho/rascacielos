@@ -21,9 +21,9 @@
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 
+use gtk::CompositeTemplate;
 use gtk::glib;
 use gtk::glib::subclass::InitializingObject;
-use gtk::CompositeTemplate;
 
 mod imp {
     use super::*;
@@ -57,12 +57,13 @@ mod imp {
     }
 
     impl SudokuMenuButton {
-        fn set_fullscreen_button (&self, fullscreen: bool) {
+        fn set_fullscreen_button(&self, fullscreen: bool) {
             if !fullscreen {
-                self.menu_fullscreen_stack.set_visible_child(&*self.menu_fullscreen_button);
-            }
-            else {
-                self.menu_fullscreen_stack.set_visible_child(&*self.menu_unfullscreen_button);
+                self.menu_fullscreen_stack
+                    .set_visible_child(&*self.menu_fullscreen_button);
+            } else {
+                self.menu_fullscreen_stack
+                    .set_visible_child(&*self.menu_unfullscreen_button);
             }
         }
     }
@@ -76,10 +77,11 @@ mod imp {
     impl WidgetImpl for SudokuMenuButton {
         fn realize(&self) {
             self.parent_realize();
-            let window : gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
-            self.set_fullscreen_button (window.is_fullscreen());
+            let window: gtk::Window = self.obj().root().and_downcast::<gtk::Window>().unwrap();
+            self.set_fullscreen_button(window.is_fullscreen());
             window.connect_fullscreened_notify(glib::clone!(
-                #[weak(rename_to = menu_button)] self,
+                #[weak(rename_to = menu_button)]
+                self,
                 move |window| menu_button.set_fullscreen_button(window.is_fullscreen())
             ));
         }
@@ -94,8 +96,7 @@ glib::wrapper! {
 }
 
 impl SudokuMenuButton {
-    pub fn new () -> Self {
+    pub fn new() -> Self {
         return glib::Object::builder().build();
     }
-
 }

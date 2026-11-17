@@ -21,20 +21,24 @@
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 
-use gtk::glib;
 use gtk::gio;
 use gtk::gio::SimpleAction;
-use gtk::{EventControllerFocus, gio::SimpleActionGroup, glib::{Propagation, Variant, WeakRef, closure_local}};
+use gtk::glib;
+use gtk::{
+    EventControllerFocus,
+    gio::SimpleActionGroup,
+    glib::{Propagation, Variant, WeakRef, closure_local},
+};
 
 use crate::lib::backend::SudokuBackend;
-use crate::lib::enums::{Coord, SudokuDirection, CompatValue};
-use crate::lib::game::{SudokuGame, StackAction};
+use crate::lib::enums::{CompatValue, Coord, SudokuDirection};
+use crate::lib::game::{StackAction, SudokuGame};
 use crate::lib::utils::{new_shortcut, new_shortcut_with_args};
 
 use crate::cell::SudokuCell;
-use crate::picker_popover::SudokuPickerPopover;
 use crate::connect_cb_action;
 use crate::connect_cb_pref;
+use crate::picker_popover::SudokuPickerPopover;
 
 use std::cell::{Cell, OnceCell};
 use std::pin::Pin;
@@ -42,11 +46,14 @@ use std::time::Duration;
 
 mod imp {
 
-use std::array::from_fn;
+    use std::array::from_fn;
 
-use gtk::{Allocation, CssProvider, Orientation, Separator, Widget, glib::{SourceId, gobject_ffi::GObject}};
+    use gtk::{
+        Allocation, CssProvider, Orientation, Separator, Widget,
+        glib::{SourceId, gobject_ffi::GObject},
+    };
 
-use super::*;
+    use super::*;
 
     #[glib::object_subclass]
     impl ObjectSubclass for SudokuGrid {
@@ -56,7 +63,7 @@ use super::*;
 
         fn class_init(klass: &mut Self::Class) {
             klass.set_css_name("sudoku-grid");
-            new_shortcut (klass, "grid.escape", "Escape");
+            new_shortcut(klass, "grid.escape", "Escape");
 
             new_shortcut_with_args(klass, "grid.move-up", "w", SudokuDirection::Up);
             new_shortcut_with_args(klass, "grid.move-down", "s", SudokuDirection::Down);
@@ -77,15 +84,17 @@ use super::*;
         pub picker_popover: SudokuPickerPopover,
         pub backend: OnceCell<SudokuBackend>,
         pub completed_css_provider: CssProvider,
-        pub completed_source_id: Cell<Option<SourceId>>
+        pub completed_source_id: Cell<Option<SourceId>>,
     }
 
     impl Default for SudokuGrid {
         fn default() -> Self {
-            let cells: [[SudokuCell; 9]; 9] = std::array::from_fn(|row| std::array::from_fn(|col| {
-                let cell = SudokuCell::new(row, col);
-                cell
-            }));
+            let cells: [[SudokuCell; 9]; 9] = std::array::from_fn(|row| {
+                std::array::from_fn(|col| {
+                    let cell = SudokuCell::new(row, col);
+                    cell
+                })
+            });
 
             let block_horizontal_separators: [Separator; 2] = from_fn(|_| {
                 glib::Object::builder()
@@ -125,17 +134,17 @@ use super::*;
                 selected_col: Cell::new(4),
                 focus_controller: Default::default(),
                 picker_popover: SudokuPickerPopover::new_unitialized(),
-                backend: Default::default()
+                backend: Default::default(),
             }
         }
     }
 
     impl SudokuGrid {
-        pub fn selected_cell (&self) -> &SudokuCell {
+        pub fn selected_cell(&self) -> &SudokuCell {
             &self.cells[self.selected_row.get()][self.selected_col.get()]
         }
 
-        fn update_selected (&self, cell: &SudokuCell) {
+        fn update_selected(&self, cell: &SudokuCell) {
             let old_pos = self.selected_pos();
             if self.selected_cell() != cell {
                 self.selected_cell().unselect();
@@ -150,7 +159,7 @@ use super::*;
             }
         }
 
-        fn move_cb (&self, variant: &Variant) {
+        fn move_cb(&self, variant: &Variant) {
             let dir = SudokuDirection::from_variant(variant);
             self.obj().child_focus(dir.unwrap().into());
         }
@@ -169,15 +178,18 @@ use super::*;
             self.obj().insert_action_group("grid", Some(&action_group));
         }
 
-        pub fn backend (&self) -> &SudokuBackend {
+        pub fn backend(&self) -> &SudokuBackend {
             self.backend.get().unwrap()
         }
 
-        pub fn selected_pos (&self) -> Coord {
-            Coord { row: self.selected_row.get(), col: self.selected_col.get() }
+        pub fn selected_pos(&self) -> Coord {
+            Coord {
+                row: self.selected_row.get(),
+                col: self.selected_col.get(),
+            }
         }
 
-        fn update_warnings (&self) {
+        fn update_warnings(&self) {
             for row in &self.cells {
                 for cell in row {
                     cell.update_value_warnings();
@@ -186,12 +198,12 @@ use super::*;
             }
         }
 
-        fn create_move_action (&self, name: &str, group: &SimpleActionGroup) {
+        fn create_move_action(&self, name: &str, group: &SimpleActionGroup) {
             let action = gio::SimpleAction::new(name, Some(&i32::static_variant_type()));
             action.connect_activate(glib::clone!(
-                #[weak(rename_to = grid)] self,
-                move |_, variant|
-                grid.move_cb (&variant.unwrap())
+                #[weak(rename_to = grid)]
+                self,
+                move |_, variant| grid.move_cb(&variant.unwrap())
             ));
             group.add_action(&action);
         }
@@ -199,27 +211,31 @@ use super::*;
         pub fn add_game_hooks(&self) {
             let binding = self.backend().game();
             let game = binding.as_ref().unwrap();
-            game.connect_closure("earmark-changed", false, closure_local!{
-                #[weak(rename_to = grid)] self,
-                move |game : SudokuGame, row: i32, col: i32, num: i32, enabled: bool| {
-                    let cell = &grid.cells[row as usize][col as usize];
-                    let action = game.current_action();
-                    if action.is_single_earmarks_change() {
-                        cell.select();
-                        cell.set_earmark_visibility(num as usize, enabled);
-                    }
-                    else {
-                        if !enabled && action == StackAction::InsertAndDisableAlignedEarmarks {
-                            cell.imp().earmark_play_hide_animation (num as usize);
-                        }
-                        else {
+            game.connect_closure(
+                "earmark-changed",
+                false,
+                closure_local! {
+                    #[weak(rename_to = grid)] self,
+                    move |game : SudokuGame, row: i32, col: i32, num: i32, enabled: bool| {
+                        let cell = &grid.cells[row as usize][col as usize];
+                        let action = game.current_action();
+                        if action.is_single_earmarks_change() {
+                            cell.select();
                             cell.set_earmark_visibility(num as usize, enabled);
                         }
-                    }
+                        else {
+                            if !enabled && action == StackAction::InsertAndDisableAlignedEarmarks {
+                                cell.imp().earmark_play_hide_animation (num as usize);
+                            }
+                            else {
+                                cell.set_earmark_visibility(num as usize, enabled);
+                            }
+                        }
 
-                    cell.update_earmark_warnings(num as usize);
-                }
-            });
+                        cell.update_earmark_warnings(num as usize);
+                    }
+                },
+            );
 
             game.connect_closure("value-changed", false, closure_local!{
                 #[weak(rename_to = grid)] self,
@@ -240,26 +256,35 @@ use super::*;
                 }
             });
 
-            game.connect_closure("paused", false, closure_local!{
-                #[weak(rename_to = grid)] self,
-                move |_ : glib::Object, paused: bool| {
-                    grid.obj().set_can_focus(!paused);
-                    if paused {
-                        grid.obj().unselect();
+            game.connect_closure(
+                "paused",
+                false,
+                closure_local! {
+                    #[weak(rename_to = grid)] self,
+                    move |_ : glib::Object, paused: bool| {
+                        grid.obj().set_can_focus(!paused);
+                        if paused {
+                            grid.obj().unselect();
+                        }
+                        else {
+                            grid.grab_focus();
+                        }
                     }
-                    else {
-                        grid.grab_focus();
-                    }
-                }
-            });
+                },
+            );
         }
 
-        fn update_highlighter (&self, old_pos: Coord) {
+        fn update_highlighter(&self, old_pos: Coord) {
             self.set_cell_highlighter(old_pos, false);
             self.set_cell_highlighter(self.selected_pos(), true);
         }
 
-        fn update_value_highlighter (&self, old_pos: Coord, old_val: Option<usize>, new_val: Option<usize>) {
+        fn update_value_highlighter(
+            &self,
+            old_pos: Coord,
+            old_val: Option<usize>,
+            new_val: Option<usize>,
+        ) {
             if !self.backend().pref_highlight_numbers() {
                 return;
             }
@@ -269,8 +294,7 @@ use super::*;
                 let cell = &self.cells[old_pos.row][old_pos.col];
                 if old_val == new_val {
                     cell.highlight_value(false);
-                }
-                else if new_val.is_some() {
+                } else if new_val.is_some() {
                     cell.highlight_value(true);
                 }
                 return;
@@ -284,14 +308,16 @@ use super::*;
                     }
 
                     if let Some(value) = self.backend().game_value(Coord { row, col }) {
-                        if let Some(old_val) = old_val && old_val == value {
+                        if let Some(old_val) = old_val
+                            && old_val == value
+                        {
                             cell.highlight_value(false);
-                        }
-                        else if let Some(new_val) = new_val && new_val == value {
+                        } else if let Some(new_val) = new_val
+                            && new_val == value
+                        {
                             cell.highlight_value(true);
                         }
-                    }
-                    else {
+                    } else {
                         if let Some(old_val) = old_val {
                             cell.highlight_earmark(old_val, false);
                         }
@@ -303,7 +329,7 @@ use super::*;
             }
         }
 
-        pub fn set_cell_highlighter (&self, pos: Coord, enabled: bool) {
+        pub fn set_cell_highlighter(&self, pos: Coord, enabled: bool) {
             let target_cell = &self.cells[pos.row][pos.col];
 
             let backend = self.backend();
@@ -314,19 +340,25 @@ use super::*;
                         continue;
                     }
 
-                    if backend.pref_highlight_numbers() && let Some(target_value) = target_cell.imp().value() {
+                    if backend.pref_highlight_numbers()
+                        && let Some(target_value) = target_cell.imp().value()
+                    {
                         let cell_value = cell.imp().value();
-                        if let Some(cell_value) = cell_value && cell_value == target_value {
+                        if let Some(cell_value) = cell_value
+                            && cell_value == target_value
+                        {
                             cell.highlight_value(enabled);
-                        }
-                        else  {
+                        } else {
                             cell.highlight_earmark(target_value, enabled);
                         }
                     }
 
-                    if !backend.game_fixed(Coord { row, col }) &&
-                        ((backend.pref_highlight_row_column() && (pos.row == row || pos.col == col)) ||
-                        (backend.pref_highlight_block() && row / 3 == pos.row / 3 && col / 3 == pos.col / 3))
+                    if !backend.game_fixed(Coord { row, col })
+                        && ((backend.pref_highlight_row_column()
+                            && (pos.row == row || pos.col == col))
+                            || (backend.pref_highlight_block()
+                                && row / 3 == pos.row / 3
+                                && col / 3 == pos.col / 3))
                     {
                         cell.highlight_coord(enabled);
                     }
@@ -334,8 +366,10 @@ use super::*;
             }
         }
 
-        pub fn init (&self, backend: &SudokuBackend) {
-            self.backend.set(backend.clone()).expect("Grid is already initialized");
+        pub fn init(&self, backend: &SudokuBackend) {
+            self.backend
+                .set(backend.clone())
+                .expect("Grid is already initialized");
             for row in 0..9 {
                 for col in 0..9 {
                     self.cells[row][col].init(backend);
@@ -344,42 +378,51 @@ use super::*;
 
             self.picker_popover.init(backend);
 
-            backend.connect_closure("game-changed", false, glib::closure_local!(
-                #[weak(rename_to = grid)] self,
-                move |_: SudokuBackend| {
-                    for row in 0..9 {
-                        for col in 0..9 {
-                            grid.cells[row][col].update_visibility();
-                            grid.cells[row][col].add_game_hooks();
+            backend.connect_closure(
+                "game-changed",
+                false,
+                glib::closure_local!(
+                    #[weak(rename_to = grid)]
+                    self,
+                    move |_: SudokuBackend| {
+                        for row in 0..9 {
+                            for col in 0..9 {
+                                grid.cells[row][col].update_visibility();
+                                grid.cells[row][col].add_game_hooks();
+                            }
                         }
-                    }
-                    grid.selected_row.set(4);
-                    grid.selected_col.set(4);
-                    grid.update_warnings();
-                    grid.add_game_hooks();
+                        grid.selected_row.set(4);
+                        grid.selected_col.set(4);
+                        grid.update_warnings();
+                        grid.add_game_hooks();
 
-                    grid.obj().set_can_focus (true);
-                    grid.obj().set_can_target (true);
-                    grid.grab_focus();
-                }
-            ));
+                        grid.obj().set_can_focus(true);
+                        grid.obj().set_can_target(true);
+                        grid.grab_focus();
+                    }
+                ),
+            );
 
             backend.connect_pref_zoom_notify(glib::clone!(
-                #[weak(rename_to = grid_layout)] self,
-                move |_|
-                grid_layout.obj().queue_resize()
+                #[weak(rename_to = grid_layout)]
+                self,
+                move |_| grid_layout.obj().queue_resize()
             ));
 
-            connect_cb_pref!(self, connect_pref_duplicate_warnings_notify, update_warnings);
+            connect_cb_pref!(
+                self,
+                connect_pref_duplicate_warnings_notify,
+                update_warnings
+            );
             connect_cb_pref!(self, connect_pref_solution_warnings_notify, update_warnings);
             connect_cb_pref!(self, connect_pref_earmark_warnings_notify, update_warnings);
 
-            self.add_game_hooks ();
+            self.add_game_hooks();
 
             self.update_warnings();
         }
 
-        pub fn set_font_size (&self, height: i32) {
+        pub fn set_font_size(&self, height: i32) {
             for row in &self.cells {
                 for cell in row {
                     let grid_padding = 10; //for size consistency with <= v50, remove with gtk5
@@ -397,40 +440,57 @@ use super::*;
 
             let focus_controller = EventControllerFocus::new();
             self.focus_controller.set(Some(&focus_controller));
-            self.focus_controller.upgrade().unwrap().connect_leave(glib::clone!(
-                #[weak(rename_to = grid)] self,
-                move |_| {
-                    let window : gtk::Window = grid.obj().root().and_downcast::<gtk::Window>().unwrap();
-                    if window.is_active () && grid.backend().game_exists() {
-                        grid.obj().unselect();
+            self.focus_controller
+                .upgrade()
+                .unwrap()
+                .connect_leave(glib::clone!(
+                    #[weak(rename_to = grid)]
+                    self,
+                    move |_| {
+                        let window: gtk::Window =
+                            grid.obj().root().and_downcast::<gtk::Window>().unwrap();
+                        if window.is_active() && grid.backend().game_exists() {
+                            grid.obj().unselect();
+                        }
                     }
-                }
-            ));
+                ));
 
-            self.obj().add_controller(self.focus_controller.upgrade().unwrap());
+            self.obj()
+                .add_controller(self.focus_controller.upgrade().unwrap());
             self.setup_actions();
 
             for row in 0..9 {
                 for col in 0..9 {
                     let cell = &self.cells[row][col];
 
-                    cell.connect_closure("selected", false, closure_local!(
-                        #[weak(rename_to = grid)] self,
-                        move |grid_cell : SudokuCell| {
-                            grid.update_selected(&grid_cell);
-                    }));
+                    cell.connect_closure(
+                        "selected",
+                        false,
+                        closure_local!(
+                            #[weak(rename_to = grid)]
+                            self,
+                            move |grid_cell: SudokuCell| {
+                                grid.update_selected(&grid_cell);
+                            }
+                        ),
+                    );
 
-                    cell.connect_closure("grab-picker", false, closure_local!(
-                        #[weak(rename_to = grid)] self,
-                        move |grid_cell : SudokuCell| {
-                            grid_cell.set_picker(&grid.picker_popover);
-                    }));
+                    cell.connect_closure(
+                        "grab-picker",
+                        false,
+                        closure_local!(
+                            #[weak(rename_to = grid)]
+                            self,
+                            move |grid_cell: SudokuCell| {
+                                grid_cell.set_picker(&grid.picker_popover);
+                            }
+                        ),
+                    );
                     //for rounded corners
                     if row == 0 {
                         if col == 0 {
                             cell.add_css_class("top-left");
-                        }
-                        else if col == 8 {
+                        } else if col == 8 {
                             cell.add_css_class("top-right");
                         }
                     }
@@ -438,8 +498,7 @@ use super::*;
                     if row == 8 {
                         if col == 0 {
                             cell.add_css_class("bottom-left");
-                        }
-                        else if col == 8 {
+                        } else if col == 8 {
                             cell.add_css_class("bottom-right");
                         }
                     }
@@ -494,16 +553,14 @@ use super::*;
                 TabForward | TabBackward => {
                     if !self.focus_controller.upgrade().unwrap().contains_focus() {
                         self.grab_focus()
-                    }
-                    else {
+                    } else {
                         Propagation::Proceed.into() //propagate the event so that the focus moves to the headerbar
                     }
                 }
                 Up => {
                     if self.selected_row.get() == 0 {
                         self.cells[8][self.selected_col.get()].select()
-                    }
-                    else {
+                    } else {
                         self.cells[self.selected_row.get() - 1][self.selected_col.get()].select()
                     }
                 }
@@ -511,8 +568,7 @@ use super::*;
                 Down => {
                     if self.selected_row.get() == 8 {
                         self.cells[0][self.selected_col.get()].select()
-                    }
-                    else {
+                    } else {
                         self.cells[self.selected_row.get() + 1][self.selected_col.get()].select()
                     }
                 }
@@ -520,8 +576,7 @@ use super::*;
                 Right => {
                     if self.selected_col.get() == 8 {
                         self.cells[self.selected_row.get()][0].select()
-                    }
-                    else {
+                    } else {
                         self.cells[self.selected_row.get()][self.selected_col.get() + 1].select()
                     }
                 }
@@ -529,12 +584,11 @@ use super::*;
                 Left => {
                     if self.selected_col.get() == 0 {
                         self.cells[self.selected_row.get()][8].select()
-                    }
-                    else {
+                    } else {
                         self.cells[self.selected_row.get()][self.selected_col.get() - 1].select()
                     }
                 }
-                _ => panic!("Failed to parse direction")
+                _ => panic!("Failed to parse direction"),
             }
         }
 
@@ -552,15 +606,14 @@ use super::*;
             let mut x = 0;
             struct CellXs {
                 xpos: i32,
-                width: i32
+                width: i32,
             }
-            let cell_xs : [CellXs; 9] = from_fn(|col|{
+            let cell_xs: [CellXs; 9] = from_fn(|col| {
                 let cell_width = {
                     if remaining_width > 0 {
                         remaining_width -= 1;
                         cell_width + 1
-                    }
-                    else {
+                    } else {
                         cell_width
                     }
                 };
@@ -568,10 +621,13 @@ use super::*;
                 let xpos = x;
                 match col {
                     2 | 5 => x += BLOCK_SEPARATOR_SIZE,
-                    _ => x += CELL_SEPARATOR_SIZE
+                    _ => x += CELL_SEPARATOR_SIZE,
                 }
                 x += cell_width;
-                CellXs{xpos, width: cell_width}
+                CellXs {
+                    xpos,
+                    width: cell_width,
+                }
             });
 
             let cell_height = height_adjusted / 9;
@@ -579,25 +635,27 @@ use super::*;
             let mut y = 0;
             struct CellYs {
                 ypos: i32,
-                height: i32
+                height: i32,
             }
-            let cell_ys : [CellYs; 9] = from_fn(|row|{
+            let cell_ys: [CellYs; 9] = from_fn(|row| {
                 let cell_height = {
                     if remaining_height > 0 {
                         remaining_height -= 1;
                         cell_height + 1
-                    }
-                    else {
+                    } else {
                         cell_height
                     }
                 };
                 let ypos = y;
                 match row {
                     2 | 5 => y += BLOCK_SEPARATOR_SIZE,
-                    _ => y +=  CELL_SEPARATOR_SIZE
+                    _ => y += CELL_SEPARATOR_SIZE,
                 }
                 y += cell_height;
-                CellYs { ypos, height: cell_height}
+                CellYs {
+                    ypos,
+                    height: cell_height,
+                }
             });
 
             for row in 0..9 {
@@ -606,7 +664,7 @@ use super::*;
                         cell_xs[col].xpos,
                         cell_ys[row].ypos,
                         cell_xs[col].width,
-                        cell_ys[row].height
+                        cell_ys[row].height,
                     );
                     self.cells[row as usize][col as usize].size_allocate(&allocation, baseline);
                 }
@@ -615,42 +673,26 @@ use super::*;
             let offsets = [0, 1, 3, 4, 6, 7];
             for i in 0..offsets.len() {
                 let xs = &cell_xs[offsets[i]];
-                let vertical_allocation = Allocation::new(
-                    xs.xpos + xs.width,
-                    0,
-                    CELL_SEPARATOR_SIZE,
-                    height,
-                );
+                let vertical_allocation =
+                    Allocation::new(xs.xpos + xs.width, 0, CELL_SEPARATOR_SIZE, height);
                 self.cell_vertical_separators[i].size_allocate(&vertical_allocation, baseline);
 
                 let ys = &cell_ys[offsets[i]];
-                let horizontal_allocation = Allocation::new(
-                    0,
-                    ys.ypos + ys.height,
-                    width,
-                    CELL_SEPARATOR_SIZE,
-                );
+                let horizontal_allocation =
+                    Allocation::new(0, ys.ypos + ys.height, width, CELL_SEPARATOR_SIZE);
                 self.cell_horizontal_separators[i].size_allocate(&horizontal_allocation, baseline);
             }
 
             let offsets = [2, 5];
             for i in 0..offsets.len() {
                 let xs = &cell_xs[offsets[i]];
-                let vertical_allocation = Allocation::new(
-                    xs.xpos + xs.width,
-                    0,
-                    BLOCK_SEPARATOR_SIZE,
-                    height,
-                );
+                let vertical_allocation =
+                    Allocation::new(xs.xpos + xs.width, 0, BLOCK_SEPARATOR_SIZE, height);
                 self.block_vertical_separators[i].size_allocate(&vertical_allocation, baseline);
 
                 let ys = &cell_ys[offsets[i]];
-                let horizontal_allocation = Allocation::new(
-                    0,
-                    ys.ypos + ys.height,
-                    width,
-                    BLOCK_SEPARATOR_SIZE,
-                );
+                let horizontal_allocation =
+                    Allocation::new(0, ys.ypos + ys.height, width, BLOCK_SEPARATOR_SIZE);
                 self.block_horizontal_separators[i].size_allocate(&horizontal_allocation, baseline);
             }
         }
@@ -658,8 +700,7 @@ use super::*;
         fn grab_focus(&self) -> bool {
             if self.backend().keyboard_pressed_recently() {
                 self.selected_cell().select()
-            }
-            else {
+            } else {
                 self.selected_cell().quiet_select()
             }
         }
@@ -673,36 +714,39 @@ glib::wrapper! {
 }
 
 impl SudokuGrid {
-    pub fn new_unitialized () -> Self {
-        let grid: Self = glib::Object::builder()
-            .build();
+    pub fn new_unitialized() -> Self {
+        let grid: Self = glib::Object::builder().build();
 
         grid
     }
 
-    pub fn init (&self, backend: &SudokuBackend) {
+    pub fn init(&self, backend: &SudokuBackend) {
         self.imp().init(backend);
     }
 
-    pub fn cancel_completed_animation (&self) {
+    pub fn cancel_completed_animation(&self) {
         if let Some(animation) = self.imp().completed_source_id.take() {
             animation.remove();
         }
     }
 
-    pub fn init_completed_animation (&self){
-        self.imp().completed_source_id.set(Some(
-            glib::timeout_add_local_once(Duration::from_millis(800), glib::clone!(
-                #[weak(rename_to = grid)] self,
-                move || {
-                    let play_order = grid.imp().backend().game_play_order();
-                    grid.completed_animation(std::pin::Pin::new(play_order), 0);
-                }
-            )
-        )));
+    pub fn init_completed_animation(&self) {
+        self.imp()
+            .completed_source_id
+            .set(Some(glib::timeout_add_local_once(
+                Duration::from_millis(800),
+                glib::clone!(
+                    #[weak(rename_to = grid)]
+                    self,
+                    move || {
+                        let play_order = grid.imp().backend().game_play_order();
+                        grid.completed_animation(std::pin::Pin::new(play_order), 0);
+                    }
+                ),
+            )));
     }
 
-    pub fn completed_animation (&self, v: Pin<Vec<Coord>>, current: usize) {
+    pub fn completed_animation(&self, v: Pin<Vec<Coord>>, current: usize) {
         let duration = {
             match current {
                 0 => 500,
@@ -710,53 +754,58 @@ impl SudokuGrid {
                 2..3 => 300,
                 3..7 => 200,
                 7..15 => 100,
-                15.. => 50
+                15.. => 50,
             }
         };
 
         let pos = v[current];
         let s = {
-            ":root {--sudoku-completed-duration: ".to_owned() +
-            &duration.to_string() +
-            "ms" +
-            ";}"
+            ":root {--sudoku-completed-duration: ".to_owned() + &duration.to_string() + "ms" + ";}"
         };
 
         self.imp().completed_css_provider.load_from_string(&s);
         self.imp().cells[pos.row][pos.col].add_css_class("completed");
         if current + 1 < v.len() {
-            self.imp().completed_source_id.set(
-                Some(glib::timeout_add_local_once(Duration::from_millis(duration), glib::clone!(
-                    #[weak(rename_to = grid)] self,
-                    move ||
-                    grid.completed_animation(v, current + 1)
-                )))
-            );
-        }
-        else {
+            self.imp()
+                .completed_source_id
+                .set(Some(glib::timeout_add_local_once(
+                    Duration::from_millis(duration),
+                    glib::clone!(
+                        #[weak(rename_to = grid)]
+                        self,
+                        move || grid.completed_animation(v, current + 1)
+                    ),
+                )));
+        } else {
             self.finish_completed_animation();
         }
     }
 
-    pub fn finish_completed_animation (&self) {
-        self.imp().completed_source_id.set(Some(
-            glib::timeout_add_local_once(Duration::from_millis(800), glib::clone!(
-                #[weak(rename_to = grid)] self,
-                move || {
-                    grid.imp().completed_source_id.set(None);
-                    grid.activate_action("game-view.completed-dialog", None).unwrap();
-                }
-            )
-        )));
+    pub fn finish_completed_animation(&self) {
+        self.imp()
+            .completed_source_id
+            .set(Some(glib::timeout_add_local_once(
+                Duration::from_millis(800),
+                glib::clone!(
+                    #[weak(rename_to = grid)]
+                    self,
+                    move || {
+                        grid.imp().completed_source_id.set(None);
+                        grid.activate_action("game-view.completed-dialog", None)
+                            .unwrap();
+                    }
+                ),
+            )));
     }
 
-    pub fn unselect (&self) {
+    pub fn unselect(&self) {
         self.imp().selected_cell().unselect();
         self.imp().picker_popover.popdown();
-        self.imp().set_cell_highlighter(self.imp().selected_pos(), false);
+        self.imp()
+            .set_cell_highlighter(self.imp().selected_pos(), false);
     }
 
-    pub fn set_quiet_select (&self) {
+    pub fn set_quiet_select(&self) {
         self.imp().selected_cell().set_accented(false);
     }
 }

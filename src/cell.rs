@@ -22,19 +22,28 @@ use adw::prelude::*;
 use adw::subclass::prelude::*;
 
 use gtk::glib;
-use gtk::{ Allocation, GestureClick, TextDirection, gdk::{BUTTON_PRIMARY, BUTTON_SECONDARY, ModifierType}, gio::{SimpleAction, SimpleActionGroup}, glib::{SignalHandlerId, Variant, VariantTy, subclass::Signal}, pango::{AttrList, AttrSize}};
+use gtk::{
+    Allocation, GestureClick, TextDirection,
+    gdk::{BUTTON_PRIMARY, BUTTON_SECONDARY, ModifierType},
+    gio::{SimpleAction, SimpleActionGroup},
+    glib::{SignalHandlerId, Variant, VariantTy, subclass::Signal},
+    pango::{AttrList, AttrSize},
+};
 
 use crate::lib::backend::SudokuBackend;
 use crate::lib::enums::Coord;
 use crate::lib::game::SudokuGame;
-use std::{cell::{Cell, OnceCell}, sync::OnceLock};
 use crate::lib::utils::{get_cloned, new_shortcut, new_shortcut_with_args};
 use crate::{connect_cb_action, connect_cb_action_with_arg, picker_popover::SudokuPickerPopover};
+use std::{
+    cell::{Cell, OnceCell},
+    sync::OnceLock,
+};
 
 mod imp {
     use gtk::glib::Properties;
 
-use super::*;
+    use super::*;
 
     #[glib::object_subclass]
     impl ObjectSubclass for SudokuCell {
@@ -45,7 +54,12 @@ use super::*;
         fn class_init(klass: &mut Self::Class) {
             klass.set_css_name("sudoku-cell");
             new_shortcut_with_args(klass, "cell.show-picker", "Return|KP_Enter|space", true);
-            new_shortcut_with_args(klass, "cell.show-picker", "<Primary>Return|<Primary>space|<Primary>KP_Enter", false);
+            new_shortcut_with_args(
+                klass,
+                "cell.show-picker",
+                "<Primary>Return|<Primary>space|<Primary>KP_Enter",
+                false,
+            );
 
             new_shortcut(klass, "cell.clear", "Delete|BackSpace|KP_0|0");
             for i in 1..10 {
@@ -77,18 +91,18 @@ use super::*;
         #[property(get, set)]
         pub accented: Cell<bool>,
         pub selected: Cell<bool>,
-        pub position: OnceCell<Coord>
+        pub position: OnceCell<Coord>,
     }
 
     impl Default for SudokuCell {
-        fn default ()-> Self {
+        fn default() -> Self {
             let value_label: gtk::Label = glib::Object::builder()
                 .property("css-name", "sudoku-value")
                 .build();
 
             value_label.add_css_class("numeric");
 
-            let earmark_labels : [_; 9] = std::array::from_fn(|num| {
+            let earmark_labels: [_; 9] = std::array::from_fn(|num| {
                 let earmark_label: gtk::Label = glib::Object::builder()
                     .property("label", (num + 1).to_string())
                     .property("css-name", "sudoku-earmark")
@@ -98,10 +112,12 @@ use super::*;
                 earmark_label
             });
 
-            let earmark_hide_animations : [_; 9] = std::array::from_fn(|num| {
-                let anim_target = adw::PropertyAnimationTarget::new(&earmark_labels[num], "opacity");
-                let hide_animation = adw::TimedAnimation::new(&earmark_labels[num], 1.0, 0.0, 1000, anim_target);
-                hide_animation.connect_done(glib::clone!{
+            let earmark_hide_animations: [_; 9] = std::array::from_fn(|num| {
+                let anim_target =
+                    adw::PropertyAnimationTarget::new(&earmark_labels[num], "opacity");
+                let hide_animation =
+                    adw::TimedAnimation::new(&earmark_labels[num], 1.0, 0.0, 1000, anim_target);
+                hide_animation.connect_done(glib::clone! {
                     move |animation|
                     {
                         let label = animation.widget();
@@ -126,21 +142,21 @@ use super::*;
                 picker_popover: Default::default(),
                 selected: Default::default(),
                 accented: Default::default(),
-                position: Default::default()
+                position: Default::default(),
             }
         }
     }
 
     impl SudokuCell {
-        pub fn init (&self) {
-            self.backend().connect_earmark_mode_notify (glib::clone!(
-                #[weak(rename_to = cell)] self,
-                move |_|
-                cell.flip_shortcuts()
+        pub fn init(&self) {
+            self.backend().connect_earmark_mode_notify(glib::clone!(
+                #[weak(rename_to = cell)]
+                self,
+                move |_| cell.flip_shortcuts()
             ));
             let backend = self.backend();
 
-            if backend.game_fixed(self.pos()){
+            if backend.game_fixed(self.pos()) {
                 self.obj().add_css_class("fixed");
                 self.show_picker_action.set_enabled(false);
                 self.insert_value_action.set_enabled(false);
@@ -154,12 +170,14 @@ use super::*;
             self.value_label.set_parent(&*self.obj());
 
             for earmark in self.earmark_labels.iter().enumerate() {
-                earmark.1.set_visible(backend.game_earmark(self.pos(), earmark.0));
+                earmark
+                    .1
+                    .set_visible(backend.game_earmark(self.pos(), earmark.0));
                 earmark.1.set_parent(&*self.obj());
             }
         }
 
-        pub fn setup_actions (&self){
+        pub fn setup_actions(&self) {
             let action_group = SimpleActionGroup::new();
             action_group.add_action(&self.insert_value_action);
             action_group.add_action(&self.insert_earmark_action);
@@ -167,21 +185,26 @@ use super::*;
             self.obj().insert_action_group("cell", Some(&action_group));
 
             connect_cb_action!(self, self.clear_action, clear_cb, action_group);
-            connect_cb_action_with_arg!(self, self.show_picker_action, show_picker_cb, action_group);
+            connect_cb_action_with_arg!(
+                self,
+                self.show_picker_action,
+                show_picker_cb,
+                action_group
+            );
             self.set_default_shortcuts();
         }
 
-        pub fn value (&self) -> Option<usize> {
+        pub fn value(&self) -> Option<usize> {
             self.backend().game_value(self.pos())
         }
 
-        pub fn set_actions (&self, enabled: bool) {
+        pub fn set_actions(&self, enabled: bool) {
             self.show_picker_action.set_enabled(enabled);
             self.insert_value_action.set_enabled(enabled);
             self.insert_earmark_action.set_enabled(enabled);
         }
 
-        pub fn click_cb (&self, gesture: &gtk::GestureClick) {
+        pub fn click_cb(&self, gesture: &gtk::GestureClick) {
             let gesture_button = gesture.current_button();
             if gesture_button != BUTTON_PRIMARY && gesture_button != BUTTON_SECONDARY {
                 return;
@@ -189,12 +212,10 @@ use super::*;
             gesture.set_state(gtk::EventSequenceState::Claimed);
 
             let backend = self.backend();
-            let double_click_wanted = backend.pref_picker_second_click() ||
-                                      (self.value().is_some() && backend.pref_highlight_numbers());
+            let double_click_wanted = backend.pref_picker_second_click()
+                || (self.value().is_some() && backend.pref_highlight_numbers());
 
-            if backend.game_fixed(self.pos()) ||
-               (!self.selected.get() && double_click_wanted)
-            {
+            if backend.game_fixed(self.pos()) || (!self.selected.get() && double_click_wanted) {
                 self.obj().select();
                 return;
             }
@@ -205,7 +226,7 @@ use super::*;
                 let state = state & ModifierType::CONTROL_MASK;
                 match state {
                     ModifierType::CONTROL_MASK => true,
-                    _ => false
+                    _ => false,
                 }
             };
 
@@ -214,15 +235,14 @@ use super::*;
                 self.obj()
                     .activate_action("cell.show-picker", Some(&(wants_value).to_variant()))
                     .expect("Could not activate picker");
-            }
-            else {
+            } else {
                 self.obj()
                     .activate_action("cell.show-picker", Some(&(!wants_value).to_variant()))
                     .expect("Could not activate picker");
             }
         }
 
-        pub fn show_picker_cb (&self, wants_value: Option<&Variant>) {
+        pub fn show_picker_cb(&self, wants_value: Option<&Variant>) {
             self.obj().select();
 
             self.obj().emit_by_name::<()>("grab-picker", &[]);
@@ -237,90 +257,88 @@ use super::*;
             }
         }
 
-        pub fn backend (&self) -> &SudokuBackend {
+        pub fn backend(&self) -> &SudokuBackend {
             self.backend.get().unwrap()
         }
 
-        pub fn set_default_shortcuts (&self)
-        {
-            self.insert_value_closure_id.set(Some(
-                self.insert_value_action.connect_activate(glib::clone!(
-                    #[weak(rename_to = cell)] self,
-                    move |_, var|
-                    cell.insert_value_cb(var.unwrap())))
-                )
-            );
+        pub fn set_default_shortcuts(&self) {
+            self.insert_value_closure_id
+                .set(Some(self.insert_value_action.connect_activate(
+                    glib::clone!(
+                        #[weak(rename_to = cell)]
+                        self,
+                        move |_, var| cell.insert_value_cb(var.unwrap())
+                    ),
+                )));
 
-            self.insert_earmark_closure_id.set(Some(
-                self.insert_earmark_action.connect_activate(glib::clone!(
-                    #[weak(rename_to = cell)] self,
-                    move |_, var|
-                    cell.toggle_earmark_cb(var.unwrap())))
-                )
-            );
+            self.insert_earmark_closure_id
+                .set(Some(self.insert_earmark_action.connect_activate(
+                    glib::clone!(
+                        #[weak(rename_to = cell)]
+                        self,
+                        move |_, var| cell.toggle_earmark_cb(var.unwrap())
+                    ),
+                )));
         }
 
-        pub fn flip_shortcuts (&self) {
-            self.insert_value_action.disconnect(self.insert_value_closure_id.take().unwrap());
-            self.insert_earmark_action.disconnect(self.insert_earmark_closure_id.take().unwrap());
+        pub fn flip_shortcuts(&self) {
+            self.insert_value_action
+                .disconnect(self.insert_value_closure_id.take().unwrap());
+            self.insert_earmark_action
+                .disconnect(self.insert_earmark_closure_id.take().unwrap());
 
             if self.backend().earmark_mode() {
-                self.insert_value_closure_id.set(Some(
-                    self.insert_value_action.connect_activate(glib::clone!(
-                        #[weak(rename_to = cell)] self,
-                        move |_, var|
-                        cell.toggle_earmark_cb(var.unwrap())))
-                    )
-                );
+                self.insert_value_closure_id
+                    .set(Some(self.insert_value_action.connect_activate(
+                        glib::clone!(
+                            #[weak(rename_to = cell)]
+                            self,
+                            move |_, var| cell.toggle_earmark_cb(var.unwrap())
+                        ),
+                    )));
 
                 self.insert_earmark_closure_id.set(Some(
                     self.insert_earmark_action.connect_activate(glib::clone!(
-                        #[weak(rename_to = cell)] self,
-                        move |_, var|
-                        cell.insert_value_cb(var.unwrap())))
-                    )
-                );
-            }
-            else {
+                        #[weak(rename_to = cell)]
+                        self,
+                        move |_, var| cell.insert_value_cb(var.unwrap())
+                    )),
+                ));
+            } else {
                 self.set_default_shortcuts();
             }
         }
 
-        pub fn clear_cb (&self) {
+        pub fn clear_cb(&self) {
             self.backend().game_clear_cell(self.pos());
         }
 
-        pub fn insert_value_cb (&self, variant: &Variant) {
+        pub fn insert_value_cb(&self, variant: &Variant) {
             let val = variant.get::<i32>().unwrap() as usize;
             self.backend().game_set_value(self.pos(), val);
         }
 
-        pub fn toggle_earmark_cb (&self, variant: &Variant) {
+        pub fn toggle_earmark_cb(&self, variant: &Variant) {
             let num = variant.get::<i32>().unwrap();
 
-            self.backend().game_toggle_earmark (
-                self.pos(),
-                num as usize,
-            );
+            self.backend().game_toggle_earmark(self.pos(), num as usize);
         }
 
-        pub fn set_font_size (label: &gtk::Label, font_size: i32) {
+        pub fn set_font_size(label: &gtk::Label, font_size: i32) {
             let attr_list = label.attributes().unwrap_or(AttrList::new());
-            attr_list.change(
-                AttrSize::new_size_absolute(font_size * gtk::pango::SCALE)
-            );
+            attr_list.change(AttrSize::new_size_absolute(font_size * gtk::pango::SCALE));
             label.set_attributes(Some(&attr_list));
         }
 
-        pub fn pos (&self) -> Coord {
+        pub fn pos(&self) -> Coord {
             *self.position.get().unwrap()
         }
 
-        pub fn earmark_play_hide_animation (&self, num: usize) {
+        pub fn earmark_play_hide_animation(&self, num: usize) {
             self.earmark_hide_animations[num].play();
         }
 
-        pub fn earmark_skip_animation (&self, num: usize) {
+        pub fn earmark_skip_animation(&self, num: usize) {
             if self.earmark_hide_animations[num].state() == adw::AnimationState::Playing {
                 self.earmark_hide_animations[num].skip();
             }
@@ -337,9 +355,9 @@ use super::*;
             let click_controller = GestureClick::new();
             click_controller.set_button(0); //all the buttons
             click_controller.connect_released(glib::clone!(
-                #[weak(rename_to = cell)] self,
-                move |gesture, _, _, _|
-                cell.click_cb(gesture)
+                #[weak(rename_to = cell)]
+                self,
+                move |gesture, _, _, _| cell.click_cb(gesture)
             ));
             self.obj().add_controller(click_controller);
 
@@ -348,11 +366,11 @@ use super::*;
                 "accented",
                 &*self.obj(),
                 "accented",
-                glib::BindingFlags::DEFAULT
+                glib::BindingFlags::DEFAULT,
             );
         }
 
-        fn dispose (&self) {
+        fn dispose(&self) {
             if let Some(picker) = self.picker_popover.take() {
                 picker.unparent();
             }
@@ -366,10 +384,8 @@ use super::*;
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
             SIGNALS.get_or_init(|| {
                 vec![
-                    Signal::builder("selected")
-                        .build(),
-                    Signal::builder("grab-picker")
-                        .build(),
+                    Signal::builder("selected").build(),
+                    Signal::builder("grab-picker").build(),
                 ]
             })
         }
@@ -386,7 +402,8 @@ use super::*;
                     (width - value_width) / 2,
                     (height - value_height) / 2,
                     value_nat.width(),
-                    value_nat.height());
+                    value_nat.height(),
+                );
                 value_label.size_allocate(&value_allocation, baseline);
             }
 
@@ -399,20 +416,22 @@ use super::*;
             for row in (0..3).rev() {
                 for col in 0..3 {
                     let earmark = &self.earmark_labels[num];
-                    if earmark.is_visible(){
+                    if earmark.is_visible() {
                         let earmark_nat = earmark.preferred_size().1;
                         let earmark_width = i32::min(max_earmark_size, earmark_nat.width());
                         let earmark_height = i32::min(max_earmark_size, earmark_nat.height());
                         let oriented_col = {
-                            match self.obj().direction(){
-                                TextDirection::Rtl =>  2 - col,
-                                _ => col
+                            match self.obj().direction() {
+                                TextDirection::Rtl => 2 - col,
+                                _ => col,
                             }
                         };
                         let earmark_allocation = Allocation::new(
-                            oriented_col * max_earmark_size + (max_earmark_size - earmark_width) / 2,
+                            oriented_col * max_earmark_size
+                                + (max_earmark_size - earmark_width) / 2,
                             row * max_earmark_size + (max_earmark_size - earmark_height) / 2,
-                            earmark_width, earmark_height
+                            earmark_width,
+                            earmark_height,
                         );
                         earmark.size_allocate(&earmark_allocation, baseline);
                     }
@@ -437,116 +456,116 @@ glib::wrapper! {
 }
 
 impl SudokuCell {
-    pub fn new (row: usize, col: usize) -> Self {
-        let cell: Self = glib::Object::builder()
-            .property("focusable", true)
-            .build();
+    pub fn new(row: usize, col: usize) -> Self {
+        let cell: Self = glib::Object::builder().property("focusable", true).build();
 
         cell.imp().position.set(Coord { row, col }).unwrap();
         cell
     }
 
-    pub fn set_font_sizes (&self, height: i32) {
+    pub fn set_font_sizes(&self, height: i32) {
         if self.imp().value_label.is_visible() {
-            imp::SudokuCell::set_font_size(&self.imp().value_label,
-            (height as f64 * self.imp().backend().pref_zoom().to_value_multiplier()) as i32);
+            imp::SudokuCell::set_font_size(
+                &self.imp().value_label,
+                (height as f64 * self.imp().backend().pref_zoom().to_value_multiplier()) as i32,
+            );
         }
 
         for earmark in &self.imp().earmark_labels {
-            if earmark.is_visible () {
-                imp::SudokuCell::set_font_size(&earmark,
-                    (height as f64 * self.imp().backend().pref_zoom().to_earmark_multiplier()) as i32);
+            if earmark.is_visible() {
+                imp::SudokuCell::set_font_size(
+                    &earmark,
+                    (height as f64 * self.imp().backend().pref_zoom().to_earmark_multiplier())
+                        as i32,
+                );
             }
         }
     }
 
-    pub fn init (&self, backend: &SudokuBackend) {
-        self.imp().backend.set(backend.clone()).expect("Cell is already initialized");
+    pub fn init(&self, backend: &SudokuBackend) {
+        self.imp()
+            .backend
+            .set(backend.clone())
+            .expect("Cell is already initialized");
         self.imp().init();
         self.add_game_hooks();
     }
 
-    pub fn set_picker (&self, picker: &SudokuPickerPopover) {
+    pub fn set_picker(&self, picker: &SudokuPickerPopover) {
         self.imp().picker_popover.set(Some(picker.clone()));
     }
 
-    pub fn pos (&self) -> Coord {
+    pub fn pos(&self) -> Coord {
         *self.imp().position.get().unwrap()
     }
 
-    pub fn drop_picker (&self) {
+    pub fn drop_picker(&self) {
         self.imp().picker_popover.set(None);
     }
 
-    pub fn highlight_value (&self, enabled: bool) {
+    pub fn highlight_value(&self, enabled: bool) {
         if enabled {
             self.add_css_class("highlight-digit");
-        }
-        else {
+        } else {
             self.remove_css_class("highlight-digit");
         }
     }
 
-    pub fn highlight_earmark (&self, num: usize, enabled: bool) {
+    pub fn highlight_earmark(&self, num: usize, enabled: bool) {
         if enabled {
             self.imp().earmark_labels[num].add_css_class("highlight-digit");
-        }
-        else {
+        } else {
             self.imp().earmark_labels[num].remove_css_class("highlight-digit");
         }
     }
 
-    pub fn highlight_coord (&self, enabled: bool) {
+    pub fn highlight_coord(&self, enabled: bool) {
         if enabled {
             self.add_css_class("highlight-coord");
-        }
-        else {
+        } else {
             self.remove_css_class("highlight-coord");
         }
     }
 
-    pub fn quiet_select (&self) -> bool {
+    pub fn quiet_select(&self) -> bool {
         self.grab_focus()
     }
 
-    pub fn select (&self) -> bool {
+    pub fn select(&self) -> bool {
         self.set_accented(true);
         self.grab_focus()
     }
 
-    pub fn unselect (&self) {
+    pub fn unselect(&self) {
         self.set_accented(false);
     }
 
-    pub fn update_value_warnings (&self) {
+    pub fn update_value_warnings(&self) {
         let imp = self.imp();
         let value = {
-            match imp.value(){
+            match imp.value() {
                 None => return,
-                Some(value) => value
+                Some(value) => value,
             }
         };
 
         let mut error = false;
 
-        if imp.backend().pref_duplicate_warnings() &&
-            imp.backend().game_broken(self.pos()) {
-                error = true;
-        }
-        else if imp.backend().pref_solution_warnings() {
+        if imp.backend().pref_duplicate_warnings() && imp.backend().game_broken(self.pos()) {
+            error = true;
+        } else if imp.backend().pref_solution_warnings() {
             let solution = imp.backend().game_solution(self.pos());
             error = value != solution;
         }
 
         if error {
             imp.value_label.add_css_class("error");
-        }
-        else {
+        } else {
             imp.value_label.remove_css_class("error");
         }
     }
 
-    pub fn update_all_earmark_warnings (&self) {
+    pub fn update_all_earmark_warnings(&self) {
         if self.imp().value().is_none() {
             let earmarks = self.imp().backend().game_earmarks(self.pos());
             for num in 0..9 {
@@ -557,43 +576,45 @@ impl SudokuCell {
         }
     }
 
-    pub fn update_earmark_warnings (&self, num: usize) {
+    pub fn update_earmark_warnings(&self, num: usize) {
         let imp = self.imp();
-        let error = imp.backend().pref_earmark_warnings() &&
-            !imp.backend().game_earmark_is_possible(self.pos(), num);
+        let error = imp.backend().pref_earmark_warnings()
+            && !imp.backend().game_earmark_is_possible(self.pos(), num);
 
         if error {
             imp.earmark_labels[num].add_css_class("error");
-        }
-        else {
+        } else {
             imp.earmark_labels[num].remove_css_class("error");
         }
     }
 
-    pub fn add_game_hooks (&self) {
+    pub fn add_game_hooks(&self) {
         let backend = self.imp().backend();
         use crate::game;
-        game!(backend).connect_closure("paused", false, glib::closure_local!(
-            #[weak(rename_to = cell)] self,
-            move |_: SudokuGame, paused: bool|
-            {
-                cell.imp().set_actions(!paused);
-                if paused {
-                    cell.add_css_class("paused");
+        game!(backend).connect_closure(
+            "paused",
+            false,
+            glib::closure_local!(
+                #[weak(rename_to = cell)]
+                self,
+                move |_: SudokuGame, paused: bool| {
+                    cell.imp().set_actions(!paused);
+                    if paused {
+                        cell.add_css_class("paused");
+                    } else {
+                        cell.remove_css_class("paused");
+                    }
                 }
-                else {
-                    cell.remove_css_class("paused");
-                }
-            }
-        ));
+            ),
+        );
     }
 
-    pub fn set_earmark_visibility (&self, num: usize, enabled: bool) {
+    pub fn set_earmark_visibility(&self, num: usize, enabled: bool) {
         self.imp().earmark_skip_animation(num);
-        self.imp().earmark_labels[num].set_visible (enabled);
+        self.imp().earmark_labels[num].set_visible(enabled);
     }
 
-    pub fn update_visibility (&self) {
+    pub fn update_visibility(&self) {
         let backend = self.imp().backend();
         let value = backend.game_value(self.pos());
 
@@ -609,19 +630,18 @@ impl SudokuCell {
 
         let fixed = backend.game_fixed(self.pos());
         self.imp().set_actions(!fixed);
-        if backend.game_fixed(self.pos()){
+        if backend.game_fixed(self.pos()) {
             self.set_css_classes(&["fixed"]);
-        }
-        else {
+        } else {
             self.set_css_classes(&[]);
         }
     }
 
-    pub fn selected (&self) -> bool {
+    pub fn selected(&self) -> bool {
         self.imp().selected.get()
     }
 
-    pub fn update_value_visibility (&self, old_val: Option<usize>, new_val: Option<usize>) {
+    pub fn update_value_visibility(&self, old_val: Option<usize>, new_val: Option<usize>) {
         if let Some(new_val) = new_val {
             self.imp().value_label.set_label(&(new_val + 1).to_string());
         }
