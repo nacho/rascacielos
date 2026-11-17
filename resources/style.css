@@ -128,7 +128,6 @@ overlay.paused > label {
   border-radius: var(--rascacielos-rounded-corner);
   background: rgba(0, 0, 0, 0.75);
   transition: background var(--rascacielos-pause-delay);
-  animation: success-animation forwards 1s;
   animation: slow-appear var(--rascacielos-pause-delay) forwards;
 }
 .paused > rascacielos-value, .paused rascacielos-earmark {

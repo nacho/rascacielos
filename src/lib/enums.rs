@@ -118,35 +118,6 @@ impl<'de> Deserialize<'de> for DifficultyCategory {
     }
 }
 
-impl From<i32> for DifficultyCategory {
-    fn from(value: i32) -> Self {
-        use DifficultyCategory::*;
-        match value {
-            0 => Unknown,
-            1 => Easy,
-            2 => Medium,
-            3 => Hard,
-            4 => VeryHard,
-            5 => Custom,
-            _ => Unknown,
-        }
-    }
-}
-
-impl From<DifficultyCategory> for i32 {
-    fn from(val: DifficultyCategory) -> Self {
-        use DifficultyCategory::*;
-        match val {
-            Unknown => 0,
-            Easy => 1,
-            Medium => 2,
-            Hard => 3,
-            VeryHard => 4,
-            Custom => 5,
-        }
-    }
-}
-
 impl From<u32> for DifficultyCategory {
     fn from(value: u32) -> Self {
         use DifficultyCategory::*;
@@ -173,29 +144,6 @@ impl From<DifficultyCategory> for u32 {
             VeryHard => 4,
             Custom => 5,
         }
-    }
-}
-
-impl FromVariant for DifficultyCategory {
-    fn from_variant(variant: &Variant) -> Option<Self> {
-        use DifficultyCategory::*;
-        let variant = variant.get::<String>().unwrap();
-        let variant = variant.as_str();
-        match variant {
-            "unknown" => Some(Unknown),
-            "easy" => Some(Easy),
-            "medium" => Some(Medium),
-            "hard" => Some(Hard),
-            "very-hard" => Some(VeryHard),
-            "custom" => Some(Custom),
-            _ => panic!(),
-        }
-    }
-}
-
-impl StaticVariantType for DifficultyCategory {
-    fn static_variant_type() -> std::borrow::Cow<'static, VariantTy> {
-        String::static_variant_type()
     }
 }
 

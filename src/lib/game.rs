@@ -642,19 +642,6 @@ impl RascacielosGame {
         self.imp().current_action.set(None);
         self.emit_by_name::<()>("action-completed", &[&changes.action_type]);
     }
-
-    //for testing purposes
-    pub fn _auto_complete(&self) {
-        let n = self.board().size();
-        for row in 0..n {
-            for col in 0..n {
-                let cell = &self.board().cells[row][col];
-                if cell.value.get().is_none_or(|value| value != cell.solution) {
-                    self.insert(Coord { row, col }, cell.solution);
-                }
-            }
-        }
-    }
 }
 
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, glib::Enum)]

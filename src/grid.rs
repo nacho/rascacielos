@@ -447,10 +447,9 @@ mod imp {
 
         pub fn set_font_size(&self, height: i32) {
             let n = self.size.get();
+            let height = height / n as i32;
             for row in &self.cells[..n] {
                 for cell in &row[..n] {
-                    let grid_padding = 10; //for size consistency with <= v50, remove with gtk5
-                    let height = (height - grid_padding) / n as i32;
                     cell.set_font_sizes(height);
                 }
             }
