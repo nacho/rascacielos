@@ -395,6 +395,7 @@ pub fn find_solutions(puzzle: &Puzzle, limit: usize) -> Vec<Vec<u8>> {
 }
 
 /// Counts the solutions of `puzzle`, stopping at `limit`.
+#[cfg(test)]
 pub fn count_solutions(puzzle: &Puzzle, limit: usize) -> usize {
     find_solutions(puzzle, limit).len()
 }

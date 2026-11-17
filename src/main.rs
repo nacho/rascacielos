@@ -29,12 +29,8 @@ mod lib {
     pub mod game;
     #[macro_use]
     pub mod utils;
-    // Not used by the game yet, the sudoku board is replaced later.
-    #[allow(dead_code)]
     pub mod generator;
-    #[allow(dead_code)]
     pub mod puzzle;
-    #[allow(dead_code)]
     pub mod solver;
 }
 
