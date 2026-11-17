@@ -33,6 +33,8 @@ mod lib {
     // Not used by the game yet, the sudoku board is replaced later.
     #[allow(dead_code)]
     pub mod puzzle;
+    #[allow(dead_code)]
+    pub mod solver;
 }
 
 mod config {
