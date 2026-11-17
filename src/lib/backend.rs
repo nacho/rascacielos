@@ -19,6 +19,7 @@
  * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use crate::G_LOG_DOMAIN;
 use gtk::gio;
 use gtk::glib;
 use gtk::prelude::*;
@@ -198,7 +199,7 @@ mod imp {
                 }
                 Err(e) => {
                     if e != RascacielosError::FileNotFound {
-                        eprintln!("{}", e);
+                        glib::warn!("{}", e);
                     }
                 }
             }
@@ -213,9 +214,9 @@ mod imp {
             self.save_game(&self.paths.active_save_file);
 
             if !self.sdata.save() {
-                eprintln!("Error saving data file");
+                glib::warn!("Error saving data file");
             } else {
-                println!("SAVED DATA");
+                glib::debug!("Saved data");
             }
         }
     }
@@ -245,7 +246,7 @@ mod imp {
             if let Err(e) = std::fs::remove_file(&self.paths.active_save_file)
                 && e.kind() != ErrorKind::NotFound
             {
-                eprintln!("{}", e);
+                glib::warn!("{}", e);
             }
         }
 
@@ -340,10 +341,10 @@ mod imp {
             let board = board.to_json(elapsed_time);
             match &mut File::create(file_name) {
                 Ok(file) => match file.write_all(&board.into_bytes()) {
-                    Ok(_) => println!("SAVED GAME"),
-                    Err(e) => eprintln!("Failed to save, {}", e),
+                    Ok(_) => glib::debug!("Saved game"),
+                    Err(e) => glib::warn!("Failed to save, {}", e),
                 },
-                Err(e) => eprintln!("Failed to open save file, {}", e),
+                Err(e) => glib::warn!("Failed to open save file, {}", e),
             }
         }
     }
@@ -554,7 +555,7 @@ impl RascacielosBackend {
         }
 
         for error in errors.iter().enumerate() {
-            eprintln!("{}: {}", error.0, error.1);
+            glib::warn!("{}: {}", error.0, error.1);
         }
 
         false
@@ -616,7 +617,7 @@ impl RascacielosBackend {
                 use std::io::Write;
                 file.write_all(&content.into_bytes()).expect("Error saving");
             }
-            Err(e) => eprintln!("Failed to create file:{}", e),
+            Err(e) => glib::warn!("Failed to create file:{}", e),
         }
     }
 
@@ -659,7 +660,7 @@ impl RascacielosBackend {
                 self.imp().tgame.replace(Some(game));
                 self.notify_tgame();
             }
-            Err(e) => eprintln!("Failed to grab clipboard:{} ", e),
+            Err(e) => glib::debug!("Failed to grab clipboard:{} ", e),
         }
     }
 
@@ -732,7 +733,7 @@ impl RascacielosPaths {
         if let Err(e) = std::fs::create_dir(dir)
             && e.kind() != AlreadyExists
         {
-            eprintln!("Error creating save directory: {}", e);
+            glib::warn!("Error creating save directory: {}", e);
         }
     }
 

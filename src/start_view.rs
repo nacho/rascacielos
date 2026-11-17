@@ -19,6 +19,7 @@
  * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use crate::G_LOG_DOMAIN;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 
@@ -178,7 +179,7 @@ mod imp {
                             }
                             Err(e) => {
                                 if e.matches(DialogError::Failed) {
-                                    eprintln!("{}", e.message())
+                                    glib::warn!("{}", e.message())
                                 }
                             }
                         }
@@ -279,7 +280,7 @@ mod imp {
                 Medium => self.medium_check.set_active(true),
                 Hard => self.hard_check.set_active(true),
                 VeryHard => self.very_hard_check.set_active(true),
-                _ => eprintln!("Unknown difficulty category"),
+                _ => glib::warn!("Unknown difficulty category"),
             }
         }
 

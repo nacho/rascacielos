@@ -19,6 +19,7 @@
  * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use crate::G_LOG_DOMAIN;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 
@@ -82,7 +83,7 @@ mod imp {
         }
 
         fn dispose(&self) {
-            println!("layout disposed");
+            glib::debug!("Layout disposed");
         }
     }
 

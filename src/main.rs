@@ -22,6 +22,10 @@
 // reads better than iterator chains.
 #![allow(clippy::needless_range_loop)]
 
+/// The GLib log domain of the messages logged with `glib::debug!` and
+/// `glib::warn!`.
+pub const G_LOG_DOMAIN: &str = "rascacielos";
+
 mod lib {
     pub mod backend;
     pub mod board;
@@ -138,7 +142,7 @@ mod imp {
         }
 
         fn dispose(&self) {
-            println!("app disposed");
+            glib::debug!("App disposed");
         }
     }
     impl GtkApplicationImpl for RascacielosApplication {}
@@ -191,6 +195,13 @@ fn main() -> glib::ExitCode {
     gettextrs::bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8")
         .expect("Unable to bind the text domain codeset");
     gettextrs::textdomain(GETTEXT_PACKAGE).expect("Unable to switch to the text domain");
+
+    static GLIB_LOGGER: glib::GlibLogger = glib::GlibLogger::new(
+        glib::GlibLoggerFormat::Plain,
+        glib::GlibLoggerDomain::CrateTarget,
+    );
+    let _ = glib::rs_log::set_logger(&GLIB_LOGGER);
+    glib::rs_log::set_max_level(glib::rs_log::LevelFilter::Debug);
 
     register_resources();
 

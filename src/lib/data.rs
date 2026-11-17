@@ -25,6 +25,7 @@ use std::{
     io::Write,
 };
 
+use crate::G_LOG_DOMAIN;
 use serde::{Deserialize, Serialize};
 
 use crate::lib::{backend::DEFAULT_SIZE, board::RascacielosError, enums::DifficultyCategory};
@@ -108,7 +109,7 @@ impl RascacielosData {
             file.write_all(&str.into_bytes()).expect("Error saving");
             true
         } else {
-            println!("ERROR OPENING FILE");
+            glib::warn!("Error opening file");
             false
         }
     }

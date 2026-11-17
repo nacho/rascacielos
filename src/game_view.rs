@@ -19,6 +19,7 @@
  * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use crate::G_LOG_DOMAIN;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 
@@ -450,7 +451,7 @@ mod imp {
                             }
                             Err(e) => {
                                 if e.matches(DialogError::Failed) {
-                                    eprintln!("{}", e.message())
+                                    glib::warn!("{}", e.message())
                                 }
                             }
                         }
@@ -482,7 +483,7 @@ mod imp {
                             }
                             Err(e) => {
                                 if e.matches(DialogError::Failed) {
-                                    eprintln!("{}", e.message())
+                                    glib::warn!("{}", e.message())
                                 }
                             }
                         }
@@ -551,7 +552,7 @@ mod imp {
                                 .obj()
                                 .activate_action("app.start-generated-game", None)
                                 .unwrap(),
-                            _ => println!("dialog answer {}", response),
+                            _ => glib::debug!("Dialog answer {}", response),
                         }
                         dialog.close();
                     }
@@ -686,7 +687,7 @@ mod imp {
         }
 
         fn dispose(&self) {
-            println!("game-view disposed");
+            glib::debug!("Game-view disposed");
         }
     }
 

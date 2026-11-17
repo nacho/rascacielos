@@ -120,6 +120,9 @@ release workflow.
 
 ### Code Conventions
 - All user-visible strings must be translatable via gettext
+- Log with `glib::debug!` and `glib::warn!` (domain `rascacielos`, import
+  `crate::G_LOG_DOMAIN`), not `println!`; show debug messages with
+  `G_MESSAGES_DEBUG=rascacielos`
 - Separate UI templates (XML) from logic (Rust)
 - Keep the puzzle logic in `src/lib/{puzzle,solver,generator}.rs` free of GTK
 - Draw with GTK (`gtk::Snapshot`, `GskPath`), not cairo directly; the printer

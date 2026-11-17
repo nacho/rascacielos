@@ -19,6 +19,7 @@
  * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use crate::G_LOG_DOMAIN;
 use fastrand::Rng;
 use gtk::glib;
 use gtk::glib::SourceId;
@@ -287,7 +288,7 @@ impl RascacielosGame {
             }
         });
 
-        println!(
+        glib::debug!(
             "Generated {count} {n}×{n} puzzles in {}ms",
             time.elapsed().unwrap_or_default().as_millis()
         );

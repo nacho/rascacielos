@@ -19,6 +19,7 @@
  * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use crate::G_LOG_DOMAIN;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 
@@ -532,7 +533,7 @@ mod imp {
             for separator in &self.cell_vertical_separators {
                 separator.unparent();
             }
-            println!("Grid disposed");
+            glib::debug!("Grid disposed");
         }
     }
 

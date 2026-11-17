@@ -19,6 +19,7 @@
  * along with Rascacielos. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use crate::G_LOG_DOMAIN;
 use gtk::glib::types::{StaticType, Type};
 use gtk::glib::value::{FromValue, GenericValueTypeChecker, ToValue, Value};
 use gtk::glib::variant::{FromVariant, StaticVariantType, ToVariant};
@@ -77,7 +78,7 @@ impl DifficultyCategory {
             Hard => gettext("Hard Difficulty"),
             VeryHard => gettext("Very Hard Difficulty"),
             _ => {
-                eprintln!("Unknown difficulty, this is a bug - please report it");
+                glib::warn!("Unknown difficulty, this is a bug - please report it");
                 "BUG - UNKNOWN DIFFICULTY".to_string()
             }
         }
@@ -92,7 +93,7 @@ impl DifficultyCategory {
             "Very Hard Difficulty" => VeryHard,
             "Custom Difficulty" => Custom,
             _ => {
-                eprintln!("Unknown difficulty, this is a bug - please report it");
+                glib::warn!("Unknown difficulty, this is a bug - please report it");
                 Unknown
             }
         }
@@ -253,7 +254,7 @@ impl ZoomLevel {
             Small => Medium,
             Medium => Large,
             _ => {
-                eprintln!("Zoom error");
+                glib::warn!("Zoom error");
                 Medium
             }
         }
@@ -265,7 +266,7 @@ impl ZoomLevel {
             Large => Medium,
             Medium => Small,
             _ => {
-                eprintln!("Zoom error");
+                glib::warn!("Zoom error");
                 Medium
             }
         }
@@ -278,7 +279,7 @@ impl ZoomLevel {
             Medium => 0.5,
             Large => 0.6,
             _ => {
-                eprintln!("Zoom error");
+                glib::warn!("Zoom error");
                 0.5
             }
         }
@@ -291,7 +292,7 @@ impl ZoomLevel {
             Medium => 0.25,
             Large => 0.3,
             _ => {
-                eprintln!("Zoom error");
+                glib::warn!("Zoom error");
                 0.25
             }
         }
