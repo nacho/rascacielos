@@ -42,6 +42,8 @@ mod picker_popover;
 mod value_picker;
 mod earmark_picker;
 mod print_generator_dialog;
+#[cfg(test)]
+mod ui_tests;
 
 use adw::prelude::*;
 use adw::subclass::prelude::*;
@@ -154,6 +156,13 @@ impl RascacielosApplication {
     }
 }
 
+fn register_resources() {
+    let resources = gio::Resource::from_data(&glib::Bytes::from_static(config::RASCACIELOS_RESOURCES))
+        .expect("failed to load resources");
+
+    gio::resources_register(&resources);
+}
+
 fn main() -> glib::ExitCode {
     use config::*;
     setlocale(LocaleCategory::LcAll, "");
@@ -163,10 +172,7 @@ fn main() -> glib::ExitCode {
         .expect("Unable to bind the text domain codeset");
     gettextrs::textdomain(GETTEXT_PACKAGE).expect("Unable to switch to the text domain");
 
-    let resources = gio::Resource::from_data(&glib::Bytes::from_static(RASCACIELOS_RESOURCES))
-        .expect("failed to load resources");
-
-    gio::resources_register(&resources);
+    register_resources();
 
     let app = RascacielosApplication::new();
     return app.run();
