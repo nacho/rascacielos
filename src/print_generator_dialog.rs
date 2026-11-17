@@ -87,11 +87,11 @@ mod imp {
                 }
             }
 
-            let boards = SudokuBackend::generate_multiple_puzzles(
+            boards.extend(SudokuBackend::generate_multiple_puzzles(
                 crate::lib::backend::DEFAULT_SIZE,
                 difficulty_category,
                 puzzles_to_generate,
-            );
+            ));
             self.send_to_printer(boards, puzzles_per_page);
         }
 
