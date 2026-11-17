@@ -3,3 +3,4 @@
 /builddir/
 /.flatpak-builder/
 /_build-flatpak/
+/data/gschemas.compiled

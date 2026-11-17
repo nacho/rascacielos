@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Rascacielos needs GTK >= 4.19.3 and libadwaita >= 1.10, which no Ubuntu
+# runner ships yet, so everything runs inside the GNOME 51 Flatpak SDK.
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51
+      options: --privileged
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install the Rust SDK extension
+      run: |
+        flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+        flatpak --user install -y --noninteractive flathub org.freedesktop.Sdk.Extension.rust-stable//26.08
+
+    - name: Set up the SDK sandbox
+      run: |
+        flatpak build-init /tmp/sdk io.github.nacho.rascacielos.Devel org.gnome.Sdk//51 org.gnome.Platform//51
+        cat > /tmp/sdk-run <<EOS
+        #!/bin/sh
+        exec flatpak build --share=network --filesystem="$PWD" \
+          --env=PATH=/usr/bin:/usr/lib/sdk/rust-stable/bin \
+          /tmp/sdk sh -c "cd '$PWD' && \$*"
+        EOS
+        chmod +x /tmp/sdk-run
+
+    - name: Check formatting
+      run: /tmp/sdk-run cargo fmt --check
+
+    - name: Run clippy
+      run: /tmp/sdk-run cargo clippy --all-targets -- -D warnings
+
+    - name: Build with Cargo
+      run: /tmp/sdk-run cargo build
+
+    - name: Run tests
+      run: /tmp/sdk-run cargo test
+
+    - name: Build and test with Meson
+      run: |
+        /tmp/sdk-run meson setup builddir -Dprofile=Devel
+        /tmp/sdk-run meson compile -C builddir
+        /tmp/sdk-run meson test -C builddir --print-errorlogs
+
+  flatpak:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51
+      options: --privileged
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: rascacielos-devel.flatpak
+        manifest-path: build-aux/io.github.nacho.rascacielos.Devel.json
+        cache-key: flatpak-builder-${{ github.sha }}

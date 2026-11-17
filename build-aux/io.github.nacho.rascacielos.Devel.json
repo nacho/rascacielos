@@ -45,7 +45,13 @@
             "sources" : [
                 {
                     "type" : "dir",
-                    "path" : ".."
+                    "path" : "..",
+                    "skip" : [
+                        "_build",
+                        "_build-flatpak",
+                        "builddir",
+                        "target"
+                    ]
                 }
             ]
         }

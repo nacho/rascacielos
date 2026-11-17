@@ -1,0 +1,11 @@
+#!/bin/sh
+# Git pre-commit hook: refuse commits that are not formatted with rustfmt.
+# Install it with:
+#
+#   ln -s ../../build-aux/pre-commit .git/hooks/pre-commit
+
+if ! cargo fmt --check >/dev/null 2>&1; then
+    cargo fmt
+    echo "The code was not formatted. It has been formatted now: review and stage the changes, then commit again." >&2
+    exit 1
+fi
