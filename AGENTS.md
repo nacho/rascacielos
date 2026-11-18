@@ -96,10 +96,9 @@ release workflow.
 
 ## Tooling & Config
 
-- **CI** (`.github/workflows/ci.yml`): inside the GNOME 51 Flatpak SDK,
-  `cargo fmt --check` → `cargo clippy --all-targets -D warnings` →
-  `cargo build` → `cargo test` → Meson build and test; a second job builds the
-  Devel Flatpak bundle.
+- **CI** (`.github/workflows/ci.yml`): on `ubuntu-26.04` with the distribution
+  GTK and libadwaita, `cargo fmt --check` → `cargo clippy --all-targets -D
+  warnings` → `cargo build` → `cargo test` → Meson build and test.
 - **Pre-commit hook**: `ln -s ../../build-aux/pre-commit .git/hooks/pre-commit`
   runs `cargo fmt --check` and formats the code if needed.
 

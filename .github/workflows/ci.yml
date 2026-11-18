@@ -6,69 +6,42 @@ on:
   pull_request:
     branches: [ main ]
 
-# Rascacielos needs GTK >= 4.19.3 and libadwaita >= 1.10, which no Ubuntu
-# runner ships yet, so everything runs inside the GNOME 51 Flatpak SDK.
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51
-      options: --privileged
+  test:
+    # Pinned to ubuntu-26.04 (GNOME 50 / GTK 4.22 / libadwaita 1.9): the
+    # project requires GTK >= 4.22 and libadwaita >= 1.9, which ubuntu-24.04
+    # does not provide. Revisit once `ubuntu-latest` migrates to 26.04.
+    runs-on: ubuntu-26.04
 
     steps:
     - uses: actions/checkout@v4
 
-    # The checkout belongs to the runner user. Root in the container can
-    # still write to it, but not root inside the flatpak sandbox, which has
-    # no capabilities, so cargo and meson could not create their output.
-    - name: Let the SDK sandbox write to the checkout
-      run: chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
-
-    - name: Install the Rust SDK extension
+    - name: Install dependencies
       run: |
-        flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-        flatpak --user install -y --noninteractive flathub org.freedesktop.Sdk.Extension.rust-stable//26.08
+        sudo apt-get update
+        sudo apt-get install -y libgtk-4-dev libadwaita-1-dev meson ninja-build gettext desktop-file-utils appstream
 
-    - name: Set up the SDK sandbox
-      run: |
-        flatpak build-init /tmp/sdk io.github.nacho.rascacielos.Devel org.gnome.Sdk//51 org.gnome.Platform//51
-        cat > /tmp/sdk-run <<EOS
-        #!/bin/sh
-        exec flatpak build --share=network --filesystem="$PWD" \
-          --env=PATH=/usr/bin:/usr/lib/sdk/rust-stable/bin \
-          /tmp/sdk sh -c "cd '$PWD' && \$*"
-        EOS
-        chmod +x /tmp/sdk-run
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        components: rustfmt, clippy
 
     - name: Check formatting
-      run: /tmp/sdk-run cargo fmt --check
+      run: cargo fmt --check
 
     - name: Run clippy
-      run: /tmp/sdk-run cargo clippy --all-targets -- -D warnings
+      run: cargo clippy --all-targets -- -D warnings
 
     - name: Build with Cargo
-      run: /tmp/sdk-run cargo build
+      run: cargo build --verbose
 
     - name: Run tests
-      run: /tmp/sdk-run cargo test
+      run: cargo test --verbose
 
-    - name: Build and test with Meson
+    - name: Build with Meson
       run: |
-        /tmp/sdk-run meson setup builddir -Dprofile=Devel
-        /tmp/sdk-run meson compile -C builddir
-        /tmp/sdk-run meson test -C builddir --print-errorlogs
-
-  flatpak:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51
-      options: --privileged
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
-      with:
-        bundle: rascacielos-devel.flatpak
-        manifest-path: build-aux/io.github.nacho.rascacielos.Devel.json
-        cache-key: flatpak-builder-${{ github.sha }}
+        meson setup builddir
+        meson compile -C builddir
+        meson test -C builddir --print-errorlogs
