@@ -118,6 +118,19 @@ release workflow.
   (`MEASURE_TIER=Hard` limits it to one tier)
 - Translations: `meson compile -C builddir rascacielos-pot`, then update `po/*.po`
 
+### Release Process
+1. Update version in `Cargo.toml` and `meson.build`
+2. Add release entry in `data/io.github.nacho.rascacielos.metainfo.xml.in.in` with:
+   - New version number
+   - Release date (YYYY-MM-DD format, use current date)
+   - List of changes since last release
+3. Generate changelog: `git log vPREVIOUS..HEAD --oneline --no-merges`
+4. Organize changes into categories: **Added**, **Improved**, **Fixed**, **Updated**
+5. Run `cargo fmt` and `cargo update -p rascacielos`
+6. Commit as "Release X.Y.Z"
+7. Tag `vX.Y.Z`
+8. Push changes and tags: `git push && git push --tags`
+
 ### Code Conventions
 - All user-visible strings must be translatable via gettext
 - Log with `glib::debug!` and `glib::warn!` (domain `rascacielos`, import
