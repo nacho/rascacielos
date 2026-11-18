@@ -18,6 +18,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # The checkout belongs to the runner user. Root in the container can
+    # still write to it, but not root inside the flatpak sandbox, which has
+    # no capabilities, so cargo and meson could not create their output.
+    - name: Let the SDK sandbox write to the checkout
+      run: chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
+
     - name: Install the Rust SDK extension
       run: |
         flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
