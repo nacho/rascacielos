@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rascacielos\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 20:50+0100\n"
+"POT-Creation-Date: 2026-11-18 09:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,61 +38,61 @@ msgstr ""
 msgid "Initialize the earmarks with the possible values for each cell"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:17
+#: data/io.github.nacho.rascacielos.gschema.xml:14
 msgid ""
 "Check for duplicates in rows and columns and for clues that do not match "
 "full lines"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:21
+#: data/io.github.nacho.rascacielos.gschema.xml:18
 msgid "Check earmarks against duplicates in row and column"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:25
+#: data/io.github.nacho.rascacielos.gschema.xml:22
 msgid "Warn as soon as the buildings placed next to a clue contradict it"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:29
+#: data/io.github.nacho.rascacielos.gschema.xml:26
 msgid "Toggle timer and pause buttons"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:33
+#: data/io.github.nacho.rascacielos.gschema.xml:30
 msgid "Additionally check against the solution for warnings"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:37
+#: data/io.github.nacho.rascacielos.gschema.xml:34
 msgid "Automatically clear related earmarks on new number insertion"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:41
+#: data/io.github.nacho.rascacielos.gschema.xml:38
 msgid "Display number picker on second click"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:45
+#: data/io.github.nacho.rascacielos.gschema.xml:42
 msgid "Highlight the selected cell's row and column"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:49
+#: data/io.github.nacho.rascacielos.gschema.xml:46
 msgid "Highlight the selected cell's matching numbers"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:53
+#: data/io.github.nacho.rascacielos.gschema.xml:50
 msgid "Zoom level"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:57
+#: data/io.github.nacho.rascacielos.gschema.xml:54
 msgid "Width of the window in pixels"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:61
+#: data/io.github.nacho.rascacielos.gschema.xml:58
 msgid "Height of the window in pixels"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:65
+#: data/io.github.nacho.rascacielos.gschema.xml:62
 msgid "true if the window is maximized"
 msgstr ""
 
-#: data/io.github.nacho.rascacielos.gschema.xml:69
+#: data/io.github.nacho.rascacielos.gschema.xml:66
 msgid "true if the window is fullscreen"
 msgstr ""
 
@@ -154,17 +154,35 @@ msgid "Ignacio Casal Quinteiro"
 msgstr ""
 
 #: data/io.github.nacho.rascacielos.metainfo.xml.in.in:64
-msgid "First release."
-msgstr ""
-
-#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:66
-msgid "Skyscrapers puzzles from 4×4 to 7×7 in four difficulties."
-msgstr ""
-
-#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:67
 msgid ""
-"Pencil marks, warnings, highscores, sharing and printing, inherited from "
-"GNOME Sudoku."
+"First release of Rascacielos, a skyscrapers puzzle based on GNOME Sudoku."
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:68
+msgid ""
+"Generated puzzles from 4×4 to 7×7 in four difficulties, each with a single "
+"solution"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:69
+msgid ""
+"Clues drawn as arrows around the grid, with warnings when they are "
+"contradicted"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:70
+msgid ""
+"Pencil marks, undo and redo, a timer and highscores for every size and "
+"difficulty"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:71
+msgid ""
+"Share puzzles with a short code, export and open them as text, and print them"
+msgstr ""
+
+#: data/io.github.nacho.rascacielos.metainfo.xml.in.in:72
+msgid "Spanish translation"
 msgstr ""
 
 #: resources/ui/game-view.ui:8
@@ -195,7 +213,7 @@ msgstr ""
 msgid "Clock"
 msgstr ""
 
-#: resources/ui/menu-button.ui:8 src/game_view.rs:533
+#: resources/ui/menu-button.ui:8 src/game_view.rs:535
 msgid "_New Game…"
 msgstr ""
 
@@ -549,7 +567,7 @@ msgctxt "Difficulty"
 msgid "_Very Hard"
 msgstr ""
 
-#: resources/ui/start-view.ui:167 src/start_view.rs:153
+#: resources/ui/start-view.ui:167 src/start_view.rs:155
 msgid "_Start Game"
 msgstr ""
 
@@ -565,57 +583,57 @@ msgstr ""
 msgid "_Open…"
 msgstr ""
 
-#: src/lib/enums.rs:74
+#: src/lib/enums.rs:76
 msgid "Easy Difficulty"
 msgstr ""
 
-#: src/lib/enums.rs:75
+#: src/lib/enums.rs:77
 msgid "Medium Difficulty"
 msgstr ""
 
-#: src/lib/enums.rs:76
+#: src/lib/enums.rs:78
 msgid "Hard Difficulty"
 msgstr ""
 
-#: src/lib/enums.rs:77
+#: src/lib/enums.rs:79
 msgid "Very Hard Difficulty"
 msgstr ""
 
-#: src/earmark_picker.rs:73
+#: src/earmark_picker.rs:75
 msgid "Lock"
 msgstr ""
 
-#: src/earmark_picker.rs:81 src/value_picker.rs:75
+#: src/earmark_picker.rs:83 src/value_picker.rs:77
 msgid "Clear"
 msgstr ""
 
-#: src/game_view.rs:425
+#: src/game_view.rs:427
 msgid "Puzzle copied to clipboard"
 msgstr ""
 
-#: src/game_view.rs:466
+#: src/game_view.rs:468
 msgctxt ".txt is a file extension"
 msgid "Skyscrapers puzzle.txt"
 msgstr ""
 
-#: src/game_view.rs:522
+#: src/game_view.rs:524
 msgid "Puzzle Completed!"
 msgstr ""
 
-#: src/game_view.rs:524
+#: src/game_view.rs:526
 msgid "_Quit"
 msgstr ""
 
-#: src/game_view.rs:527
+#: src/game_view.rs:529
 msgid "_Change Difficulty"
 msgstr ""
 
-#: src/game_view.rs:528 src/game_view.rs:532
+#: src/game_view.rs:530 src/game_view.rs:534
 msgid "_Play Again"
 msgstr ""
 
 #. Help string for command line --version flag
-#: src/main.rs:178
+#: src/main.rs:179
 msgid "Show release version"
 msgstr ""
 
@@ -627,22 +645,22 @@ msgstr ""
 msgid "_Close"
 msgstr ""
 
-#: src/start_view.rs:204
+#: src/start_view.rs:206
 msgid "Failed to import the puzzle, please enter a valid skyscrapers puzzle"
 msgstr ""
 
-#: src/start_view.rs:208
+#: src/start_view.rs:210
 msgid "_Cancel"
 msgstr ""
 
-#: src/start_view.rs:209
+#: src/start_view.rs:211
 msgid "_Try Again"
 msgstr ""
 
-#: src/window.rs:367
+#: src/window.rs:369
 msgid "Based on GNOME Sudoku by"
 msgstr ""
 
-#: src/window.rs:368
+#: src/window.rs:370
 msgid "translator-credits"
 msgstr ""

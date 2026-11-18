@@ -59,12 +59,17 @@
     <display_length compare="ge">360</display_length>
   </requires>
   <releases>
-    <release version="0.1.0" date="2026-11-17" type="stable">
+    <release version="0.1.0" date="2026-11-17">
       <description>
-        <p>First release.</p>
+        <p>
+          First release of Rascacielos, a skyscrapers puzzle based on GNOME Sudoku.
+        </p>
         <ul>
-          <li>Skyscrapers puzzles from 4×4 to 7×7 in four difficulties.</li>
-          <li>Pencil marks, warnings, highscores, sharing and printing, inherited from GNOME Sudoku.</li>
+          <li>Generated puzzles from 4×4 to 7×7 in four difficulties, each with a single solution</li>
+          <li>Clues drawn as arrows around the grid, with warnings when they are contradicted</li>
+          <li>Pencil marks, undo and redo, a timer and highscores for every size and difficulty</li>
+          <li>Share puzzles with a short code, export and open them as text, and print them</li>
+          <li>Spanish translation</li>
         </ul>
       </description>
     </release>
