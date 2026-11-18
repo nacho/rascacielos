@@ -8,7 +8,7 @@ with heights 1..N, each once per row and column, so that the clues around
 the edge match how many buildings are visible from that side.
 
 Built with Rust (edition 2024), GTK 4 (`v4_22` feature) and libadwaita
-(`v1_10` feature), Meson for production and Cargo for development. App ID
+(`v1_9` feature), Meson for production and Cargo for development. App ID
 `io.github.nacho.rascacielos` (`.Devel` for the Devel profile).
 
 Types use the `Rascacielos` prefix and CSS nodes and custom properties the
@@ -86,9 +86,10 @@ release workflow.
   processors; callers on the main thread wrap it in `gio::spawn_blocking`.
 - **Game tests share one `#[test]`**: games start a clock on the default
   main context, which only one thread can own (`lib/game.rs` tests).
-- **Toolkit versions**: Ubuntu 24.04 does not ship GTK 4.22 or libadwaita
-  1.10. Build and run inside the GNOME 51 Flatpak SDK (GNOME Builder, or
-  `flatpak build` on a `flatpak build-init` directory).
+- **Toolkit versions**: GTK 4.22 and libadwaita 1.9 (GNOME 50, Ubuntu
+  26.04) or newer. On older distributions such as Ubuntu 24.04, build and
+  run inside the GNOME Flatpak SDK (GNOME Builder, or `flatpak build` on a
+  `flatpak build-init` directory).
 - **Merged translations are stale after editing `po/`**: Meson does not
   rebuild the merged desktop/metainfo files when a `.po` changes, and reads
   `po/LINGUAS` only at configure time. Delete the merged files or reconfigure.

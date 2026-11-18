@@ -23,7 +23,7 @@ endif
 
 dependency('gio-2.0', version: '>= 2.80.0')
 dependency('gtk4', version: '>= 4.19.3')
-dependency('libadwaita-1', version: '>= 1.10')
+dependency('libadwaita-1', version: '>= 1.9')
 cargo = find_program('cargo')
 
 gettext_package = meson.project_name()

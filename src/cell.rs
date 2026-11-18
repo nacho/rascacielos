@@ -345,13 +345,13 @@ mod imp {
             ));
             self.obj().add_controller(click_controller);
 
-            adw::bind_property_to_css_class(
-                &*self.obj(),
-                "accented",
-                &*self.obj(),
-                "accented",
-                glib::BindingFlags::DEFAULT,
-            );
+            self.obj().connect_accented_notify(|cell| {
+                if cell.accented() {
+                    cell.add_css_class("accented");
+                } else {
+                    cell.remove_css_class("accented");
+                }
+            });
         }
 
         fn dispose(&self) {

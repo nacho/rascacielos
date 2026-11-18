@@ -1,5 +1,5 @@
 To build Rascacielos you need `meson`, `cargo` and
-`rust`, and the development libraries for GTK 4 and libadwaita 1.10 or newer.
+`rust`, and the development libraries for GTK 4 and libadwaita 1.9 or newer (GNOME 50).
 
 The simplest way is to use the GNOME Flatpak SDK through GNOME Builder or
 `flatpak-builder`:
