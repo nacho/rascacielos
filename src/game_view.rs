@@ -451,7 +451,7 @@ mod imp {
                             }
                             Err(e) => {
                                 if e.matches(DialogError::Failed) {
-                                    glib::warn!("{}", e.message())
+                                    glib::warn!("{}", e.message());
                                 }
                             }
                         }
@@ -483,7 +483,7 @@ mod imp {
                             }
                             Err(e) => {
                                 if e.matches(DialogError::Failed) {
-                                    glib::warn!("{}", e.message())
+                                    glib::warn!("{}", e.message());
                                 }
                             }
                         }
@@ -552,7 +552,9 @@ mod imp {
                                 .obj()
                                 .activate_action("app.start-generated-game", None)
                                 .unwrap(),
-                            _ => glib::debug!("Dialog answer {}", response),
+                            _ => {
+                                glib::debug!("Dialog answer {}", response);
+                            }
                         }
                         dialog.close();
                     }

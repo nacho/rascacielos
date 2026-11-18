@@ -341,10 +341,16 @@ mod imp {
             let board = board.to_json(elapsed_time);
             match &mut File::create(file_name) {
                 Ok(file) => match file.write_all(&board.into_bytes()) {
-                    Ok(_) => glib::debug!("Saved game"),
-                    Err(e) => glib::warn!("Failed to save, {}", e),
+                    Ok(_) => {
+                        glib::debug!("Saved game");
+                    }
+                    Err(e) => {
+                        glib::warn!("Failed to save, {}", e);
+                    }
                 },
-                Err(e) => glib::warn!("Failed to open save file, {}", e),
+                Err(e) => {
+                    glib::warn!("Failed to open save file, {}", e);
+                }
             }
         }
     }
@@ -617,7 +623,9 @@ impl RascacielosBackend {
                 use std::io::Write;
                 file.write_all(&content.into_bytes()).expect("Error saving");
             }
-            Err(e) => glib::warn!("Failed to create file:{}", e),
+            Err(e) => {
+                glib::warn!("Failed to create file:{}", e);
+            }
         }
     }
 
@@ -660,7 +668,9 @@ impl RascacielosBackend {
                 self.imp().tgame.replace(Some(game));
                 self.notify_tgame();
             }
-            Err(e) => glib::debug!("Failed to grab clipboard:{} ", e),
+            Err(e) => {
+                glib::debug!("Failed to grab clipboard:{} ", e);
+            }
         }
     }
 

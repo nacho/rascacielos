@@ -179,7 +179,7 @@ mod imp {
                             }
                             Err(e) => {
                                 if e.matches(DialogError::Failed) {
-                                    glib::warn!("{}", e.message())
+                                    glib::warn!("{}", e.message());
                                 }
                             }
                         }
@@ -280,7 +280,9 @@ mod imp {
                 Medium => self.medium_check.set_active(true),
                 Hard => self.hard_check.set_active(true),
                 VeryHard => self.very_hard_check.set_active(true),
-                _ => glib::warn!("Unknown difficulty category"),
+                _ => {
+                    glib::warn!("Unknown difficulty category");
+                }
             }
         }
 
