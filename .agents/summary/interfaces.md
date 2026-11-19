@@ -30,10 +30,9 @@ The backend also has notify signals for its properties: `pref-*`,
 Keyboard shortcuts are set in each widget's `class_init` with
 `utils::new_shortcut*`. Check `setup_actions()` in each file for the exact
 list and parameter types before you use an action name from a template or a
-test. `ui_tests.rs` drives the app through these names. The shortcut
-`app.swap-view` does not match any action (see `review_notes.md`).
-GTK treats `_` and `-` the same in action names, so
-`app.preferences_dialog` reaches `preferences-dialog`.
+test. `ui_tests.rs` drives the app through these names. GTK treats `_` and
+`-` the same in action names, so `app.preferences_dialog` reaches
+`preferences-dialog`.
 
 ## Backend facade
 

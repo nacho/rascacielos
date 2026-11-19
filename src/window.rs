@@ -65,7 +65,6 @@ mod imp {
             new_shortcut(klass, "app.print-generator-dialog", "<Primary>P");
             new_shortcut(klass, "app.new-game", "<Primary>n");
             new_shortcut(klass, "app.toggle-fullscreen", "F11|f");
-            new_shortcut(klass, "app.swap-view", "A");
             new_shortcut(
                 klass,
                 "app.zoom-in",

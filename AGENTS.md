@@ -121,8 +121,7 @@ text, JSON).
 - **Merged translations are stale after editing `po/`**: Meson does not
   rebuild the merged desktop/metainfo files when a `.po` changes, and reads
   `po/LINGUAS` only at configure time. Delete the merged files or reconfigure.
-- **Known dead code**: the `app.swap-view` shortcut has no action, and the
-  `print-generator` action is never registered. See
+- **Known dead code**: the `print-generator` action is never registered. See
   `.agents/summary/review_notes.md` before you rely on an action name.
 
 ## Tooling & Config
