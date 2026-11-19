@@ -8,7 +8,6 @@ changed in the code.
 
 | Finding | Where | Notes |
 |---|---|---|
-| `print_multiple_action` (`print-generator`) is created but never added to the action group | `window.rs` | Dead field. The real action is `print-generator-dialog`. |
 | The `//must remain aligned with gschema` comment on `DifficultyCategory` is stale | `lib/enums.rs` | The schema no longer has a difficulty enum because `start-button-selected` was removed. The same comment on `ZoomLevel` is still correct. |
 | Meson requires `gtk4 >= 4.19.3`, but Cargo uses `v4_22` and the docs say GTK 4.22 | `meson.build` | A system with GTK 4.20 passes configure and then fails in Cargo. |
 | The picker popover's imp struct is `RascacielosNumberPicker`, but its type name is `RascacielosPickerPopover` | `picker_popover.rs` | Harmless, but it makes searching harder. |
@@ -39,10 +38,9 @@ changed in the code.
 
 ## Recommendations
 
-1. Remove `print_multiple_action`, or document why it stays.
-2. Raise the Meson GTK check to `>= 4.22` so that it matches the Cargo
+1. Raise the Meson GTK check to `>= 4.22` so that it matches the Cargo
    feature.
-3. Re-run `measure_availability` after any solver change and update the
+2. Re-run `measure_availability` after any solver change and update the
    table in `puzzles.md` and `generator::available`.
-4. Update `formats.md` whenever `JSON_VERSION`, the share code or the text
+3. Update `formats.md` whenever `JSON_VERSION`, the share code or the text
    format changes.

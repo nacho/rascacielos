@@ -89,7 +89,6 @@ mod imp {
     #[template(resource = "/io/github/nacho/rascacielos/ui/window.ui")]
     pub struct RascacielosWindow {
         pub visible_dialogue_type: Cell<Option<Type>>,
-        pub print_multiple_action: SimpleAction,
         pub new_game_action: SimpleAction,
         pub start_generated_game_action: SimpleAction,
         pub zoom_in_action: SimpleAction,
@@ -180,7 +179,6 @@ mod imp {
                 accent_provider: CssProvider::new(),
                 new_game_action: SimpleAction::new("new-game", None),
                 start_generated_game_action: SimpleAction::new("start-generated-game", None),
-                print_multiple_action: SimpleAction::new("print-generator", None),
                 zoom_in_action: SimpleAction::new("zoom-in", None),
                 zoom_out_action: SimpleAction::new("zoom-out", None),
                 backend: Default::default(),
