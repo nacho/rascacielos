@@ -413,7 +413,7 @@ impl RascacielosGame {
                     continue;
                 }
 
-                let possibilities = self.board().cell_possibilies(pos);
+                let possibilities = self.board().cell_possibilities(pos);
                 for num in 0..n {
                     if !cell.earmarks[num].get() && possibilities[num] {
                         imp.add_earmark_step(&mut item, pos, num, true);

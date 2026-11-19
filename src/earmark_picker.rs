@@ -205,7 +205,7 @@ glib::wrapper! {
 }
 
 impl RascacielosEarmarkPicker {
-    pub fn new_unitialized() -> Self {
+    pub fn new_uninitialized() -> Self {
         build_picker!(Self)
     }
 

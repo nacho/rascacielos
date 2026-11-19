@@ -91,8 +91,8 @@ mod imp {
             Self {
                 backend: Default::default(),
                 picker_stack: stack,
-                value_picker: RascacielosValuePicker::new_unitialized(),
-                earmark_picker: RascacielosEarmarkPicker::new_unitialized(),
+                value_picker: RascacielosValuePicker::new_uninitialized(),
+                earmark_picker: RascacielosEarmarkPicker::new_uninitialized(),
                 state: Default::default(),
             }
         }
@@ -129,7 +129,7 @@ glib::wrapper! {
 }
 
 impl RascacielosPickerPopover {
-    pub fn new_unitialized() -> Self {
+    pub fn new_uninitialized() -> Self {
         let picker_popover: Self = glib::Object::builder()
             .property("autohide", false)
             .property("can-focus", false)

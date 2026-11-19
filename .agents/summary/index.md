@@ -24,7 +24,7 @@ If the code and these files disagree, the code is right. Update the file.
 | `formats.md` | You change import, export, share or save | Share code, text format, JSON save with examples |
 | `workflows.md` | You follow a flow end to end | Sequence diagrams for generating a game and playing a move, opening files and share codes, finishing, printing, release pointer |
 | `dependencies.md` | You add a crate or change toolkit versions | Crates and why each one is there, system requirements, tooling |
-| `review_notes.md` | Before you trust a detail, or when you look for cleanup work | Known inconsistencies in the code (a stale comment, naming), documentation gaps |
+| `review_notes.md` | Before you trust a detail, or when you look for cleanup work | Known inconsistencies in the code (a stale comment), documentation gaps |
 
 ## Which file for which question
 

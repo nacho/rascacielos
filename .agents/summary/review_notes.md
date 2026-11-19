@@ -8,7 +8,6 @@ changed in the code.
 
 | Finding | Where | Notes |
 |---|---|---|
-| Misspelled names: `new_unitialized`, `cell_possibilies` | Several widgets, `lib/board.rs` | Inherited spelling. Search for these exact names. |
 | The release profile comment says "the board generator is ~10x faster in o2" | `Cargo.toml` | Written for Sudoku's generator. Not re-measured for the skyscrapers generator. |
 
 ## Tooling notes

@@ -255,7 +255,7 @@ impl RascacielosBoard {
 
     /// The values the cell at `pos` can still hold: those allowed by the
     /// clues and given cells that are not already in its row or column.
-    pub fn cell_possibilies(&self, pos: Coord) -> Vec<bool> {
+    pub fn cell_possibilities(&self, pos: Coord) -> Vec<bool> {
         let candidates = self.candidates[pos.row * self.size() + pos.col];
         (0..self.size())
             .map(|num| self.is_earmark_possible(pos, num) && candidates & bit(num as u8 + 1) != 0)
@@ -611,12 +611,12 @@ mod tests {
         let board = board();
         // Row 0 has a clue of 4 on the left, so it must read 1 2 3 4.
         assert_eq!(
-            board.cell_possibilies(pos(0, 1)),
+            board.cell_possibilities(pos(0, 1)),
             [false, true, false, false]
         );
         // Column 3 has a clue of 1 at the top.
         assert_eq!(
-            board.cell_possibilies(pos(0, 3)),
+            board.cell_possibilities(pos(0, 3)),
             [false, false, false, true]
         );
     }

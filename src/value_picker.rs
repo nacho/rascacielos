@@ -166,7 +166,7 @@ glib::wrapper! {
 }
 
 impl RascacielosValuePicker {
-    pub fn new_unitialized() -> Self {
+    pub fn new_uninitialized() -> Self {
         build_picker!(Self)
     }
 

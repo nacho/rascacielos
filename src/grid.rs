@@ -117,7 +117,7 @@ mod imp {
                 selected_row: Cell::new(0),
                 selected_col: Cell::new(0),
                 focus_controller: Default::default(),
-                picker_popover: RascacielosPickerPopover::new_unitialized(),
+                picker_popover: RascacielosPickerPopover::new_uninitialized(),
                 backend: Default::default(),
             }
         }
@@ -636,7 +636,7 @@ glib::wrapper! {
 }
 
 impl RascacielosGrid {
-    pub fn new_unitialized() -> Self {
+    pub fn new_uninitialized() -> Self {
         let grid: Self = glib::Object::builder().build();
 
         grid

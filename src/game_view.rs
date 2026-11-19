@@ -135,7 +135,7 @@ mod imp {
 
     impl Default for RascacielosGameView {
         fn default() -> Self {
-            let grid = RascacielosGrid::new_unitialized();
+            let grid = RascacielosGrid::new_uninitialized();
             Self {
                 is_vertical: Default::default(),
                 width_is_small: Default::default(),

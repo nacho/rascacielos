@@ -66,7 +66,7 @@ graph TB
   `#[derive(CompositeTemplate)]` with
   `#[template(resource = "/io/github/nacho/rascacielos/ui/<name>.ui")]`.
 - **Late initialisation.** Widgets are built from templates or with
-  `new_unitialized()`, then `init(&backend)` stores the backend in a
+  `new_uninitialized()`, then `init(&backend)` stores the backend in a
   `OnceCell` and connects the signals.
 - **Reconnect on game change.** The backend emits `game-changed` whenever a
   game is generated, loaded or started from a share code. Each widget's
