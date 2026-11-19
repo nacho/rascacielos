@@ -29,7 +29,7 @@ character in the corners (`+` when exporting):
 {
   "version": 1,
   "size": 4,
-  "difficulty_category": "Medium",
+  "difficulty_category": "Medium Difficulty",
   "time_elapsed": 12.0,
   "clues": [[0, 3, 2, 1], [2, 1, 3, 3], [4, 3, 1, 2], [1, 2, 2, 0]],
   "cells": [{"position": [0, 0], "value": 1, "fixed": true, "earmarks": []}]

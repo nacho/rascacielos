@@ -63,8 +63,10 @@ Getting this wrong is the most common off-by-one in this codebase.
 ## Enums (`lib/enums.rs`, `lib/puzzle.rs`)
 
 - `DifficultyCategory`: `Unknown`, `Easy` (default), `Medium`, `Hard`,
-  `VeryHard`, `Custom`. It is a `glib::Enum` and is serialised by name in
-  saves and the data file. `to_tier()` and `from_tier()` map the four real
+  `VeryHard`, `Custom`. It is a `glib::Enum`. Saves and the data file store
+  its untranslated `Display` string (`"Easy Difficulty"` … `"Custom
+  Difficulty"`), and unknown strings load as `Unknown`. The print dialog's
+  difficulty rows are the values minus one. `to_tier()` and `from_tier()` map the four real
   difficulties to `puzzle::Tier`. `Custom` is a valid puzzle that only the
   backtracking search solves.
 - `Tier`: `Easy`, `Medium`, `Hard`, `VeryHard`. Has `easier()`.
