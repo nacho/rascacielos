@@ -29,7 +29,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::lib::puzzle::Tier;
 
-//must remain aligned with gschema
+//the values minus one are the rows of the print dialog's difficulty list,
+//and saves store the Display strings
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, glib::Enum, Hash)]
 #[enum_type(name = "DifficultyCategory")]
 pub enum DifficultyCategory {

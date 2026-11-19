@@ -8,7 +8,6 @@ changed in the code.
 
 | Finding | Where | Notes |
 |---|---|---|
-| The `//must remain aligned with gschema` comment on `DifficultyCategory` is stale | `lib/enums.rs` | The schema no longer has a difficulty enum because `start-button-selected` was removed. The same comment on `ZoomLevel` is still correct. |
 | Meson requires `gtk4 >= 4.19.3`, but Cargo uses `v4_22` and the docs say GTK 4.22 | `meson.build` | A system with GTK 4.20 passes configure and then fails in Cargo. |
 | The picker popover's imp struct is `RascacielosNumberPicker`, but its type name is `RascacielosPickerPopover` | `picker_popover.rs` | Harmless, but it makes searching harder. |
 | Misspelled names: `new_unitialized`, `cell_possibilies` | Several widgets, `lib/board.rs` | Inherited spelling. Search for these exact names. |
