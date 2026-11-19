@@ -29,7 +29,7 @@
 
 | Component | File | Responsibility |
 |---|---|---|
-| `RascacielosPickerPopover` | `picker_popover.rs` | One popover shared by all cells, showing either the value or the earmark picker. The imp struct is named `RascacielosNumberPicker`. |
+| `RascacielosPickerPopover` | `picker_popover.rs` | One popover shared by all cells, showing either the value or the earmark picker. |
 | `RascacielosValuePicker` | `value_picker.rs` | Buttons 1..N and clear. Implements `PickerBase`. |
 | `RascacielosEarmarkPicker` | `earmark_picker.rs` | Toggle buttons 1..N for earmarks. Implements `PickerBase`. |
 

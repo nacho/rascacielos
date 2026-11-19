@@ -39,13 +39,13 @@ mod imp {
     use super::*;
 
     #[glib::object_subclass]
-    impl ObjectSubclass for RascacielosNumberPicker {
+    impl ObjectSubclass for RascacielosPickerPopover {
         const NAME: &'static str = "RascacielosPickerPopover";
         type Type = super::RascacielosPickerPopover;
         type ParentType = gtk::Popover;
     }
 
-    pub struct RascacielosNumberPicker {
+    pub struct RascacielosPickerPopover {
         pub backend: OnceCell<RascacielosBackend>,
         pub picker_stack: gtk::Stack,
         pub value_picker: RascacielosValuePicker,
@@ -53,7 +53,7 @@ mod imp {
         pub state: Cell<Option<PopoverPickerState>>,
     }
 
-    impl ObjectImpl for RascacielosNumberPicker {
+    impl ObjectImpl for RascacielosPickerPopover {
         fn constructed(&self) {
             self.parent_constructed();
             self.picker_stack.add_child(&self.value_picker);
@@ -81,7 +81,7 @@ mod imp {
         }
     }
 
-    impl Default for RascacielosNumberPicker {
+    impl Default for RascacielosPickerPopover {
         fn default() -> Self {
             let stack = glib::Object::builder()
                 .property("interpolate-size", true)
@@ -98,8 +98,8 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for RascacielosNumberPicker {}
-    impl PopoverImpl for RascacielosNumberPicker {
+    impl WidgetImpl for RascacielosPickerPopover {}
+    impl PopoverImpl for RascacielosPickerPopover {
         fn closed(&self) {
             self.parent_closed();
             if let Some(state) = self.state.get() {
@@ -123,7 +123,7 @@ mod imp {
 }
 
 glib::wrapper! {
-    pub struct RascacielosPickerPopover(ObjectSubclass<imp::RascacielosNumberPicker>)
+    pub struct RascacielosPickerPopover(ObjectSubclass<imp::RascacielosPickerPopover>)
         @extends gtk::Popover, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::ShortcutManager;
 }
