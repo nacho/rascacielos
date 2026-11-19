@@ -22,7 +22,7 @@ if profile == 'Devel'
 endif
 
 dependency('gio-2.0', version: '>= 2.80.0')
-dependency('gtk4', version: '>= 4.19.3')
+dependency('gtk4', version: '>= 4.22')
 dependency('libadwaita-1', version: '>= 1.9')
 cargo = find_program('cargo')
 

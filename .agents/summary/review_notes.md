@@ -8,7 +8,6 @@ changed in the code.
 
 | Finding | Where | Notes |
 |---|---|---|
-| Meson requires `gtk4 >= 4.19.3`, but Cargo uses `v4_22` and the docs say GTK 4.22 | `meson.build` | A system with GTK 4.20 passes configure and then fails in Cargo. |
 | The picker popover's imp struct is `RascacielosNumberPicker`, but its type name is `RascacielosPickerPopover` | `picker_popover.rs` | Harmless, but it makes searching harder. |
 | Misspelled names: `new_unitialized`, `cell_possibilies` | Several widgets, `lib/board.rs` | Inherited spelling. Search for these exact names. |
 | The release profile comment says "the board generator is ~10x faster in o2" | `Cargo.toml` | Written for Sudoku's generator. Not re-measured for the skyscrapers generator. |
@@ -37,9 +36,7 @@ changed in the code.
 
 ## Recommendations
 
-1. Raise the Meson GTK check to `>= 4.22` so that it matches the Cargo
-   feature.
-2. Re-run `measure_availability` after any solver change and update the
+1. Re-run `measure_availability` after any solver change and update the
    table in `puzzles.md` and `generator::available`.
-3. Update `formats.md` whenever `JSON_VERSION`, the share code or the text
+2. Update `formats.md` whenever `JSON_VERSION`, the share code or the text
    format changes.

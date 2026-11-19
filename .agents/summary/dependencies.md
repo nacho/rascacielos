@@ -21,7 +21,7 @@ in `Cargo.toml` has a comment saying why it is there.
 
 | Requirement | Where it is declared |
 |---|---|
-| GTK ≥ 4.22, libadwaita ≥ 1.9 | Cargo features. Meson checks `gtk4 >= 4.19.3` and `libadwaita-1 >= 1.9`. |
+| GTK ≥ 4.22, libadwaita ≥ 1.9 | Cargo features `v4_22` and `v1_9`, and the Meson dependency checks |
 | GIO ≥ 2.80 | `meson.build` |
 | Meson ≥ 1.4, Cargo, gettext | `meson.build` |
 | `desktop-file-validate`, `appstreamcli` | Optional Meson tests in `data/meson.build` |
