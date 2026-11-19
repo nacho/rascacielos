@@ -10,8 +10,6 @@ None known.
 
 ## Tooling notes
 
-- CI installs Rust with `actions-rs/toolchain@v1`, which is no longer
-  maintained. `dtolnay/rust-toolchain` is the usual replacement.
 - The pre-commit hook only checks `cargo fmt`. Clippy runs only in CI.
 
 ## Documentation gaps

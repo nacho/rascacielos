@@ -32,4 +32,5 @@ On older distributions, build inside the GNOME Flatpak SDK.
 
 - `rustfmt` and `clippy` with `-D warnings`, both in CI and in the pre-commit
   hook (`build-aux/pre-commit`, which only checks formatting).
-- CI installs Rust with `actions-rs/toolchain@v1`.
+- CI installs Rust with `actions-rs/toolchain@v1`, the same as Teclas and
+  Mundi. Keep the workflows of the three apps alike.
