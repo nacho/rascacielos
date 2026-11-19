@@ -6,9 +6,7 @@ changed in the code.
 
 ## Inconsistencies in the code
 
-| Finding | Where | Notes |
-|---|---|---|
-| The release profile comment says "the board generator is ~10x faster in o2" | `Cargo.toml` | Written for Sudoku's generator. Not re-measured for the skyscrapers generator. |
+None known.
 
 ## Tooling notes
 

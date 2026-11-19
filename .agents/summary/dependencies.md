@@ -12,8 +12,6 @@
 | `fastrand` | none | Random numbers for the generator |
 | `glib-build-tools` (build) | none | Compiling the GResource in `build.rs` |
 
-The release profile uses `opt-level = 2`.
-
 The project aims to keep dependencies minimal and well-justified. Each entry
 in `Cargo.toml` has a comment saying why it is there.
 
