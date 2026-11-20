@@ -190,7 +190,11 @@ fn register_resources() {
 
 fn main() -> glib::ExitCode {
     use config::*;
-    setlocale(LocaleCategory::LcAll, "");
+    // SAFETY: called at the start of main, before any other thread exists
+    // that could read the locale concurrently.
+    unsafe {
+        setlocale(LocaleCategory::LcAll, "");
+    }
     gettextrs::bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR).expect("Unable to bind the text domain");
     gettextrs::bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8")
         .expect("Unable to bind the text domain codeset");
